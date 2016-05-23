@@ -6,6 +6,7 @@
 
 # Temp files
 *~
+.ipynb_checkpoints
 
 #Data for editing notebooks
-/05162016Res
+/ExampleData
