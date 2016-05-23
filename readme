@@ -2,6 +2,20 @@ pyRes is a project designed to make processing superconducting resonator data as
 
 To get started, check out the example notebooks (you'll need to install iPython and Jupyter) and do the exercises.
 
+If you want to write custom code to load in some type of file that is not a modern Agilent PNA, just add it to the process_file.py file as a new function.
+
+Short description of files:
+pyRes.py - The main workhorse
+containers.py - Some extra code to make organizing things easy with lots of data
+process_file.py - Ways to get data into pyRes
+fitsS21 - directory containing fit functions for resonator data
+fitsSweep - directory containing fit functions for more complicated things
+resMCMC.py - experimental code for integrating emcee with pyRes
+Example1 - Start here!
+Example2 - Then do this one!
+ExampleData.zip - A ton of actual superconducting resonator data from a Nb microstrip resonator made at ANL
+
+
 Feedback is always appreciated.
 
 -FC
