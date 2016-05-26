@@ -1,3 +1,4 @@
+from __future__ import division
 import pandas as pd
 import numpy as np
 
@@ -40,12 +41,49 @@ class ResonatorSweep(dict):
         pvals = np.empty(len(resList))
 
         for index, res in enumerate(resList):
-            tvals[index] = res.itemp #use itemp to minimize empty data fields
+            tvals[index] = res.temp
             pvals[index] = res.pwr
 
         #Create index vectors containing only the unique values from each list
-        self.tvec = np.unique(tvals)
-        self.pvec = np.unique(pvals)
+        tvec = np.sort(np.unique(tvals)) #This is a working list that will be compressed
+        self.pvec = np.sort(np.unique(pvals))
+
+        #Because of uncertainty and fluctuation in temperature measurements,
+        #not every temperature value / power value combination has data.
+        #We want to assign index values in a smart way to get rid of empty combinations
+
+        self.smartindex = True #Should probably set this with a kwarg at some point
+        #Check to make sure that there aren't any rogue extra points that will mess this up
+        if self.smartindex == True and (len(resList) % len(pvals) == 0):
+            temptvec = [] #Will add to this as we find good index values
+
+            tindex = 0
+            setindices = []
+            settemps = []
+            for temp in tvec:
+                for pwr in self.pvec:
+                    curindex = indexResList(resList, temp, pwr, False)
+                    if curindex is not None:
+                        setindices.append(curindex)
+                        settemps.append(temp)
+
+                if len(setindices) % len(self.pvec) == 0:
+                    #For now this switches to mK instead of K because of the
+                    #stupid way python handles float division (small errors)
+                    itemp = np.round(np.mean(np.asarray(settemps))*1000)
+                    temptvec.append(itemp)
+
+                    for index in setindices:
+                        resList[index].itemp = itemp
+
+                    setindices = []
+                    settemps = []
+
+            self.tvec = np.asarray(temptvec)
+        else:
+            self.tvec = tvec
+            self.smartindex = False
+
 
         #Loop through the parameters list and create a DataFrame for each one
         for pname in params:
@@ -58,7 +96,7 @@ class ResonatorSweep(dict):
                 if pname in res.S21result.params.keys():
                     self[pname][res.pwr][res.itemp] = res.S21result.params[pname].value
                 elif pname == 'temps':
-                    #Since we bin the temps by 0.005 mK for indexing, store the actual temp here
+                    #Since we bin the temps by itemp for indexing, store the actual temp here
                     self[pname][res.pwr][res.itemp] = res.temp
                 elif pname == 'fmin':
                     self[pname][res.pwr][res.itemp] = res.fmin
