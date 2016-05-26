@@ -54,7 +54,7 @@ class ResonatorSweep(dict):
 
         self.smartindex = True #Should probably set this with a kwarg at some point
         #Check to make sure that there aren't any rogue extra points that will mess this up
-        if self.smartindex == True and (len(resList) % len(pvals) == 0):
+        if self.smartindex == True and (len(resList) % len(self.pvec) == 0) and (len(resList)>0):
             temptvec = [] #Will add to this as we find good index values
 
             tindex = 0
@@ -106,6 +106,7 @@ class ResonatorSweep(dict):
                     self[pname][res.pwr][res.itemp] = res.S21result.redchi
                 elif pname == 'feval':
                     self[pname][res.pwr][res.itemp] = res.S21result.nfev
+
 
 #Index a list of resonator objects easily
 def indexResList(resList, temp, pwr, itemp=True):
