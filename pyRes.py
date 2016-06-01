@@ -18,7 +18,6 @@ class Resonator(object):
     def __init__(self, name, temp, pwr, freq, I, Q, sigmaI = None, sigmaQ = None):
         self.name = name
         self.temp = temp
-        self.itemp = np.round(temp/0.005)*0.005 #rounded temp to nearest 5mK for easy indexing
         self.pwr = pwr
         self.freq = np.asarray(freq)
         self.I = np.asarray(I)
@@ -159,7 +158,7 @@ def makeResFromData(dataDict, fitFn = None, **kwargs):
             lmfitRes(res, fitFn, **kwargs)
 
         #Return resonator object plus state variables to make indexing easy
-        return (res, res.itemp, pwr)
+        return (res, res.temp, pwr)
     else:
         return None
 

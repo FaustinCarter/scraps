@@ -10,7 +10,7 @@ class ResonatorSweep(dict):
     """Dictionary object with custom __init__ method"""
 
 
-    def __init__(self, resList):
+    def __init__(self, resList, **kwargs):
         """Formats various scalar quantities into easily parsed pandas DataFrame objects.
 
         Arguments:
@@ -35,26 +35,52 @@ class ResonatorSweep(dict):
         params.append('chisq') #Chi-squared value from fit
         params.append('redchi') #Reduced chi-squared value
         params.append('feval') #Number of function evaluations to converge on fit
+        params.append('listIndex') #Index in resonator list of resonator
+
+        #This flag sets different indexing methods
+        self.smartindex = 'raw'
+
+        #Possible values are 'raw', 'round', 'block'
+        #If round, also must pass 'roundto'
+        if kwargs is not None:
+            for key, val in kwargs.iteritems():
+                if key == 'index':
+                    self.smartindex = val
+
+                if key == 'roundto':
+                    #Value in mK to round temperature index to
+                    self.roundto = val
+
+        if (self.smartindex == 'round') and (self.roundto is None):
+            self.roundto = 5 #Defaults to 5 mK
 
         #Loop through the resList and make lists of power and index temperature
         tvals = np.empty(len(resList))
         pvals = np.empty(len(resList))
 
+        if self.smartindex == 'round':
+            itvals = np.empty(len(resList))
+
         for index, res in enumerate(resList):
             tvals[index] = res.temp
             pvals[index] = res.pwr
 
+            if self.smartindex == 'round':
+                itmp = np.round(res.temp*1000/self.roundto)/(1000/self.roundto)
+                itvals[index] = itmp
+
+
         #Create index vectors containing only the unique values from each list
-        tvec = np.sort(np.unique(tvals)) #This is a working list that will be compressed
+        tvec = np.sort(np.unique(tvals))
         self.pvec = np.sort(np.unique(pvals))
 
         #Because of uncertainty and fluctuation in temperature measurements,
         #not every temperature value / power value combination has data.
         #We want to assign index values in a smart way to get rid of empty combinations
 
-        self.smartindex = True #Should probably set this with a kwarg at some point
+
         #Check to make sure that there aren't any rogue extra points that will mess this up
-        if self.smartindex == True and (len(resList) % len(self.pvec) == 0) and (len(resList)>0):
+        if (self.smartindex == 'block') and (len(resList) % len(self.pvec) == 0) and (len(resList)>0):
             temptvec = [] #Will add to this as we find good index values
 
             tindex = 0
@@ -62,7 +88,7 @@ class ResonatorSweep(dict):
             settemps = []
             for temp in tvec:
                 for pwr in self.pvec:
-                    curindex = indexResList(resList, temp, pwr, False)
+                    curindex = indexResList(resList, temp, pwr)
                     if curindex is not None:
                         setindices.append(curindex)
                         settemps.append(temp)
@@ -73,6 +99,7 @@ class ResonatorSweep(dict):
                     itemp = np.round(np.mean(np.asarray(settemps))*1000)
                     temptvec.append(itemp)
 
+                    #Set the indexing temperature of the resonator object
                     for index in setindices:
                         resList[index].itemp = itemp
 
@@ -80,10 +107,19 @@ class ResonatorSweep(dict):
                     settemps = []
 
             self.tvec = np.asarray(temptvec)
+        elif self.smartindex == 'raw':
+            for res in resList:
+                res.itemp = res.temp
+            self.tvec = tvec
+        elif self.smartindex == 'round':
+            for index, res in enumerate(resList):
+                res.itemp = itvals[index]
+            self.tvec = np.sort(np.unique(itvals))
         else:
             self.tvec = tvec
-            self.smartindex = False
-
+            self.smartindex = 'raw'
+            for res in resList:
+                res.itemp = res.temp
 
         #Loop through the parameters list and create a DataFrame for each one
         for pname in params:
@@ -92,7 +128,7 @@ class ResonatorSweep(dict):
             self[pname] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
 
             #Fill it with as much data as exists
-            for res in resList:
+            for index, res in enumerate(resList):
                 if pname in res.S21result.params.keys():
                     self[pname][res.pwr][res.itemp] = res.S21result.params[pname].value
                 elif pname == 'temps':
@@ -106,10 +142,12 @@ class ResonatorSweep(dict):
                     self[pname][res.pwr][res.itemp] = res.S21result.redchi
                 elif pname == 'feval':
                     self[pname][res.pwr][res.itemp] = res.S21result.nfev
+                elif pname == 'listIndex':
+                    self[pname][res.pwr][res.itemp] = index
 
 
 #Index a list of resonator objects easily
-def indexResList(resList, temp, pwr, itemp=True):
+def indexResList(resList, temp, pwr, itemp=False):
     """Index resList by temp and pwr.
 
     Returns:
