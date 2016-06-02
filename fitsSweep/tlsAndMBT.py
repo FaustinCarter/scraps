@@ -21,9 +21,6 @@ def tlsAndMBT(params, temps, data, eps = None):
     fRef = params['fRef'].value
     alpha = params['alpha'].value
     delta0 = params['delta0'].value
-    tc = params['tc'].value
-    dtc = params['dtc'].value
-    zn = params['zn'].value
 
     #Convert fRef to f0
     f0 = fRef-df
@@ -38,9 +35,7 @@ def tlsAndMBT(params, temps, data, eps = None):
               np.exp(-delta0/(sc.k*temps))+
               2*np.exp(-delta0/(sc.k*temps))*
               np.exp(-sc.h*f0/(2*sc.k*temps))*
-              np.i0(sc.h*f0/(2*sc.k*temps)))+
-
-              0.5*zn*(1+np.tanh((temps-tc)/dtc)))
+              np.i0(sc.h*f0/(2*sc.k*temps))))
 
 
     #Weight the residual if eps is supplied

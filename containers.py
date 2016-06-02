@@ -40,6 +40,9 @@ class ResonatorSweep(dict):
         #This flag sets different indexing methods
         self.smartindex = 'raw'
 
+        #Default the rounding option to 5 mK
+        self.roundto = 5
+
         #Possible values are 'raw', 'round', 'block'
         #If round, also must pass 'roundto'
         if kwargs is not None:
@@ -50,9 +53,6 @@ class ResonatorSweep(dict):
                 if key == 'roundto':
                     #Value in mK to round temperature index to
                     self.roundto = val
-
-        if (self.smartindex == 'round') and (self.roundto is None):
-            self.roundto = 5 #Defaults to 5 mK
 
         #Loop through the resList and make lists of power and index temperature
         tvals = np.empty(len(resList))
@@ -66,7 +66,8 @@ class ResonatorSweep(dict):
             pvals[index] = res.pwr
 
             if self.smartindex == 'round':
-                itmp = np.round(res.temp*1000/self.roundto)/(1000/self.roundto)
+                #itemp is stored in mK
+                itmp = np.round(res.temp*1000/self.roundto)*self.roundto
                 itvals[index] = itmp
 
 
@@ -109,17 +110,17 @@ class ResonatorSweep(dict):
             self.tvec = np.asarray(temptvec)
         elif self.smartindex == 'raw':
             for res in resList:
-                res.itemp = res.temp
-            self.tvec = tvec
+                res.itemp = np.round(res.temp*1000)
+            self.tvec = np.round(tvec*1000)
         elif self.smartindex == 'round':
             for index, res in enumerate(resList):
                 res.itemp = itvals[index]
             self.tvec = np.sort(np.unique(itvals))
         else:
-            self.tvec = tvec
+            self.tvec = np.round(tvec*1000)
             self.smartindex = 'raw'
             for res in resList:
-                res.itemp = res.temp
+                res.itemp = np.round(res.temp*1000)
 
         #Loop through the parameters list and create a DataFrame for each one
         for pname in params:
@@ -147,7 +148,7 @@ class ResonatorSweep(dict):
 
 
 #Index a list of resonator objects easily
-def indexResList(resList, temp, pwr, itemp=False):
+def indexResList(resList, temp, pwr, **kwargs):
     """Index resList by temp and pwr.
 
     Returns:
@@ -157,10 +158,19 @@ def indexResList(resList, temp, pwr, itemp=False):
     resList -- a list of Resonator objects
     temp -- the temperature of a single Resonator object
     pwr -- the power of a single Resonator object
+
+    Keyword Args:
     itemp -- boolean switch to determine whether lookup uses temp or itemp (rounded value of temp)
 
     Note:
     The combination of temp and pwr must be unique. indexResList does not check for duplicates."""
+    itemp = False
+    if kwargs is not None:
+        for key, val in kwargs.iteritems():
+            if key == 'itemp':
+                itemp = val
+
+
     for index, res in enumerate(resList):
         if itemp is True:
             if res.itemp == temp and res.pwr == pwr:
