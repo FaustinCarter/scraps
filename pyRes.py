@@ -78,9 +78,10 @@ class Resonator(object):
         magBaseCoefs = np.polyfit(freqEnds-f0_guess, magEnds, 2)
 
         #Remove any linear variation from the phase (caused by electrical delay)
+        phaseEnds = np.concatenate((self.uphase[0:findex_5pc], self.uphase[-findex_5pc:-1]))
         phaseRot = self.uphase[findex_min]-self.phase[findex_min]+np.pi
 
-        phaseBaseCoefs = np.polyfit(self.freq[0:findex_5pc]-f0_guess, self.uphase[0:findex_5pc]+phaseRot, 1)
+        phaseBaseCoefs = np.polyfit(freqEnds-f0_guess, phaseEnds+phaseRot, 1)
 
         #Set some bounds (resonant frequency should not be within 5% of file end)
         f_min = freq[findex_5pc]
@@ -107,7 +108,7 @@ class Resonator(object):
         self.params.add('qi', value = qi_guess, min = 1, max = 10**8, vary=True)
 
         #Allow for quadratic gain variation
-        self.params.add('gain0', value = magBaseCoefs[2], min = 0, max = 1, vary=True)
+        self.params.add('gain0', value = magBaseCoefs[2], min = 0, vary=True)
         self.params.add('gain1', value = magBaseCoefs[1], vary=True)
         self.params.add('gain2', value = magBaseCoefs[0], vary=True)
 
