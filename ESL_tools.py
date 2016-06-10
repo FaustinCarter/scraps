@@ -1,4 +1,4 @@
-from pyRes import Resonator
+from pyRes import Resonator, makeResFromData
 import numpy as np
 
 def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
@@ -97,7 +97,6 @@ def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
         'units' -- 'mK' or 'K' depending on how you enter 'temp'
         'sweep' -- 'gain', 'rough', or 'fine'. Default is 'rough'."""
     #Set up some default values
-    resNames = ['RES-1']
     units = 0.001
     sweepType = 'rough'
 
