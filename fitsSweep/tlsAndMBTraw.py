@@ -17,9 +17,12 @@ def tlsAndMBT(params, temps, data, eps = None):
     len(temps) == len(data) == len(eps)"""
     #Unpack parameter values from params
     Fd = params['Fd'].value
-    f0 = params['f0'].value
+    df = params['df'].value
+    fRef = params['fRef'].value
     alpha = params['alpha'].value
-    delta0 = params['delta0'].value
+    delta0 = params['delta0'].value*sc.e
+
+    f0 = df+fRef
 
     #Calculate model from parameters
     model = f0+f0*(Fd/sc.pi* #TLS contribution

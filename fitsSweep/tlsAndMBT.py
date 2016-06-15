@@ -20,7 +20,7 @@ def tlsAndMBT(params, temps, data, eps = None):
     Fd = params['Fd'].value
     fRef = params['fRef'].value
     alpha = params['alpha'].value
-    delta0 = params['delta0'].value
+    delta0 = params['delta0'].value*sc.e
 
     #Convert fRef to f0
     f0 = fRef-df
