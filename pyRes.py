@@ -29,6 +29,18 @@ class Resonator(object):
         self.uphase = np.unwrap(self.phase) #Unwrap the 2pi phase jumps
         self.mag = np.abs(self.S21)
 
+        #Whether or not a fit has been run
+        self.hasFit = False
+
+        #These won't exist until the lmfit method is called
+        self.S21result = None
+        self.residualI = None
+        self.residualQ = None
+        self.resultI = None
+        self.resultQ = None
+        self.resultMag = None
+        self.resultPhase = None
+
         #If errorbars are not supplied for I and Q, then estimate them based on
         #the tail of the power-spectral densities
 
@@ -76,6 +88,8 @@ class Resonator(object):
 
         #Recalculate the baseline relative to the new f0_guess
         magBaseCoefs = np.polyfit(freqEnds-f0_guess, magEnds, 2)
+        magBase = np.poly1d(magBaseCoefs)
+        self.baseline = magBase(self.freq-f0_guess)
 
         #Remove any linear variation from the phase (caused by electrical delay)
         phaseEnds = np.concatenate((self.uphase[0:findex_5pc], self.uphase[-findex_5pc:-1]))
@@ -92,12 +106,21 @@ class Resonator(object):
         else:
             f0_guess = freq[findex_center]
 
-        #Design Qc for coupler is 50k
-        #To-do: make a smarter way to guess qc and qi programmatically
-        qc_guess = 50000
+        #Guess the Q values:
+        #1/Q0 = 1/Qc + 1/Qi
+        #Q0 = f0/fwhm bandwidth
+        #Q0/Qi = min(mag)/max(mag)
+        magMax = self.baseline[findex_min]
+        magMin = self.mag[findex_min]
 
-        #Pick some big number for Qi - should probably be smarter about this...
-        qi_guess = 500000
+        fwhm = np.sqrt((magMax**2 + magMin**2)/2.)
+        fwhm_mask = self.mag < fwhm
+        bandwidth = self.freq[fwhm_mask][-1]-self.freq[fwhm_mask][0]
+        q0_guess = f0_guess/bandwidth
+
+        qi_guess = q0_guess*magMax/magMin
+
+        qc_guess = 1./(1./q0_guess-1./qi_guess)
 
         #Create a lmfit parameters dictionary for later fitting
         #Set up assymetric lorentzian parameters (Name, starting value, range, vary, etc):
@@ -119,6 +142,65 @@ class Resonator(object):
         #Add in complex offset (should not be necessary on a VNA, but might be needed for a mixer)
         self.params.add('Ioffset', value = 0, vary=False)
         self.params.add('Qoffset', value = 0, vary=False)
+
+    def lmfit(self, fitFn, **kwargs):
+        """Run lmfit on an existing resonator object and update the results.
+
+        Return value:
+        No return value -- operates on resonator object in place
+
+        Arguments:
+        res -- Existing resonator object. This object will be modified.
+        fitFn -- Any lmfit compatible fit function
+            fitFn arguments: lmfit parameter object, [Idata, Qdata], [I error, Q error]
+        kwargs -- Use this to override any of the lmfit parameter initial guesses
+            example: qi=1e6 is equivalent to calling res.params['qi'].value = 1e6
+        """
+
+        #Update any of the default Parameter guesses
+        if kwargs is not None:
+            for key, val in kwargs.iteritems():
+                if key in self.params.keys():
+                    self.params[key].value = val
+
+                #This was for some debugging, no longer used
+                elif key is 'addpi' and val is True:
+                    self.params['pgain0'].value += np.pi
+
+        #Make complex vectors of the form cData = [reData, imData]
+        cmplxData = np.concatenate((self.I, self.Q), axis=0)
+
+        cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
+
+        #Create a lmfit minimizer object
+        minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self.freq, cmplxData, cmplxSigma))
+
+        #Call the lmfit minimizer method and minimize the residual
+        S21result = minObj.minimize(method = 'leastsq')
+
+        #Add the data back to the final minimized residual to get the final fit
+        #Also calculate all relevant curves
+        cmplxResult = S21result.residual*cmplxSigma+cmplxData
+        cmplxResidual = S21result.residual
+
+        #Split the complex data back up into real and imaginary parts
+        residualI, residualQ = np.split(cmplxResidual, 2)
+        resultI, resultQ = np.split(cmplxResult, 2)
+
+        resultMag = np.abs(resultI + 1j*resultQ)
+        resultPhase = np.arctan2(resultQ,resultI)
+
+        #Set the hasFit flag
+        self.hasFit = True
+
+        #Add some results back to the resonator object
+        self.S21result = S21result
+        self.residualI = residualI
+        self.residualQ = residualQ
+        self.resultI = resultI
+        self.resultQ = resultQ
+        self.resultMag = resultMag
+        self.resultPhase = resultPhase
 
 #This creates a resonator object from a data dictionary. Optionally performs a fit, and
 #adds the fit data back in to the resonator object
@@ -163,6 +245,8 @@ def makeResFromData(dataDict, fitFn = None, **kwargs):
     else:
         return None
 
+#Keep this defined so old code doesn't break. Functionality was moved to
+#a Resonator object module called 'lmfit'
 def lmfitRes(res, fitFn, **kwargs):
     """Run lmfit on an existing resonator object and update the results.
 
@@ -177,44 +261,4 @@ def lmfitRes(res, fitFn, **kwargs):
         example: qi=1e6 is equivalent to calling res.params['qi'].value = 1e6
     """
 
-    #Update any of the default Parameter guesses
-    if kwargs is not None:
-        for key, val in kwargs.iteritems():
-            if key in res.params.keys():
-                res.params[key].value = val
-
-            #This was for some debugging, no longer used
-            elif key is 'addpi' and val is True:
-                res.params['pgain0'].value += np.pi
-
-    #Make complex vectors of the form cData = [reData, imData]
-    cmplxData = np.concatenate((res.I, res.Q), axis=0)
-
-    cmplxSigma = np.concatenate((res.sigmaI, res.sigmaQ), axis=0)
-
-    #Create a lmfit minimizer object
-    minObj = lf.Minimizer(fitFn, res.params, fcn_args=(res.freq, cmplxData, cmplxSigma))
-
-    #Call the lmfit minimizer method and minimize the residual
-    S21result = minObj.minimize(method = 'leastsq')
-
-    #Add the data back to the final minimized residual to get the final fit
-    #Also calculate all relevant curves
-    cmplxResult = S21result.residual*cmplxSigma+cmplxData
-    cmplxResidual = S21result.residual
-
-    #Split the complex data back up into real and imaginary parts
-    residualI, residualQ = np.split(cmplxResidual, 2)
-    resultI, resultQ = np.split(cmplxResult, 2)
-
-    resultMag = np.abs(resultI + 1j*resultQ)
-    resultPhase = np.arctan2(resultQ,resultI)
-
-    #Add some results back to the resonator object
-    res.S21result = S21result
-    res.residualI = residualI
-    res.residualQ = residualQ
-    res.resultI = resultI
-    res.resultQ = resultQ
-    res.resultMag = resultMag
-    res.resultPhase = resultPhase
+    res.lmfit(fitFn, **kwargs)
