@@ -155,11 +155,18 @@ class Resonator(object):
             fitFn arguments: lmfit parameter object, [Idata, Qdata], [I error, Q error]
         kwargs -- Use this to override any of the lmfit parameter initial guesses
             example: qi=1e6 is equivalent to calling res.params['qi'].value = 1e6
+            example: qi_vary=False will fix the parameter
         """
 
         #Update any of the default Parameter guesses
         if kwargs is not None:
             for key, val in kwargs.iteritems():
+                #Allow for turning on and off parameter variation
+                if '_vary' in key:
+                    key = key.split('_')[0]
+                    if key in self.params.keys():
+                        if (val is True) or (val is False):
+                            self.params[key].vary = val
                 if key in self.params.keys():
                     self.params[key].value = val
 
@@ -238,7 +245,7 @@ def makeResFromData(dataDict, fitFn = None, **kwargs):
 
         #Run a fit on the resonator if a fit function is specified
         if fitFn is not None:
-            lmfitRes(res, fitFn, **kwargs)
+            res.lmfit(fitFn, **kwargs)
 
         #Return resonator object plus state variables to make indexing easy
         return (res, res.temp, pwr)
