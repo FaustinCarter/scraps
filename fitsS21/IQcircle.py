@@ -43,6 +43,9 @@ def IQcircle(paramsVec, freqs, data=None, eps=None):
     fs = f0+df
     ff = (freqs-fs)/fs
 
+    #Calculate the total Q_0
+    q0 = 1./(1./qi+1./qc)
+
     #Calculate magnitude and phase gain
     gain = gain0 + gain1*(freqs-fs)+ 0.5*gain2*(freqs-fs)**2
     pgain = np.exp(1j*(pgain0 + pgain1*(freqs-fs)))
@@ -51,7 +54,7 @@ def IQcircle(paramsVec, freqs, data=None, eps=None):
     offset = Ioffset + 1j*Qoffset
 
     #Calculate model from params at each point in freqs
-    modelCmplx = -gain*pgain*(qc+1j*2.0*qc*qi*(ff+df/(f0+df)))/(qi+qc+1j*2.0*qc*qi*ff)+offset
+    modelCmplx = -gain*pgain*(1./qi+1j*2.0*(ff+df/fs))/(1./q0+1j*2.0*ff)+offset
 
     #Package complex data in 1D vector form
     modelI = np.real(modelCmplx)
