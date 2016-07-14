@@ -130,19 +130,19 @@ class ResonatorSweep(dict):
 
             #Fill it with as much data as exists
             for index, res in enumerate(resList):
-                if pname in res.S21result.params.keys():
-                    self[pname][res.pwr][res.itemp] = res.S21result.params[pname].value
+                if pname in res.lmfit_result.params.keys():
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result.params[pname].value
                 elif pname == 'temps':
                     #Since we bin the temps by itemp for indexing, store the actual temp here
                     self[pname][res.pwr][res.itemp] = res.temp
                 elif pname == 'fmin':
                     self[pname][res.pwr][res.itemp] = res.fmin
                 elif pname == 'chisq':
-                    self[pname][res.pwr][res.itemp] = res.S21result.chisqr
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result.chisqr
                 elif pname == 'redchi':
-                    self[pname][res.pwr][res.itemp] = res.S21result.redchi
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result.redchi
                 elif pname == 'feval':
-                    self[pname][res.pwr][res.itemp] = res.S21result.nfev
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result.nfev
                 elif pname == 'listIndex':
                     self[pname][res.pwr][res.itemp] = index
 
