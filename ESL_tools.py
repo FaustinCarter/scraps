@@ -17,11 +17,13 @@ def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
     Keyword arguments:
         'temp' -- float
         'units' -- 'mK' or 'K' depending on how you enter 'temp'
-        'name' -- string. Defaults to 'RES-X'"""
+        'name' -- string. Defaults to 'RES-X'
+        'legacy' -- bool swaps I and Q values if you have an old file"""
     #Set some default values
     units = 0.001
     temp = np.NAN
     name = 'RES-X'
+    legacy = False
 
     #If you change your default sweep types, update this dict here!
     sweepDict = {'gain':201,
@@ -38,8 +40,10 @@ def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
                     units = 0.001
                 elif val == 'K':
                     units = 1
-            if key == 'name':
+            elif key == 'name':
                 name = val
+            elif key == 'legacy':
+                legacy = val
 
     #Open file and read power from header data
     with open(dataFile) as fp:
@@ -61,10 +65,14 @@ def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
     dataDict = {}
     dataDict['freq'] = cdata[startData:endData,0]
 
-    #This is backwards from what the file header specifies
-    #but its the only way the fits seem to work
-    dataDict['Q'] = cdata[startData:endData,1]
-    dataDict['I'] = cdata[startData:endData,2]
+    #Load in the IQ data
+    #Old VNA programs reversed I and Q, so call legacy if trying to load those
+    if legacy:
+        dataDict['Q'] = cdata[startData:endData,1]
+        dataDict['I'] = cdata[startData:endData,2]
+    else:
+        dataDict['I'] = cdata[startData:endData,1]
+        dataDict['Q'] = cdata[startData:endData,2]
     ###
 
     dataDict['temp'] = temp*units
