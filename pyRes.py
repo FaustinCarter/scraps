@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import lmfit as lf
 import scipy.signal as sps
 
@@ -33,13 +32,18 @@ class Resonator(object):
         self.hasFit = False
 
         #These won't exist until the lmfit method is called
-        self.S21result = None
+        self.lmfit_result = None
         self.residualI = None
         self.residualQ = None
         self.resultI = None
         self.resultQ = None
         self.resultMag = None
         self.resultPhase = None
+
+        #These won't exist until the emcee method is called
+        self.emcee_result = None
+        self.corner_args = None
+        self.corner_kwargs = None
 
         #If errorbars are not supplied for I and Q, then estimate them based on
         #the tail of the power-spectral densities
@@ -143,7 +147,7 @@ class Resonator(object):
         self.params.add('Ioffset', value = 0, vary=False)
         self.params.add('Qoffset', value = 0, vary=False)
 
-    def lmfit(self, fitFn, **kwargs):
+    def do_lmfit(self, fitFn, **kwargs):
         """Run lmfit on an existing resonator object and update the results.
 
         Return value:
@@ -170,10 +174,6 @@ class Resonator(object):
                 if key in self.params.keys():
                     self.params[key].value = val
 
-                #This was for some debugging, no longer used
-                elif key is 'addpi' and val is True:
-                    self.params['pgain0'].value += np.pi
-
         #Make complex vectors of the form cData = [reData, imData]
         cmplxData = np.concatenate((self.I, self.Q), axis=0)
 
@@ -183,12 +183,12 @@ class Resonator(object):
         minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self.freq, cmplxData, cmplxSigma))
 
         #Call the lmfit minimizer method and minimize the residual
-        S21result = minObj.minimize(method = 'leastsq')
+        lmfit_result = minObj.minimize(method = 'leastsq')
 
         #Add the data back to the final minimized residual to get the final fit
         #Also calculate all relevant curves
-        cmplxResult = S21result.residual*cmplxSigma+cmplxData
-        cmplxResidual = S21result.residual
+        cmplxResult = lmfit_result.residual*cmplxSigma+cmplxData
+        cmplxResidual = lmfit_result.residual
 
         #Split the complex data back up into real and imaginary parts
         residualI, residualQ = np.split(cmplxResidual, 2)
@@ -201,13 +201,44 @@ class Resonator(object):
         self.hasFit = True
 
         #Add some results back to the resonator object
-        self.S21result = S21result
+        self.lmfit_result = lmfit_result
         self.residualI = residualI
         self.residualQ = residualQ
         self.resultI = resultI
         self.resultQ = resultQ
         self.resultMag = resultMag
         self.resultPhase = resultPhase
+
+    def do_emcee(self, fitFn, **kwargs):
+        #Should do the following (have not implemented any of this yet):
+        #Pack MLE values into their own params object by adding back in non-varying Parameters
+        #Should consider the ability to filter results for better parameter estimations
+        #Probably should make a nice easy output to the corner Package
+        #Smart way to add in error parameter as nuisance without breaking auto-guessing
+
+        #minimizerObj.emcee already updates parameters object to result
+        #This means can call res.emcee_result.params to get results
+
+        cmplxData = np.concatenate((self.I, self.Q), axis=0)
+
+        cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
+
+        #Create a lmfit minimizer object
+        if self.hasFit:
+            emcee_params = self.lmfit_result.params
+        else:
+            emcee_params = self.params
+
+        minObj = lf.Minimizer(fitFn, emcee_params, fcn_args=(self.freq, cmplxData, cmplxSigma))
+
+        #Run the emcee and add the result in
+        emcee_result = minObj.emcee(**kwargs)
+        self.emcee_result = emcee_result
+        self.corner_args = emcee_result.flatchain
+
+        #Make a set of kwargs to pass to a corner object for easy plotting
+        self.corner_kwargs = {'labels': emcee_result.var_names,
+                                'truths': [val.value for key, val in emcee_result.params.iteritems() if val.vary is True]}
 
 #This creates a resonator object from a data dictionary. Optionally performs a fit, and
 #adds the fit data back in to the resonator object
@@ -245,7 +276,7 @@ def makeResFromData(dataDict, fitFn = None, **kwargs):
 
         #Run a fit on the resonator if a fit function is specified
         if fitFn is not None:
-            res.lmfit(fitFn, **kwargs)
+            res.do_lmfit(fitFn, **kwargs)
 
         #Return resonator object plus state variables to make indexing easy
         return (res, res.temp, pwr)
@@ -268,4 +299,4 @@ def lmfitRes(res, fitFn, **kwargs):
         example: qi=1e6 is equivalent to calling res.params['qi'].value = 1e6
     """
 
-    res.lmfit(fitFn, **kwargs)
+    res.do_lmfit(fitFn, **kwargs)
