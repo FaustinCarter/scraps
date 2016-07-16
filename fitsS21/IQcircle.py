@@ -43,12 +43,18 @@ def IQcircle(paramsVec, freqs, data=None, eps=None):
     fs = f0+df
     ff = (freqs-fs)/fs
 
+    #Except for the gain, which should reference the file midpoint
+    #This is important because the baseline coefs shouldn't drift
+    #around with changes in f0 due to power or temperature
+    fm = freqs[np.round((len(freqs)-1)/2.0)]
+    ffm = (freqs-fm)/fm
+
     #Calculate the total Q_0
     q0 = 1./(1./qi+1./qc)
 
     #Calculate magnitude and phase gain
-    gain = gain0 + gain1*(freqs-fs)+ 0.5*gain2*(freqs-fs)**2
-    pgain = np.exp(1j*(pgain0 + pgain1*(freqs-fs)))
+    gain = gain0 + gain1*ffm+ 0.5*gain2*ffm**2
+    pgain = np.exp(1j*(pgain0 + pgain1*ffm))
 
     #Allow for voltage offset of I and Q
     offset = Ioffset + 1j*Qoffset

@@ -70,18 +70,22 @@ class Resonator(object):
         findex_center = np.round(findex_end/2)
         f_midpoint = freq[findex_center]
 
+        #Set up a unitless, reduced, mipoint frequency for baselines
+        ffm = lambda fx : (fx-f_midpoint)/f_midpoint
+
         magEnds = np.concatenate((self.mag[0:findex_5pc], self.mag[-findex_5pc:-1]))
-        freqEnds = np.concatenate((self.freq[0:findex_5pc], self.freq[-findex_5pc:-1]))
+        freqEnds = ffm(np.concatenate((self.freq[0:findex_5pc], self.freq[-findex_5pc:-1])))
 
         #This fits a second order polynomial
-        magBaseCoefs = np.polyfit(freqEnds-f_midpoint, magEnds, 2)
+        magBaseCoefs = np.polyfit(freqEnds, magEnds, 2)
 
         magBase = np.poly1d(magBaseCoefs)
+        self.magBaseline = magBase(ffm(self.freq))
 
         #Store the frequency at the magnitude minimum for future use.
         #Pull out the baseline variation first
 
-        findex_min=np.argmin(self.mag-magBase(self.freq-f_midpoint))
+        findex_min=np.argmin(self.mag-magBase(ffm(self.freq)))
 
         f_at_mag_min = freq[findex_min]
         self.fmin = f_at_mag_min
@@ -90,16 +94,22 @@ class Resonator(object):
         #Update best guess with minimum
         f0_guess = f_at_mag_min
 
+        #Update: now calculating agains file midpoint
+        #This makes sense because you don't want the baseline changing
+        #as f0 shifts around with temperature and power
+
         #Recalculate the baseline relative to the new f0_guess
-        magBaseCoefs = np.polyfit(freqEnds-f0_guess, magEnds, 2)
-        magBase = np.poly1d(magBaseCoefs)
-        self.baseline = magBase(self.freq-f0_guess)
+        # magBaseCoefs = np.polyfit(freqEnds-f0_guess, magEnds, 2)
+        # magBase = np.poly1d(magBaseCoefs)
+        # self.baseline = magBase(self.freq-f0_guess)
 
         #Remove any linear variation from the phase (caused by electrical delay)
         phaseEnds = np.concatenate((self.uphase[0:findex_5pc], self.uphase[-findex_5pc:-1]))
         phaseRot = self.uphase[findex_min]-self.phase[findex_min]+np.pi
 
-        phaseBaseCoefs = np.polyfit(freqEnds-f0_guess, phaseEnds+phaseRot, 1)
+        phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds+phaseRot, 1)
+        phaseBase = np.poly1d(phaseBaseCoefs)
+        self.phaseBaseline = phaseBase(ffm(self.freq))
 
         #Set some bounds (resonant frequency should not be within 5% of file end)
         f_min = freq[findex_5pc]
@@ -114,7 +124,7 @@ class Resonator(object):
         #1/Q0 = 1/Qc + 1/Qi
         #Q0 = f0/fwhm bandwidth
         #Q0/Qi = min(mag)/max(mag)
-        magMax = self.baseline[findex_min]
+        magMax = self.magBaseline[findex_min]
         magMin = self.mag[findex_min]
 
         fwhm = np.sqrt((magMax**2 + magMin**2)/2.)

@@ -1,6 +1,10 @@
 from __future__ import division
 import pandas as pd
 import numpy as np
+import glob
+import matplotlib.pyplot as plt
+from .pyRes import makeResFromData
+from .process_file import process_file
 
 #This is a glorified dictionary with a custom initalize method. It takes a list
 #of resonator objects that have been fit, and then sets up a
@@ -146,6 +150,84 @@ class ResonatorSweep(dict):
                 elif pname == 'listIndex':
                     self[pname][res.pwr][res.itemp] = index
 
+    def plotParamsVsTemp(self, **kwargs):
+        #This will really only work for sure if block is sucessful
+        if self.smartindex == 'block':
+        #To do: fix for other smartindex types
+
+            #set defaults
+            numCols = 4
+            powers = self.pvec
+            keysToIgnore = ['Ioffset',
+                            'Qoffset',
+                            'listIndex',
+                            'temps',
+                            'chisq']
+
+            if kwargs is not None:
+                for key, val in kwargs.iteritems():
+                    if key == 'numCols':
+                        numCols = int(val)
+                    elif key == 'powers':
+                        assert all([p in powers for p in val]), "Can't plot a power that doesn't exist!"
+                        powers = list(val)
+                    elif key == 'keysToIgnore':
+                        assert all([key in self.keys() for key in val]), "Key does not exist!"
+                        keysToIgnore = list(val)
+
+            #Set up the figure
+            figS = plt.figure()
+
+            numKeys = len(self.keys())-len(keysToIgnore)
+            numRows = int(np.ceil(numKeys/numCols))
+
+            #Magic numbers!
+            figS.set_size_inches(6*numCols,6*numRows)
+
+            #Loop through all the keys in the ResonatorSweep object and plot them
+            indexk = 1
+            for key in set(self.keys())-set(keysToIgnore):
+                axs = figS.add_subplot(numRows,numCols,indexk)
+                for pwr in powers:
+                    axs.plot(self.tvec,self[key][pwr],'--',label='Power: '+str(pwr))
+
+                axs.set_xlabel('Temperature (mK)')
+                axs.set_ylabel(key)
+
+                #Stick some legends where they won't crowd too much
+                if key == 'f0' or key == 'fmin':
+                    axs.legend(loc='best')
+
+                indexk += 1
+            return figS
+        else:
+            return None
+
+def makeResList(fileFunc, dataPath, resName):
+    """Create a list of resonator objects from a directory of dataDict
+
+    Returns:
+    resList -- a list of Resonator objects
+
+    Arguments:
+    fileFunc -- the function that converts files into a data dictionary
+    dataPath -- path to the directory holding the data
+    resName -- the name of the resonator you want to pull data from"""
+    #Find the files that match the resonator you care about
+    fileList = glob.glob(dataPath + '*' + resName + '_*' + '*')
+
+    #loop through files and process all the data
+    fileDataDicts = map(fileFunc, fileList)
+
+    #Strip out any bad files
+    fileDataDicts = [fileDataDict for fileDataDict in fileDataDicts if (fileDataDict is not None)]
+
+    #Create resonator objects from the data
+    #makeResFromData returns a tuple of (res, temp, pwr),
+    #but only care about the first one
+    resList = [makeResFromData(fileDataDict)[0] for fileDataDict in fileDataDicts]
+
+    return resList
 
 #Index a list of resonator objects easily
 def indexResList(resList, temp, pwr, **kwargs):
