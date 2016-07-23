@@ -1,3 +1,5 @@
+Note: the example notebooks are currently behind a few builds. I'll update them soon, promise! 7/22/2016
+
 pyRes is a project designed to make processing superconducting resonator data as painless as possible.
 
 To get started, check out the example notebooks (you'll need to install iPython and Jupyter) and do the exercises.
