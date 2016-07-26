@@ -3,18 +3,166 @@ import lmfit as lf
 import scipy.signal as sps
 
 class Resonator(object):
-    """Initializes a resonator object by calculating magnitude, phase, and a variety of parameters.
+    r"""Fit an S21 measurement of a hanger (or notch) type resonator.
 
-    Return value: None
+    Attributes
+    ----------
+    name : string
+        The resonator name. Does not have to be unique, but each physical
+        resonator in the experiment should have a unique name to avoid confusion
+        when using some of the other tools in ``pyres``.
 
-    Arguments:
-    name -- a string containing the resonator name (does not have to be unique)
-    temp -- a float indicating the temperature in (K) of the data
-    I,Q -- numpy array or list of in-phase and quadrature values (linear scale)
-    sigmaI, sigmaQ -- numpy array or list of uncertainty on I and Q values or None"""
+    temp : float
+        The temperature in (K) that the S21 measurement was taken at.
+
+    pwr : float
+        The power (in dBm) at which the resonator was measured.
+
+    freq : array-like[nDataPoints]
+        The frequency points at which the S21 scan was measured.
+
+    I : array-like[nDataPoints]
+        The in-phase (or real part) of the complex S21 measurement. Units are
+        typically volts, and I should be specified in linear units (as opposed
+        to dB).
+
+    Q : array-like[nDataPoints]
+        The out-of-phase (or imaginary part) of the complex S21 measurement.
+        Units are typically volts, and I should be specified in linear units (as
+        opposed to dB).
+
+    sigmaI : array-like[nDataPoints]
+        An array of uncertaintly values for each data point in `I`. Default
+        is to calculate this from the tail of the power-spectral density of `I`.
+
+    sigmaQ : array-like[nDataPoints]
+        An array of uncertaintly values for each data point in `Q`. Default
+        is to calculate this from the tail of the power-spectral density of `Q`.
+
+    S21 : array-like[nDataPoints]
+        The complex transmission ``S21 = I + 1j*Q``.
+
+    phase : array-like[nDataPoints]
+        The raw phase ``phase = np.arctan2(Q, I)``.
+
+    uphase : array-like[nDataPoints]
+        The unwrapped phase is equivalent to the phase, but with jumps of 2 Pi
+        removed.
+
+    mag : array-like[nDataPoints]
+        The magnitude ``mag = np.abs(S21)`` or, equivalently ``mag =
+        np.sqrt(I**2 + Q**2)``.
+
+    hasFit : bool
+        Indicates whether or not ``Resonator.do_lmfit`` method has been called.
+
+    lmfit_result : ``lmfit.Result`` object
+        The result object created by ``lmfit`` containing all the fit
+        information. Some of the fit information is futher extracted for
+        convenience in the following Attributes. For an exhaustive list of the
+        attributes of lmfit_result see the docs for ``lmfit``. The most useful
+        attribute of this object is ``lmfit_result.params``, which contains the
+        best-fit parameter values.
+
+    residualI : array-like[nDataPoints]
+        The residual of the fit model against the `I` data, wieghted by the
+        uncertainties.
+
+    residualQ : array-like[nDataPoints]
+        The residual of the fit model against the `Q` data, wieghted by the
+        uncertainties.
+
+    resultI : array-like[nDataPoints]
+        The best ``lmfit`` fit result to the fit model for `I`.
+
+    resultQ : array-like[nDataPoints]
+        The best ``lmfit`` fit result to the fit model for `Q`.
+
+    resultMag : array-like[nDataPoints]
+        ``resultMag = np.abs(resultI + 1j*resultQ)``
+
+    resultPhase : array-like[nDataPoints]
+        ``resultPhase = np.arctan2(resultQ/resultI)``
+
+    emcee_result : ``lmfit.Result`` object
+        This object is nearly identical to the `lmfit_result` object, but also
+        contains the maximum-liklihood values for the *varying* parameters of
+        the fit model as well as the `chains` returned by ``emcee``. The most
+        important attribute is probably ``emcee_result.flatchain``, which can be
+        passed directly to ``pygtc`` or ``corner`` to make a really nice
+        GTC/Triangle/Corner plot. For an exhaustive list of the attributes of
+        emcee_result see the docs for ``lmfit``, specifically the section
+        involving the ``lmfit`` implementation of ``emcee``.
+
+    mle_vals : list of float
+        The maximum-liklihood estimate values of the *varying* parameter in the
+        fit model as calculated by ``emcee``. Unpacked here for convenience from
+        ``emcee_result.params``.
+
+    mle_labels: list of string
+        The parameter names of the values in `mle_vals`. Provided here for easy
+        passing to  ``pygtc`` or ``corner``.
+
+    magBaseLine : array-like[nDataPoints]
+        The best initial guess of the baseline of the magnitude. Calculated by
+        fitting a quadratic polynomial to the beginning and end of the magnitdue
+        vs frequency curve.
+
+    phaseBaseLine: array-like[nDataPoints]
+        The best initial guess of the baseline of the phase. Calculated by
+        fitting a line to the beginning and end of the phase vs frequency curve.
+        This is equivalent to calculating the electrical delay in the
+        measurement lines.
+
+    params : ``lmfit.Parameters`` object
+        The initial parameter guesses for fitting the `S21` data. See ``lmfit``
+        documentation for a complete overview. To get the parameter names, call
+        ``params.keys()``. Default is ``None``. Initialize params by calling
+        ``Resonator.load_params``. Delete params with
+        ``Resonator.torch_params``.
+
+    """
+
 
     #Do some initialization
     def __init__(self, name, temp, pwr, freq, I, Q, sigmaI = None, sigmaQ = None):
+        r"""Initializes a resonator object by calculating magnitude, phase, and a
+        bunch of fit parameters for a hanger (or notch) type S21 measurement.
+
+        Parameters
+        ----------
+        name : string
+            The resonator name. Does not have to be unique, but each physical
+            resonator in the experiment should have a unique name to avoid
+            confusion when using some of the other tools in ``pyres``.
+
+        temp : float
+            The temperature in (K) that the S21 measurement was taken at.
+
+        pwr : float
+            The power (in dBm) at which the resonator was measured.
+
+        freq : array-like[nDataPoints]
+            The frequency points at which the S21 scan was measured.
+
+        I : array-like[nDataPoints]
+            The in-phase (or real part) of the complex S21 measurement. Units
+            are typically volts, and I should be specified in linear units (as
+            opposed to dB).
+
+        Q : array-like[nDataPoints]
+            The out-of-phase (or imaginary part) of the complex S21 measurement.
+            Units are typically volts, and I should be specified in linear units
+            (as opposed to dB).
+
+        sigmaI : array-like[nDataPoints] (optional)
+            An array of uncertaintly values for each data point in `I`. Default
+            is ``None``.
+
+        sigmaQ : array-like[nDataPoints] (optional)
+            An array of uncertaintly values for each data point in `Q`. Default
+            is ``None``.
+        """
         self.name = name
         self.temp = temp
         self.pwr = pwr
@@ -28,7 +176,27 @@ class Resonator(object):
         self.uphase = np.unwrap(self.phase) #Unwrap the 2pi phase jumps
         self.mag = np.abs(self.S21)
 
-        #Whether or not a fit has been run
+        #Find the frequency at magnitude minimum (this can, and should, be
+        #overwritten by a custom params function)
+        self.fmin = self.freq[np.argmin(self.mag)]
+
+        #If errorbars are not supplied for I and Q, then estimate them based on
+        #the tail (last 10 percent) of the power-spectral densities
+        if sigmaI is None:
+            f, psdI = sps.welch(self.I)
+            epsI = np.mean(np.sqrt(psdI[-int(len(freq)*0.1):]))
+            self.sigmaI = np.full_like(I, epsI)
+
+        if sigmaQ is None:
+            f, psdQ = sps.welch(self.Q)
+            epsQ = np.mean(np.sqrt(psdQ[-int(len(freq)*0.1):]))
+            self.sigmaQ = np.full_like(Q, epsQ)
+
+        #Whether or not params has been initialized
+        self.params = None
+        self.hasParams = False
+
+        #Whether or not a lmfit has been run
         self.hasFit = False
 
         #These won't exist until the lmfit method is called
@@ -40,137 +208,40 @@ class Resonator(object):
         self.resultMag = None
         self.resultPhase = None
 
+        #Whether or not an emcee has been run
+        self.hasChain = False
+
         #These won't exist until the emcee method is called
         self.emcee_result = None
-        self.corner_args = None
-        self.corner_kwargs = None
-
-        #If errorbars are not supplied for I and Q, then estimate them based on
-        #the tail of the power-spectral densities
-
-        if sigmaI is None:
-            f, psdI = sps.welch(self.I)
-            epsI = np.mean(np.sqrt(psdI[-150:]))
-            self.sigmaI = np.full_like(I, epsI)
-
-        if sigmaQ is None:
-            f, psdQ = sps.welch(self.Q)
-            epsQ = np.mean(np.sqrt(psdQ[-60:]))
-            self.sigmaQ = np.full_like(Q, epsQ)
-
-        #Get index of last datapoint
-        findex_end = len(freq)-1
+        self.mle_vals = None
+        self.mle_labels = None
 
 
-        #Set up lmfit parameters object for fitting later
+    def load_params(self, paramsFn, **kwargs):
+        #Load up a lmfit Parameters object from a custom fit funciton
+        params = paramsFn(self, **kwargs)
+        self.params = params
+        self.hasParams = True
 
-        #Detrend the mag and phase using first and last 5% of data
-        findex_5pc = int(len(freq)*0.05)
-
-        findex_center = np.round(findex_end/2)
-        f_midpoint = freq[findex_center]
-
-        #Set up a unitless, reduced, mipoint frequency for baselines
-        ffm = lambda fx : (fx-f_midpoint)/f_midpoint
-
-        magEnds = np.concatenate((self.mag[0:findex_5pc], self.mag[-findex_5pc:-1]))
-        freqEnds = ffm(np.concatenate((self.freq[0:findex_5pc], self.freq[-findex_5pc:-1])))
-
-        #This fits a second order polynomial
-        magBaseCoefs = np.polyfit(freqEnds, magEnds, 2)
-
-        magBase = np.poly1d(magBaseCoefs)
-        self.magBaseline = magBase(ffm(self.freq))
-
-        #Store the frequency at the magnitude minimum for future use.
-        #Pull out the baseline variation first
-
-        findex_min=np.argmin(self.mag-magBase(ffm(self.freq)))
-
-        f_at_mag_min = freq[findex_min]
-        self.fmin = f_at_mag_min
-        self.argfmin = findex_min
-
-        #Update best guess with minimum
-        f0_guess = f_at_mag_min
-
-        #Update: now calculating agains file midpoint
-        #This makes sense because you don't want the baseline changing
-        #as f0 shifts around with temperature and power
-
-        #Recalculate the baseline relative to the new f0_guess
-        # magBaseCoefs = np.polyfit(freqEnds-f0_guess, magEnds, 2)
-        # magBase = np.poly1d(magBaseCoefs)
-        # self.baseline = magBase(self.freq-f0_guess)
-
-        #Remove any linear variation from the phase (caused by electrical delay)
-        phaseEnds = np.concatenate((self.uphase[0:findex_5pc], self.uphase[-findex_5pc:-1]))
-        phaseRot = self.uphase[findex_min]-self.phase[findex_min]+np.pi
-
-        phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds+phaseRot, 1)
-        phaseBase = np.poly1d(phaseBaseCoefs)
-        self.phaseBaseline = phaseBase(ffm(self.freq))
-
-        #Set some bounds (resonant frequency should not be within 5% of file end)
-        f_min = freq[findex_5pc]
-        f_max = freq[findex_end-findex_5pc]
-
-        if f_min < f0_guess < f_max:
-            pass
-        else:
-            f0_guess = freq[findex_center]
-
-        #Guess the Q values:
-        #1/Q0 = 1/Qc + 1/Qi
-        #Q0 = f0/fwhm bandwidth
-        #Q0/Qi = min(mag)/max(mag)
-        magMax = self.magBaseline[findex_min]
-        magMin = self.mag[findex_min]
-
-        fwhm = np.sqrt((magMax**2 + magMin**2)/2.)
-        fwhm_mask = self.mag < fwhm
-        bandwidth = self.freq[fwhm_mask][-1]-self.freq[fwhm_mask][0]
-        q0_guess = f0_guess/bandwidth
-
-        qi_guess = q0_guess*magMax/magMin
-
-        qc_guess = 1./(1./q0_guess-1./qi_guess)
-
-        #Create a lmfit parameters dictionary for later fitting
-        #Set up assymetric lorentzian parameters (Name, starting value, range, vary, etc):
-        self.params = lf.Parameters()
-        self.params.add('df', value = 0, vary=True)
-        self.params.add('f0', value = f0_guess, min = f_min, max = f_max, vary=True)
-        self.params.add('qc', value = qc_guess, min = 1, max = 10**8 ,vary=True)
-        self.params.add('qi', value = qi_guess, min = 1, max = 10**8, vary=True)
-
-        #Allow for quadratic gain variation
-        self.params.add('gain0', value = magBaseCoefs[2], min = 0, vary=True)
-        self.params.add('gain1', value = magBaseCoefs[1], vary=True)
-        self.params.add('gain2', value = magBaseCoefs[0], vary=True)
-
-        #Allow for linear phase variation
-        self.params.add('pgain0', value = phaseBaseCoefs[1], vary=True)
-        self.params.add('pgain1', value = phaseBaseCoefs[0], vary=True)
-
-        #Add in complex offset (should not be necessary on a VNA, but might be needed for a mixer)
-        self.params.add('Ioffset', value = 0, vary=False)
-        self.params.add('Qoffset', value = 0, vary=False)
+    def torch_params(self):
+        self.params = None
+        self.hasParams = False
 
     def do_lmfit(self, fitFn, **kwargs):
         """Run lmfit on an existing resonator object and update the results.
 
-        Return value:
-        No return value -- operates on resonator object in place
-
-        Arguments:
-        res -- Existing resonator object. This object will be modified.
-        fitFn -- Any lmfit compatible fit function
+        Parameters
+        ----------
+        fitFn : function
             fitFn arguments: lmfit parameter object, [Idata, Qdata], [I error, Q error]
-        kwargs -- Use this to override any of the lmfit parameter initial guesses
-            example: qi=1e6 is equivalent to calling res.params['qi'].value = 1e6
-            example: qi_vary=False will fix the parameter
+
+        kwargs : optional keywords
+            Use this to override any of the lmfit parameter initial guesses or
+            toggle whether the paramter varys. Example: ``qi=1e6`` is equivalent
+            to calling ``res.params['qi'].value = 1e6``. Example:
+            ``qi_vary=False`` will fix the ``qi`` parameter.
         """
+        assert self.hasParams == True, "Must load params before running a fit."
 
         #Update any of the default Parameter guesses
         if kwargs is not None:
@@ -219,6 +290,18 @@ class Resonator(object):
         self.resultMag = resultMag
         self.resultPhase = resultPhase
 
+    def torch_lmfit(self):
+        #Delete all the lmfit results
+        self.hasFit = False
+        self.lmfit_result = None
+        self.residualI = None
+        self.residualQ = None
+        self.resultI = None
+        self.resultQ = None
+        self.resultMag = None
+        self.resultPhase = None
+
+
     def do_emcee(self, fitFn, **kwargs):
         #Should do the following (have not implemented any of this yet):
         #Pack MLE values into their own params object by adding back in non-varying Parameters
@@ -228,6 +311,8 @@ class Resonator(object):
 
         #minimizerObj.emcee already updates parameters object to result
         #This means can call res.emcee_result.params to get results
+
+        assert self.hasParams == True, "Must load params before running emcee."
 
         cmplxData = np.concatenate((self.I, self.Q), axis=0)
 
@@ -244,69 +329,84 @@ class Resonator(object):
         #Run the emcee and add the result in
         emcee_result = minObj.emcee(**kwargs)
         self.emcee_result = emcee_result
-        self.corner_args = emcee_result.flatchain
+        self.mle_vals = [val.value for key, val in emcee_result.params.iteritems() if val.vary is True]
+        self.mle_labels = [key for key, val in emcee_result.params.iteritems() if val.vary is True]
+        self.hasChain = True
 
-        #Make a set of kwargs to pass to a corner object for easy plotting
-        self.corner_kwargs = {'labels': emcee_result.var_names,
-                                'truths': [val.value for key, val in emcee_result.params.iteritems() if val.vary is True]}
+    def torch_emcee(self):
+        #Delete the emcee results
+        self.hasChain = False
+        self.emcee_result = None
+        self.mle_vals = None
+        self.mle_labels = None
+
 
 #This creates a resonator object from a data dictionary. Optionally performs a fit, and
 #adds the fit data back in to the resonator object
-def makeResFromData(dataDict, fitFn = None, **kwargs):
+def makeResFromData(dataDict, paramsFn = None, fitFn = None, ftFn_kwargs=None, paramsFn_kwargs=None):
     """Create a Resonator object from a data dictionary.
 
-    Return value:
-    (res, temp, pwr) or None -- a tuple containing the resonator object and state variables
+    Parameters
+    ----------
+    dataDict : dict
+        Must have the following keys: 'I', 'Q', 'temp', 'pwr', 'freq', 'name'.
+        Optional keys are: 'sigmaI', 'sigmaQ'
 
-    Arguments:
-    dataDict -- a dict containing frequency, I, and Q data
-    fitFn -- if a fit function is passed, an lmfit minimization will be done automatically
-    kwargs -- any lmfit Parameter key name and starting value."""
-    #Check dataDict for validity
-    if dataDict is not None:
-        resName = dataDict['name']
-        temp = dataDict['temp']
-        pwr = dataDict['pwr']
-        freqData = dataDict['freq']
-        IData = dataDict['I']
-        QData = dataDict['Q']
+    paramsFn : function (optional)
+        A function that initializes and returns an lmfit parameters object for
+        passing to fitFn.
 
-        if 'sigmaI' in dataDict.keys():
-            sigmaI = dataDict['sigmaI']
-        else:
-            sigmaI = None
+    fitFn : function (optional)
+        If a fit function is passed, an lmfit minimization will be done
+        automatically.
 
-        if 'sigmaQ' in dataDict.keys():
-            sigmaQ = dataDict['sigmaQ']
-        else:
-            sigmaQ = None
+    fitFn_kwargs : dict (optional)
+        A dict of keyword arguments passed to fitFn as **kwargs.
 
-        #create Resonator object
-        res = Resonator(resName, temp, pwr, freqData, IData, QData, sigmaI, sigmaQ)
+    paramsFn_kwargs: dict (optional)
+        A dict of keyword arguments passed to paramsFn as **kwargs.
 
-        #Run a fit on the resonator if a fit function is specified
-        if fitFn is not None:
-            res.do_lmfit(fitFn, **kwargs)
+    Returns
+    -------
+    (res, temp, pwr) : tuple or ``None``
+        A tuple containing the resonator object and state variables, or ``None``
+        if there is an error loading the data.
 
-        #Return resonator object plus state variables to make indexing easy
-        return (res, res.temp, pwr)
-    else:
-        return None
-
-#Keep this defined so old code doesn't break. Functionality was moved to
-#a Resonator object module called 'lmfit'
-def lmfitRes(res, fitFn, **kwargs):
-    """Run lmfit on an existing resonator object and update the results.
-
-    Return value:
-    No return value -- operates on resonator object in place
-
-    Arguments:
-    res -- Existing resonator object. This object will be modified.
-    fitFn -- Any lmfit compatible fit function
-        fitFn arguments: lmfit parameter object, [Idata, Qdata], [I error, Q error]
-    kwargs -- Use this to override any of the lmfit parameter initial guesses
-        example: qi=1e6 is equivalent to calling res.params['qi'].value = 1e6
     """
+    if fitFn is not None:
+        assert paramsFn is not None, "Can not pass a fitFn without also passing a paramsFn"
 
-    res.do_lmfit(fitFn, **kwargs)
+    #Check dataDict for validity
+    expectedKeys = ['name', 'temp', 'pwr', 'freq', 'I', 'Q']
+    assert all(key in dataDict for key in expectedKeys), "Your dataDict is missing one or more keys"
+
+    resName = dataDict['name']
+    temp = dataDict['temp']
+    pwr = dataDict['pwr']
+    freqData = dataDict['freq']
+    IData = dataDict['I']
+    QData = dataDict['Q']
+
+    if 'sigmaI' in dataDict.keys():
+        sigmaI = dataDict['sigmaI']
+    else:
+        sigmaI = None
+
+    if 'sigmaQ' in dataDict.keys():
+        sigmaQ = dataDict['sigmaQ']
+    else:
+        sigmaQ = None
+
+    #create Resonator object
+    res = Resonator(resName, temp, pwr, freqData, IData, QData, sigmaI, sigmaQ)
+
+    #Process the fit parameters
+    if paramsFn is not None:
+        res.load_params(paramsFn, **paramsFun_kwargs)
+
+    #Run a fit on the resonator if a fit function is specified
+    if fitFn is not None:
+        res.do_lmfit(fitFn, **fitFn_kwargs)
+
+    #Return resonator object
+    return res

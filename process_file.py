@@ -1,11 +1,20 @@
 import numpy as np
 
 def process_file(fileName):
-    """Load file data into dict.
+    """Load Keysight PNA file data into dict.
 
-    Return value:
-        dict -- a dict object with six elements
-            name, temp, pwr, freq, I, Q"""
+    Parameters
+    ----------
+    fileName : string
+        Path to data.
+
+    Returns
+    -------
+    dataDict : dict or ``None``
+        Dictionary contains the following keys: 'name', 'temp', 'pwr', 'freq',
+        'I', 'Q'. If fileName does not exist, then returns ``None``.
+
+    """
     #Find the temperature, power, and name locations from the filename
     tempLoc = fileName.find('TEMP') + 5
     pwrLoc = fileName.find('DBM') - 4
@@ -28,6 +37,7 @@ def process_file(fileName):
         IData = fileData[:,1]
         QData = fileData[:,2]
 
-        return {'name':resName,'temp':temp,'pwr':pwr,'freq':freqData,'I':IData,'Q':QData}
+        dataDict = {'name':resName,'temp':temp,'pwr':pwr,'freq':freqData,'I':IData,'Q':QData}
+        return dataDict
     else:
         return None

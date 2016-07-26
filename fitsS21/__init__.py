@@ -1,1 +1,1 @@
-from .IQcircle import IQcircle
+from .IQcircle import IQcircle_fit, IQcircle_params

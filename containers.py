@@ -11,17 +11,65 @@ from .process_file import process_file
 #dict of pandas DataFrame objects, one for each interesting fit parameter
 #This adds no new information, but makes accessing the fit data easier
 class ResonatorSweep(dict):
-    """Dictionary object with custom __init__ method"""
+    r"""Dictionary object with custom ``__init__`` method.\
+
+    Attributes
+    ----------
+    tvec : array-like[nUniqeTemps]
+        Index of temperature values, one for each unique temperature.
+
+    pvec : array-like[nUniqePowers]
+        Index of powers values, one for each unique power.
+
+    smartindex : string
+        Indicates the method of formatting temperature values in tvec. 'raw'
+        means to take temperature values as they are, 'round' means to round to
+        the neareast `X` mK, where `X` is set by `roundTo`, 'block' means to
+        figure out which temperature values are nominally the same and set each
+        block of those temperatures to the same value.
+
+    rountTo : float
+        The number of mK to round to when ``smartIndex == 'round'``.
+
+    Keys
+    ----
+    'temps' : ``pandas.DataFrame``
+        The temperature of each resonator in the sweep.
+
+    'fmin' : ``pandas.DataFrame``
+        The minimum value of the magnitude vs frequency curve after subtraction
+        of the best-guess baseline.
+
+    'chisq' : ``pandas.DataFrame``
+        The Chi-squared value of each fit in the sweep.
+
+    'redchi' : ``pandas.DataFrame``
+        The reduced Chi-squared value of each fit in the sweep.
+
+    'feval' : ``pandas.DataFrame``
+        The number of function evaluations for each fit in the sweep.
+
+    'listIndex' : ``pandas.DataFrame``
+        The sweep objects are built from a list of ``pyres.Resonator``
+        objects; this is the index of the original list for
+        each data value in the sweep.
+
+    paramValues : ``pandas.DataFrame``
+        There is a key for each parameter value in the ``Resonator.params``
+        attribute.
+
+    """
 
 
     def __init__(self, resList, **kwargs):
-        """Formats various scalar quantities into easily parsed pandas DataFrame objects.
+        """Formats temp/pwr sweeps into easily parsed pandas DataFrame objects.
 
-        Arguments:
-        self -- reference to self, required for all Class methods
-        resList -- a list of Resonator objects
+        Parameters
+        ----------
+        resList : list of ``pyres.Resonator`` objects
 
-        Created quantities:
+        Attributes
+        ----------
         self.tvec -- index of temperature values
         self.pvec -- index of power values
 
@@ -148,37 +196,42 @@ class ResonatorSweep(dict):
                 elif pname == 'feval':
                     self[pname][res.pwr][res.itemp] = res.lmfit_result.nfev
                 elif pname == 'listIndex':
+                    #This is useful for figuring out where in the resList the data you care about is
                     self[pname][res.pwr][res.itemp] = index
 
-    def plotParamsVsTemp(self, **kwargs):
+    def plotParamsVsTemp(self, keysToPlot=None, keysToIgnore=None, **kwargs):
         #This will really only work for sure if block is sucessful
         if self.smartindex == 'block':
-        #To do: fix for other smartindex types
+        #TODO: fix for other smartindex types
 
             #set defaults
             numCols = 4
             powers = self.pvec
-            keysToIgnore = ['Ioffset',
-                            'Qoffset',
-                            'listIndex',
-                            'temps',
-                            'chisq']
+
+            if keysToIgnore is None:
+                keysToIgnore = ['listIndex',
+                                'temps']
+            else:
+                assert all(key in self.keys() for key in keysToIgnore), "Unknown key"
+                keysToIgnore.append('listIndex')
+                keysToIgnore.append('temps')
 
             if kwargs is not None:
+                assert keysToPlot is None, "Either pass keysToPlot or keysToIgnore, not both."
                 for key, val in kwargs.iteritems():
                     if key == 'numCols':
                         numCols = int(val)
                     elif key == 'powers':
                         assert all([p in powers for p in val]), "Can't plot a power that doesn't exist!"
                         powers = list(val)
-                    elif key == 'keysToIgnore':
-                        assert all([key in self.keys() for key in val]), "Key does not exist!"
-                        keysToIgnore = list(val)
 
             #Set up the figure
             figS = plt.figure()
 
-            numKeys = len(self.keys())-len(keysToIgnore)
+            if keysToPlot is None:
+                keysToPlot = set(self.keys())-set(keysToIgnore)
+
+            numKeys = len(keysToPlot)
             numRows = int(np.ceil(numKeys/numCols))
 
             #Magic numbers!
@@ -186,7 +239,7 @@ class ResonatorSweep(dict):
 
             #Loop through all the keys in the ResonatorSweep object and plot them
             indexk = 1
-            for key in set(self.keys())-set(keysToIgnore):
+            for key in keysToPlot:
                 axs = figS.add_subplot(numRows,numCols,indexk)
                 for pwr in powers:
                     axs.plot(self.tvec,self[key][pwr],'--',label='Power: '+str(pwr))
@@ -219,13 +272,10 @@ def makeResList(fileFunc, dataPath, resName):
     #loop through files and process all the data
     fileDataDicts = map(fileFunc, fileList)
 
-    #Strip out any bad files
-    fileDataDicts = [fileDataDict for fileDataDict in fileDataDicts if (fileDataDict is not None)]
-
     #Create resonator objects from the data
     #makeResFromData returns a tuple of (res, temp, pwr),
     #but only care about the first one
-    resList = [makeResFromData(fileDataDict)[0] for fileDataDict in fileDataDicts]
+    resList = [makeResFromData(fileDataDict) for fileDataDict in fileDataDicts]
 
     return resList
 
