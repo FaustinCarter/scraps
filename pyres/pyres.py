@@ -343,7 +343,7 @@ class Resonator(object):
 
 #This creates a resonator object from a data dictionary. Optionally performs a fit, and
 #adds the fit data back in to the resonator object
-def makeResFromData(dataDict, paramsFn = None, fitFn = None, ftFn_kwargs=None, paramsFn_kwargs=None):
+def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, paramsFn_kwargs=None):
     """Create a Resonator object from a data dictionary.
 
     Parameters
@@ -402,11 +402,17 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, ftFn_kwargs=None, p
 
     #Process the fit parameters
     if paramsFn is not None:
-        res.load_params(paramsFn, **paramsFun_kwargs)
+        if paramsFn_kwargs is not None:
+            res.load_params(paramsFn, **paramsFun_kwargs)
+        else:
+            res.load_params(paramsFn)
 
     #Run a fit on the resonator if a fit function is specified
     if fitFn is not None:
-        res.do_lmfit(fitFn, **fitFn_kwargs)
+        if fitFn_kwargs is not None:
+            res.do_lmfit(fitFn, **fitFn_kwargs)
+        else:
+            res.do_lmfit(fitFn)
 
     #Return resonator object
     return res

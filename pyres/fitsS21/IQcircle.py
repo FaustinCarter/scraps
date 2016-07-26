@@ -48,7 +48,7 @@ def IQcircle_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     #Except for the gain, which should reference the file midpoint
     #This is important because the baseline coefs shouldn't drift
     #around with changes in f0 due to power or temperature
-    fm = freqs[np.round((len(freqs)-1)/2.0)]
+    fm = freqs[int(np.round((len(freqs)-1)/2.0))]
     ffm = (freqs-fm)/fm
 
     #Calculate the total Q_0

@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import glob
 import matplotlib.pyplot as plt
-from .pyRes import makeResFromData
+from .pyres import makeResFromData
 from .process_file import process_file
 
 #This is a glorified dictionary with a custom initalize method. It takes a list
@@ -205,8 +205,9 @@ class ResonatorSweep(dict):
         #TODO: fix for other smartindex types
 
             #set defaults
-            numCols = 4
-            powers = self.pvec
+            numCols = int(kwargs.pop('numCols', 4))
+            powers = list(kwargs.pop('powers', self.pvec))
+            assert all(p in powers for p in self.pvec), "Can't plot a power that doesn't exist!"
 
             if keysToIgnore is None:
                 keysToIgnore = ['listIndex',
@@ -217,13 +218,6 @@ class ResonatorSweep(dict):
                 keysToIgnore.append('listIndex')
                 keysToIgnore.append('temps')
 
-            if kwargs is not None:
-                for key, val in kwargs.iteritems():
-                    if key == 'numCols':
-                        numCols = int(val)
-                    elif key == 'powers':
-                        assert all([p in powers for p in val]), "Can't plot a power that doesn't exist!"
-                        powers = list(val)
 
             #Set up the figure
             figS = plt.figure()

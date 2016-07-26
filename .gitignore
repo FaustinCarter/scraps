@@ -8,5 +8,8 @@
 *~
 .ipynb_checkpoints
 
+#pictures
+*.png
+
 #Data for editing notebooks
 /ExampleData
