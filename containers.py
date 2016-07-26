@@ -212,12 +212,12 @@ class ResonatorSweep(dict):
                 keysToIgnore = ['listIndex',
                                 'temps']
             else:
+                assert keysToPlot is None, "Either pass keysToPlot or keysToIgnore, not both."
                 assert all(key in self.keys() for key in keysToIgnore), "Unknown key"
                 keysToIgnore.append('listIndex')
                 keysToIgnore.append('temps')
 
             if kwargs is not None:
-                assert keysToPlot is None, "Either pass keysToPlot or keysToIgnore, not both."
                 for key, val in kwargs.iteritems():
                     if key == 'numCols':
                         numCols = int(val)
@@ -230,6 +230,8 @@ class ResonatorSweep(dict):
 
             if keysToPlot is None:
                 keysToPlot = set(self.keys())-set(keysToIgnore)
+            else:
+                assert all(key in self.keys() for key in keysToPlot), "Unknown key"
 
             numKeys = len(keysToPlot)
             numRows = int(np.ceil(numKeys/numCols))
