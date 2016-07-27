@@ -1,4 +1,4 @@
-from pyRes import Resonator, makeResFromData
+from .pyres import Resonator, makeResFromData
 import numpy as np
 
 def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
@@ -20,30 +20,24 @@ def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
         'name' -- string. Defaults to 'RES-X'
         'legacy' -- bool swaps I and Q values if you have an old file"""
     #Set some default values
-    units = 0.001
-    temp = np.NAN
-    name = 'RES-X'
-    legacy = False
+    unitString = kwargs.pop('units', 'mK')
+    if unitString == 'mK':
+        units = 0.001
+    elif unitString == 'K':
+        units = 1
+    else:
+        raise ValueError("Unknown unit type. Acceptable values are 'mK' or 'K'.")
+    temp = kwargs.pop('temp', np.NAN)
+    name = kwargs.pop('name', 'RES-X')
+    legacy = kwargs.pop('legacy', False)
+
+    if kwargs:
+        raise ValueError("Unknown keyword argument passed: " + kwargs.keys()[0])
 
     #If you change your default sweep types, update this dict here!
     sweepDict = {'gain':201,
                 'rough':401,
                 'fine':1601}
-
-    #Process **kwargs and update defaults
-    if kwargs is not None:
-        for key, val in kwargs.iteritems():
-            if key == 'temp':
-                temp = val
-            elif key == 'units':
-                if val == 'mK':
-                    units = 0.001
-                elif val == 'K':
-                    units = 1
-            elif key == 'name':
-                name = val
-            elif key == 'legacy':
-                legacy = val
 
     #Open file and read power from header data
     with open(dataFile) as fp:
@@ -79,7 +73,7 @@ def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
     dataDict['pwr'] = pwr
     dataDict['name'] = name
 
-    return dataDict #Suitable for use with pyRes.makeResFromData()
+    return dataDict #Suitable for use with pyres.makeResFromData()
 
 
 
@@ -105,24 +99,30 @@ def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
         'units' -- 'mK' or 'K' depending on how you enter 'temp'
         'sweep' -- 'gain', 'rough', or 'fine'. Default is 'rough'."""
     #Set up some default values
-    units = 0.001
-    sweepType = 'rough'
+
+    unitString = kwargs.pop('units', 'mK')
+    if unitString == 'mK':
+        units = 0.001
+    elif unitString == 'K':
+        units = 1
+    else:
+        raise ValueError("Unknown unit type. Acceptable values are 'mK' or 'K'.")
+
 
     #Change this if you change the types of sweep that exist in the program
     sweepDict = {'gain':201,
                 'rough':401,
                 'fine':1601}
 
-    #Process **kwargs and update defaults
-    if kwargs is not None:
-        for key, val in kwargs.iteritems():
-            if key == 'units': #Can be either 'mK' or 'K'
-                if val == 'mK':
-                    units = 0.001
-                elif val == 'K':
-                    units = 1
-            elif key == 'sweep': #Can be 'gain', 'fine', or 'rough'
-                sweepType = val
+    sweepType = kwargs.pop('sweep', 'rough')
+    assert sweepType in sweepDict.keys(), "Invalid sweep type. Try 'gain', 'rough', or 'fine'."
+
+    #If loading old data, swaps I and Q
+    legacy = kwargs.pop('legacy', False)
+
+    #Make sure no unknown keywords arguments
+    if kwargs:
+        raise ValueError("Unknown keyword argument passed: " + kwargs.keys()[0])
 
     #Declare some empty containers
     dataDicts = {}
@@ -147,10 +147,12 @@ def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
                 dataDict = {}
                 dataDict['freq'] = cdata[startData:endData,0]
 
-                #This is backwards from what the file header specifies
-                #but its the only way the fits seem to work
-                dataDict['Q'] = cdata[startData:endData,1]
-                dataDict['I'] = cdata[startData:endData,2]
+                if legacy:
+                    dataDict['Q'] = cdata[startData:endData,1]
+                    dataDict['I'] = cdata[startData:endData,2]
+                else:
+                    dataDict['I'] = cdata[startData:endData,1]
+                    dataDict['Q'] = cdata[startData:endData,2]
                 ###
 
                 dataDict['temp'] = tval*units
@@ -161,7 +163,6 @@ def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
 
     #Convert the dataDicts into Resonator objects and return a dict of lists of Resonators
     for resName in resNames:
-        resObjsTuple = [makeResFromData(dataDict) for dataDict in dataDicts[resName]]
-        resLists[resName], temps, pwrs = map(list, zip(*resObjsTuple))
+        resLists[resName] = [makeResFromData(dataDict) for dataDict in dataDicts[resName]]
 
     return resLists #Suitable for passing to ResonatorSweep

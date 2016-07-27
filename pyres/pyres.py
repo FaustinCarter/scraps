@@ -183,12 +183,12 @@ class Resonator(object):
         #If errorbars are not supplied for I and Q, then estimate them based on
         #the tail (last 10 percent) of the power-spectral densities
         if sigmaI is None:
-            f, psdI = sps.welch(self.I)
+            f, psdI = sps.welch(self.I, nperseg = int(np.floor(len(self.I)/8)))
             epsI = np.mean(np.sqrt(psdI[-int(len(freq)*0.1):]))
             self.sigmaI = np.full_like(I, epsI)
 
         if sigmaQ is None:
-            f, psdQ = sps.welch(self.Q)
+            f, psdQ = sps.welch(self.Q, nperseg = int(np.floor(len(self.Q)/8)))
             epsQ = np.mean(np.sqrt(psdQ[-int(len(freq)*0.1):]))
             self.sigmaQ = np.full_like(Q, epsQ)
 
