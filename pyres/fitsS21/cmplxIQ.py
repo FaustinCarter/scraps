@@ -3,7 +3,7 @@ import scipy.signal as sps
 import scipy.special as spc
 import lmfit as lf
 
-def IQcircle_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
+def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     """Return complex S21 resonance model or, if data is specified, a residual.
 
     Return value:
@@ -82,7 +82,7 @@ def IQcircle_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     else:
         return (model-data)/eps
 
-def IQcircle_params(res, **kwargs):
+def cmplxIQ_params(res, **kwargs):
     #Custom function to set up some parameters for fitting later
 
     #Check if some other type of hardware is supplied
