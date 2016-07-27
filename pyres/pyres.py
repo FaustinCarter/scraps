@@ -218,12 +218,13 @@ class Resonator(object):
 
 
     def load_params(self, paramsFn, **kwargs):
-        #Load up a lmfit Parameters object from a custom fit funciton
+        """Load up a lmfit Parameters object for a custom fit function."""
         params = paramsFn(self, **kwargs)
         self.params = params
         self.hasParams = True
 
     def torch_params(self):
+        """Reset ``lmfit`` params to ``None``."""
         self.params = None
         self.hasParams = False
 
