@@ -253,8 +253,10 @@ class Resonator(object):
                     if key in self.params.keys():
                         if (val is True) or (val is False):
                             self.params[key].vary = val
-                if key in self.params.keys():
+                elif key in self.params.keys():
                     self.params[key].value = val
+                else:
+                    raise ValueError("Unknown key: "+key)
 
         #Make complex vectors of the form cData = [reData, imData]
         cmplxData = np.concatenate((self.I, self.Q), axis=0)
