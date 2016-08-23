@@ -72,9 +72,7 @@ class ResonatorSweep(dict):
         ----------
         self.tvec -- index of temperature values
         self.pvec -- index of power values
-
-        Note: Temperature data is binned into 5 mK spaced bins for compactness.
-        Actual temperature value is stored in the 'temps' field."""
+        """
         #Call the base class initialization for an empty dict.
         #Not sure this is totally necessary, but don't want to break the dict...
         dict.__init__(self)
@@ -212,62 +210,6 @@ class ResonatorSweep(dict):
                     qc = res.lmfit_result.params['qc'].value
                     self[pname][res.pwr][res.itemp] = qi*qc/(qi+qc)
 
-    def plotParamsVsTemp(self, keysToPlot=None, keysToIgnore=None, **kwargs):
-        #This will really only work for sure if block is sucessful
-        assert self.smartindex == 'block', "index must be 'block' for plotting to work."
-        #TODO: fix for other smartindex types
-
-        #set defaults
-        fitter = kwargs.pop('fitter', 'lmfit')
-        numCols = int(kwargs.pop('numCols', 4))
-        powers = list(kwargs.pop('powers', self.pvec))
-        assert all(p in self.pvec for p in powers), "Can't plot a power that doesn't exist!"
-
-        maxTemp = kwargs.pop('maxTemp', np.max(self.tvec))
-        minTemp = kwargs.pop('minTemp', np.min(self.tvec))
-
-        tempFilter = (self.tvec >= minTemp) * (self.tvec <= maxTemp)
-
-        if keysToIgnore is None:
-            keysToIgnore = ['listIndex',
-                            'temps']
-        else:
-            assert keysToPlot is None, "Either pass keysToPlot or keysToIgnore, not both."
-            assert all(key in self.keys() for key in keysToIgnore), "Unknown key"
-            keysToIgnore.append('listIndex')
-            keysToIgnore.append('temps')
-
-
-        #Set up the figure
-        figS = plt.figure()
-
-        if keysToPlot is None:
-            keysToPlot = set(self.keys())-set(keysToIgnore)
-        else:
-            assert all(key in self.keys() for key in keysToPlot), "Unknown key"
-
-        numKeys = len(keysToPlot)
-        numRows = int(np.ceil(numKeys/numCols))
-
-        #Magic numbers!
-        figS.set_size_inches(6*numCols,6*numRows)
-
-        #Loop through all the keys in the ResonatorSweep object and plot them
-        indexk = 1
-        for key in keysToPlot:
-            axs = figS.add_subplot(numRows,numCols,indexk)
-            for pwr in powers:
-                axs.plot(self.tvec[tempFilter],self[key][pwr][tempFilter],'--',label='Power: '+str(pwr))
-
-            axs.set_xlabel('Temperature (mK)')
-            axs.set_ylabel(key)
-
-            #Stick some legends where they won't crowd too much
-            if key == 'f0' or key == 'fmin':
-                axs.legend(loc='best')
-
-            indexk += 1
-        return figS
 
 def makeResList(fileFunc, dataPath, resName):
     """Create a list of resonator objects from a directory of dataDict
