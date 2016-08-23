@@ -174,23 +174,12 @@ class Resonator(object):
         self.S21 = I + 1j*Q
         self.phase = np.arctan2(Q,I) #use arctan2 because it is quadrant-aware
         self.uphase = np.unwrap(self.phase) #Unwrap the 2pi phase jumps
-        self.mag = np.abs(self.S21)
+        self.mag = np.abs(self.S21) #Units are volts.
+        self.logmag = 20*np.log(self.mag) #Units are dB (20 because V->Pwr)
 
         #Find the frequency at magnitude minimum (this can, and should, be
         #overwritten by a custom params function)
         self.fmin = self.freq[np.argmin(self.mag)]
-
-        #If errorbars are not supplied for I and Q, then estimate them based on
-        #the tail (last 10 percent) of the power-spectral densities
-        if sigmaI is None:
-            f, psdI = sps.welch(self.I, nperseg = int(np.floor(len(self.I)/8)))
-            epsI = np.mean(np.sqrt(psdI[-int(len(freq)*0.1):]))
-            self.sigmaI = np.full_like(I, epsI)
-
-        if sigmaQ is None:
-            f, psdQ = sps.welch(self.Q, nperseg = int(np.floor(len(self.Q)/8)))
-            epsQ = np.mean(np.sqrt(psdQ[-int(len(freq)*0.1):]))
-            self.sigmaQ = np.full_like(Q, epsQ)
 
         #Whether or not params has been initialized
         self.params = None
@@ -261,7 +250,10 @@ class Resonator(object):
         #Make complex vectors of the form cData = [reData, imData]
         cmplxData = np.concatenate((self.I, self.Q), axis=0)
 
-        cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
+        if (self.sigmaI is not None) and (self.sigmaQ is not None):
+            cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
+        else:
+            cmplxSigma = None
 
         #Create a lmfit minimizer object
         minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self.freq, cmplxData, cmplxSigma))
@@ -271,7 +263,7 @@ class Resonator(object):
 
         #Add the data back to the final minimized residual to get the final fit
         #Also calculate all relevant curves
-        cmplxResult = lmfit_result.residual*cmplxSigma+cmplxData
+        cmplxResult = fitFn(lmfit_result.params, self.freq)
         cmplxResidual = lmfit_result.residual
 
         #Split the complex data back up into real and imaginary parts
@@ -293,6 +285,10 @@ class Resonator(object):
         self.resultMag = resultMag
         self.resultPhase = resultPhase
 
+        #It's useful to have a list of the best fits for the varying parameters
+        self.lmfit_vals = [val.value for key, val in lmfit_result.params.iteritems() if val.vary is True]
+        self.lmfit_labels = [key for key, val in lmfit_result.params.iteritems() if val.vary is True]
+
     def torch_lmfit(self):
         #Delete all the lmfit results
         self.hasFit = False
@@ -303,6 +299,8 @@ class Resonator(object):
         self.resultQ = None
         self.resultMag = None
         self.resultPhase = None
+        self.lmfit_vals = None
+        self.lmfit_labels = None
 
 
     def do_emcee(self, fitFn, **kwargs):
@@ -332,8 +330,13 @@ class Resonator(object):
         #Run the emcee and add the result in
         emcee_result = minObj.emcee(**kwargs)
         self.emcee_result = emcee_result
+
+        #It is useful to have easy access to the maximum-liklihood estimates
         self.mle_vals = [val.value for key, val in emcee_result.params.iteritems() if val.vary is True]
         self.mle_labels = [key for key, val in emcee_result.params.iteritems() if val.vary is True]
+
+        #This is also nice to have explicitly for passing to triangle-plotting routines
+        self.chain = emcee_result.flatchain
         self.hasChain = True
 
     def torch_emcee(self):
@@ -342,6 +345,7 @@ class Resonator(object):
         self.emcee_result = None
         self.mle_vals = None
         self.mle_labels = None
+        self.chain = None
 
 
 #This creates a resonator object from a data dictionary. Optionally performs a fit, and
@@ -377,7 +381,7 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
 
     """
     if fitFn is not None:
-        assert paramsFn is not None, "Can not pass a fitFn without also passing a paramsFn"
+        assert paramsFn is not None, "Cannot pass a fitFn without also passing a paramsFn"
 
     #Check dataDict for validity
     expectedKeys = ['name', 'temp', 'pwr', 'freq', 'I', 'Q']
@@ -390,6 +394,7 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
     IData = dataDict['I']
     QData = dataDict['Q']
 
+    #Process the optional keys
     if 'sigmaI' in dataDict.keys():
         sigmaI = dataDict['sigmaI']
     else:

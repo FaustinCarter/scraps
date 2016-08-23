@@ -48,6 +48,9 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     #Except for the gain, which should reference the file midpoint
     #This is important because the baseline coefs shouldn't drift
     #around with changes in f0 due to power or temperature
+
+    #Of course, this philosophy goes out the window if different sweeps have
+    #different ranges.
     fm = freqs[int(np.round((len(freqs)-1)/2.0))]
     ffm = (freqs-fm)/fm
 
@@ -69,7 +72,7 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     modelQ = np.imag(modelCmplx)
     model = np.concatenate((modelI, modelQ),axis=0)
 
-    #Calculate eps from stdev of data if not supplied
+    #Calculate eps from stdev of first 10 pts of data if not supplied
     if eps is None and data is not None:
         dataI, dataQ = np.split(data, 2)
         epsI = np.std(sps.detrend(dataI[0:10]))
@@ -83,15 +86,37 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
         return (model-data)/eps
 
 def cmplxIQ_params(res, **kwargs):
-    #Custom function to set up some parameters for fitting later
+    """Initialize fitting parameters used by the cmplxIQ_fit function."""
 
     #Check if some other type of hardware is supplied
     hardware = kwargs.pop('hardware', 'VNA')
     assert hardware in ['VNA', 'mixer'], "Unknown hardware type! Choose 'mixer' or 'VNA'."
 
+    #Whether or not to use a smoothing filter on the data before making guesses
+    use_filter = kwargs.pop('use_filter', False)
+    assert use_filter in [True, False], "Must pass boolean to 'use_filter'."
+
+    #Window length of Savitsky-Golay filter (must be odd and >= 3)
+    filter_win_length = kwargs.pop('filter_win_length', 0)
+
+    #If no window length is supplied, defult to 1% of the data vector or 3
+    if filter_win_length == 0:
+        filter_win_length = int(np.round(len(res.mag)/100.0))
+        if filter_win_length % 2 == 0:
+            filter_win_length+=1
+        if filter_win_length < 3:
+            filter_win_length = 3
+
+    assert (filter_win_length % 2 == 1) and (filter_win_length >= 3), "Filter window length must be odd and greater than 3."
+
     #There shouldn't be any more kwargs left
     if kwargs:
         raise Exception("Unknown keyword argument supplied")
+
+    if use_filter:
+        resMag = sps.savgol_filter(res.mag, filter_win_length, 1)
+    else:
+        resMag = res.mag
 
     #Get index of last datapoint
     findex_end = len(res.freq)-1
@@ -107,7 +132,7 @@ def cmplxIQ_params(res, **kwargs):
     #Set up a unitless, reduced, mipoint frequency for baselines
     ffm = lambda fx : (fx-f_midpoint)/f_midpoint
 
-    magEnds = np.concatenate((res.mag[0:findex_5pc], res.mag[-findex_5pc:-1]))
+    magEnds = np.concatenate((resMag[0:findex_5pc], resMag[-findex_5pc:-1]))
     freqEnds = ffm(np.concatenate((res.freq[0:findex_5pc], res.freq[-findex_5pc:-1])))
 
     #This fits a second order polynomial
@@ -121,7 +146,7 @@ def cmplxIQ_params(res, **kwargs):
     #Store the frequency at the magnitude minimum for future use.
     #Pull out the baseline variation first
 
-    findex_min=np.argmin(res.mag-magBase(ffm(res.freq)))
+    findex_min=np.argmin(resMag-magBase(ffm(res.freq)))
 
     f_at_mag_min = res.freq[findex_min]
 
@@ -160,10 +185,10 @@ def cmplxIQ_params(res, **kwargs):
     #Q0 = f0/fwhm bandwidth
     #Q0/Qi = min(mag)/max(mag)
     magMax = res.magBaseline[findex_min]
-    magMin = res.mag[findex_min]
+    magMin = resMag[findex_min]
 
     fwhm = np.sqrt((magMax**2 + magMin**2)/2.)
-    fwhm_mask = res.mag < fwhm
+    fwhm_mask = resMag< fwhm
     bandwidth = res.freq[fwhm_mask][-1]-res.freq[fwhm_mask][0]
     q0_guess = f0_guess/bandwidth
 

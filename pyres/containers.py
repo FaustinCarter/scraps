@@ -75,6 +75,11 @@ class ResonatorSweep(dict):
 
         Note: Temperature data is binned into 5 mK spaced bins for compactness.
         Actual temperature value is stored in the 'temps' field."""
+        #Call the base class initialization for an empty dict.
+        #Not sure this is totally necessary, but don't want to break the dict...
+        dict.__init__(self)
+
+        #Build a list of keys that will eventually become the dict keys:
 
         #Start with the list of fit parameters, want to save all of them
         #Can just use the first resonator's list, as they are all the same.
@@ -89,22 +94,22 @@ class ResonatorSweep(dict):
         params.append('feval') #Number of function evaluations to converge on fit
         params.append('listIndex') #Index in resonator list of resonator
 
+        #If a model explicitly uses qi and qc, then calculate q0
+        if all(p in params for p in ['qi', 'qc']):
+            params.append('q0') #The total Q = qi*qc/(qi+qc)
+
+
+
         #This flag sets different indexing methods
-        self.smartindex = 'raw'
+        self.smartindex = kwargs.pop('index', 'raw')
+        assert self.smartindex in ['raw', 'round', 'block'], "index must be 'raw', 'round', or 'block'."
 
         #Default the rounding option to 5 mK
-        self.roundto = 5
+        self.roundto = kwargs.pop('roundto', 5)
 
-        #Possible values are 'raw', 'round', 'block'
-        #If round, also must pass 'roundto'
-        if kwargs is not None:
-            for key, val in kwargs.iteritems():
-                if key == 'index':
-                    self.smartindex = val
+        if kwargs:
+            raise ValueError("Unknown keyword: " + kwargs.keys()[0])
 
-                if key == 'roundto':
-                    #Value in mK to round temperature index to
-                    self.roundto = val
 
         #Loop through the resList and make lists of power and index temperature
         tvals = np.empty(len(resList))
@@ -179,11 +184,15 @@ class ResonatorSweep(dict):
             #Start out with a 2D dataframe full of NaN of type float
             #Row and Column indices are temperature and power values
             self[pname] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+            self[pname+'_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
 
             #Fill it with as much data as exists
             for index, res in enumerate(resList):
                 if pname in res.lmfit_result.params.keys():
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result.params[pname].value
+                    if res.lmfit_result.params[pname].vary is True:
+                        self[pname][res.pwr][res.itemp] = res.lmfit_result.params[pname].value
+                        if res.hasChain is True:
+                            self[pname+'_mc'][res.pwr][res.itemp] = res.emcee_result.params[pname].value
                 elif pname == 'temps':
                     #Since we bin the temps by itemp for indexing, store the actual temp here
                     self[pname][res.pwr][res.itemp] = res.temp
@@ -198,59 +207,67 @@ class ResonatorSweep(dict):
                 elif pname == 'listIndex':
                     #This is useful for figuring out where in the resList the data you care about is
                     self[pname][res.pwr][res.itemp] = index
+                elif pname == 'q0':
+                    qi = res.lmfit_result.params['qi'].value
+                    qc = res.lmfit_result.params['qc'].value
+                    self[pname][res.pwr][res.itemp] = qi*qc/(qi+qc)
 
     def plotParamsVsTemp(self, keysToPlot=None, keysToIgnore=None, **kwargs):
         #This will really only work for sure if block is sucessful
-        if self.smartindex == 'block':
+        assert self.smartindex == 'block', "index must be 'block' for plotting to work."
         #TODO: fix for other smartindex types
 
-            #set defaults
-            numCols = int(kwargs.pop('numCols', 4))
-            powers = list(kwargs.pop('powers', self.pvec))
-            assert all(p in powers for p in self.pvec), "Can't plot a power that doesn't exist!"
+        #set defaults
+        fitter = kwargs.pop('fitter', 'lmfit')
+        numCols = int(kwargs.pop('numCols', 4))
+        powers = list(kwargs.pop('powers', self.pvec))
+        assert all(p in self.pvec for p in powers), "Can't plot a power that doesn't exist!"
 
-            if keysToIgnore is None:
-                keysToIgnore = ['listIndex',
-                                'temps']
-            else:
-                assert keysToPlot is None, "Either pass keysToPlot or keysToIgnore, not both."
-                assert all(key in self.keys() for key in keysToIgnore), "Unknown key"
-                keysToIgnore.append('listIndex')
-                keysToIgnore.append('temps')
+        maxTemp = kwargs.pop('maxTemp', np.max(self.tvec))
+        minTemp = kwargs.pop('minTemp', np.min(self.tvec))
 
+        tempFilter = (self.tvec >= minTemp) * (self.tvec <= maxTemp)
 
-            #Set up the figure
-            figS = plt.figure()
-
-            if keysToPlot is None:
-                keysToPlot = set(self.keys())-set(keysToIgnore)
-            else:
-                assert all(key in self.keys() for key in keysToPlot), "Unknown key"
-
-            numKeys = len(keysToPlot)
-            numRows = int(np.ceil(numKeys/numCols))
-
-            #Magic numbers!
-            figS.set_size_inches(6*numCols,6*numRows)
-
-            #Loop through all the keys in the ResonatorSweep object and plot them
-            indexk = 1
-            for key in keysToPlot:
-                axs = figS.add_subplot(numRows,numCols,indexk)
-                for pwr in powers:
-                    axs.plot(self.tvec,self[key][pwr],'--',label='Power: '+str(pwr))
-
-                axs.set_xlabel('Temperature (mK)')
-                axs.set_ylabel(key)
-
-                #Stick some legends where they won't crowd too much
-                if key == 'f0' or key == 'fmin':
-                    axs.legend(loc='best')
-
-                indexk += 1
-            return figS
+        if keysToIgnore is None:
+            keysToIgnore = ['listIndex',
+                            'temps']
         else:
-            return None
+            assert keysToPlot is None, "Either pass keysToPlot or keysToIgnore, not both."
+            assert all(key in self.keys() for key in keysToIgnore), "Unknown key"
+            keysToIgnore.append('listIndex')
+            keysToIgnore.append('temps')
+
+
+        #Set up the figure
+        figS = plt.figure()
+
+        if keysToPlot is None:
+            keysToPlot = set(self.keys())-set(keysToIgnore)
+        else:
+            assert all(key in self.keys() for key in keysToPlot), "Unknown key"
+
+        numKeys = len(keysToPlot)
+        numRows = int(np.ceil(numKeys/numCols))
+
+        #Magic numbers!
+        figS.set_size_inches(6*numCols,6*numRows)
+
+        #Loop through all the keys in the ResonatorSweep object and plot them
+        indexk = 1
+        for key in keysToPlot:
+            axs = figS.add_subplot(numRows,numCols,indexk)
+            for pwr in powers:
+                axs.plot(self.tvec[tempFilter],self[key][pwr][tempFilter],'--',label='Power: '+str(pwr))
+
+            axs.set_xlabel('Temperature (mK)')
+            axs.set_ylabel(key)
+
+            #Stick some legends where they won't crowd too much
+            if key == 'f0' or key == 'fmin':
+                axs.legend(loc='best')
+
+            indexk += 1
+        return figS
 
 def makeResList(fileFunc, dataPath, resName):
     """Create a list of resonator objects from a directory of dataDict
@@ -292,11 +309,8 @@ def indexResList(resList, temp, pwr, **kwargs):
 
     Note:
     The combination of temp and pwr must be unique. indexResList does not check for duplicates."""
-    itemp = False
-    if kwargs is not None:
-        for key, val in kwargs.iteritems():
-            if key == 'itemp':
-                itemp = val
+    itemp = kwargs.pop('itemp', False)
+    assert itemp in [True, False], "'itemp' must be boolean."
 
 
     for index, res in enumerate(resList):
