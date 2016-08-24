@@ -1,8 +1,5 @@
 pyRes is a project designed to make processing superconducting resonator data as painless as possible.
 
-Example notebooks currently broken (8/23/16). Working on the fix, hang tight! -FC
-To get started, check out the example notebooks.
-
 If you want to write custom code to load in some type of file that is not a modern Agilent PNA, you'll need a custom process_file function.
 
 Short description of files:

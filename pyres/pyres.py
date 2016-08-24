@@ -286,7 +286,7 @@ class Resonator(object):
         self.resultPhase = resultPhase
 
         #It's useful to have a list of the best fits for the varying parameters
-        self.lmfit_vals = [val.value for key, val in lmfit_result.params.iteritems() if val.vary is True]
+        self.lmfit_vals = np.asarray([val.value for key, val in lmfit_result.params.iteritems() if val.vary is True])
         self.lmfit_labels = [key for key, val in lmfit_result.params.iteritems() if val.vary is True]
 
     def torch_lmfit(self):
@@ -317,7 +317,10 @@ class Resonator(object):
 
         cmplxData = np.concatenate((self.I, self.Q), axis=0)
 
-        cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
+        if (self.sigmaI is not None) and (self.sigmaQ is not None):
+            cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
+        else:
+            cmplxSigma = None
 
         #Create a lmfit minimizer object
         if self.hasFit:
@@ -332,7 +335,7 @@ class Resonator(object):
         self.emcee_result = emcee_result
 
         #It is useful to have easy access to the maximum-liklihood estimates
-        self.mle_vals = [val.value for key, val in emcee_result.params.iteritems() if val.vary is True]
+        self.mle_vals = np.asarray([val.value for key, val in emcee_result.params.iteritems() if val.vary is True])
         self.mle_labels = [key for key, val in emcee_result.params.iteritems() if val.vary is True]
 
         #This is also nice to have explicitly for passing to triangle-plotting routines
