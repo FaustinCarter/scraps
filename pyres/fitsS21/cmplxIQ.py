@@ -115,8 +115,12 @@ def cmplxIQ_params(res, **kwargs):
 
     if use_filter:
         resMag = sps.savgol_filter(res.mag, filter_win_length, 1)
+        resPhase = sps.savgol_filter(res.phase, filter_win_length, 1)
+        resUPhase = np.unwrap(resPhase)
     else:
         resMag = res.mag
+        resPhase = res.phase
+        resUPhase = res.uphase
 
     #Get index of last datapoint
     findex_end = len(res.freq)-1
@@ -162,8 +166,8 @@ def cmplxIQ_params(res, **kwargs):
     #as f0 shifts around with temperature and power
 
     #Remove any linear variation from the phase (caused by electrical delay)
-    phaseEnds = np.concatenate((res.uphase[0:findex_5pc], res.uphase[-findex_5pc:-1]))
-    phaseRot = res.uphase[findex_min]-res.phase[findex_min]+np.pi
+    phaseEnds = np.concatenate((resUPhase[0:findex_5pc], resUPhase[-findex_5pc:-1]))
+    phaseRot = resUPhase[findex_min]-resPhase[findex_min]+np.pi
 
     phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds+phaseRot, 1)
     phaseBase = np.poly1d(phaseBaseCoefs)
