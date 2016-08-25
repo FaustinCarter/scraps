@@ -6,21 +6,122 @@ import scipy.signal as sps
 from .containers import indexResList
 
 def plotResListData(resList, plot_types=['IQ'], **kwargs):
+    r"""Plot resonator data and fits.
+
+    Parameters
+    ----------
+    resList : list-like
+        A list of ``pyres.Resonator`` objects. A single ``Resonator`` object can
+        be passed, as long as it is in a list.
+
+    plot_types : list, optional
+        A list of plots to create, each one specified by a string. Possible plot
+        types are:
+
+        - 'IQ': Plots the real part of the transmission (`I`) vs the imaginary
+        part (`Q`). This is the default plot.
+        - 'rIQ': Plots the residual of `I` vs the residual of `Q`. This plot is
+        only available if the ``do_lmfit`` method of each ``Resonator`` object
+        has been called. The `I` and `Q` residuals are normalized by the
+        uncertainty of the `I` and `Q` data respectively. If this is not
+        explicitly supplied, it is calculated by taking the standard deviation
+        of the first 10 data points.
+        - 'LinMag': Plots the magnitude of the tranmission in Volts vs
+        frequency.
+        - 'LogMag': Plots the magnitude of the transmission in dB vs frequency.
+        ``LogMag = 20*np.log(LinMag)``.
+        - 'rMag': Plots the difference of `LinMag` and the best-fit magnitude vs
+        frequency. This plot is only available if the ``do_lmfit`` method of
+        each ``Resonator`` object has been called.
+        - 'Phase': Plots the phase of the transmision vs frequency.
+        ``Phase = np.arctan2(Q, I)``.
+        - 'rPhase': Plots the difference of `Phase` and the best-fit phase vs
+        frequency. This plot is only available if the ``do_lmfit`` method of
+        each ``Resonator`` object has been called.
+        - 'uPhase': Plots the unwrapped phase vs frequency.
+        ``uPhase = np.unwrap(Phase)``.
+        - 'ruPhase': Plots the difference of `uPhase` and the unwrapped best-fit
+        phase vs frequency. This plot is only available if the ``do_lmfit``
+        method of each ``Resonator`` object has been called.
+        - 'I': Plots the real part of the transmission vs frequency.
+        - 'rI': Plots the residual of `I` vs frequency. The residual is weighted
+        by the uncertainty in `I`. This plot is only available if the
+        ``do_lmfit`` method of each ``Resonator`` object has been called.
+        - 'Q': Plots the imaginary part of the transmission vs frequency.
+        - 'rQ': Plots the residual of `Q` vs frequency. The residual is weighted
+        by the uncertainty in `Q`. This plot is only available if the
+        ``do_lmfit`` method of each ``Resonator`` object has been called.
+
+    plot_fits : {False, True}, optional
+        Whether or not to overplot the best fit on the data. This is only
+        effective if the  ``do_lmfit`` method of each ``Resonator`` object has
+        been called. Default is False.
+
+    powers : list-like, optional
+        A list of power values to plot. Default is to plot all of the unique
+        powers that exist in the list of ``Resonator`` objects.
+
+    temps : list-like, optional
+        A list of temperature values to plot. Default os to plot all of the
+        unique temperatures that exist in the list of ``Resonator`` obejcts.
+
+    use_itemps : {False, True}, optional
+        If a ``ResonatorSweep`` object has been generated from the resList it
+        may have added the ``itemp`` attrubute to each ``ResonatorObject`` in
+        the list. Specifying ``use_itemps = True`` will force the plotting
+        routine to use those tempeartures.
+
+    freq_units : {'GHz', 'Hz', 'kHz', 'MHz', 'THz'}, optional
+        The units for the frequency axis, if it exists. Defaul is 'GHz'.
+
+    detrend_phase : {False, True}, optional
+        Whether or not to remove a linear trend from the `Phase` data. A typical
+        reason for a steep linear offset in the phase is an uncorrected
+        electrical delay due to long transmission lines.
+
+    num_cols : int, optional
+        The number of columns to include in the grid of subplots. Default is 1.
+
+    fig_size : int, optional
+        The size of an individual subplot in inches. Default is 3.
+
+    force_square : {False, True}, optional
+        Whether or not to force each subplot axis to be perfectly square.
+
+    show_colorbar : {True, False}, optional
+        Whether or not to add a colorbar to the right edge of the figure. The
+        colorbar will correspond to the limits of the colored data. Default is
+        True.
+
+    color_by : {'temps', 'pwrs'}, optional
+        If multiple temperatures and multiple powers are passed, this selects
+        which variable will set the color of the plots. Default is 'temps'.
+
+    color_map : str, optional
+        The name of any colormap returned by calling
+        ``matplotlib.pyplot.colormaps()`` is a valid option. Default is
+        'coolwarm'.
+
+    Returns
+    -------
+    figS : matplotlib.pyplot.figure
+
+    """
     #TODO: Add temperature and power masking that makes more sense, like the ability
     #to set a temperature range, or maybe decimate the temperature data. Also
     #need to add the ability to waterfall the mag and phase plots.
-    supportedTypes = ['IQ', 'rIQ', 'LogMag', 'LinMag', 'rMag',
+    supported_types = ['IQ', 'rIQ', 'LogMag', 'LinMag', 'rMag',
                         'Phase', 'rPhase', 'uPhase', 'ruPhase',
                         'I', 'rI', 'Q', 'rQ']
+    assert all(plt_key in supported_types for plt_key in plot_types), "Unsupported plotType requested!"
 
-    assert all(pt in supportedTypes for pt in plot_types), "Unsupported plotType requested!"
-
+    #Get a list of unique temps and powers
     powers = []
     temps = []
 
+    #Should we use itemps?
     use_itemps = kwargs.pop('use_itemps', False)
-
-    detrend_phase = kwargs.pop('detrend_phase', False)
+    assert all(hasattr(res, 'itemps') for res in resList), "Could not locate itemp for at least one resonator!"
 
     for res in resList:
         powers.append(res.pwr)
@@ -32,12 +133,15 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     powers = np.unique(powers)
     temps = np.unique(temps)
 
+    #Optionally override either list
     powers = kwargs.pop('powers', powers)
     temps = kwargs.pop('temps', temps)
 
-    num_cols = kwargs.pop('num_cols', 1)
+    #Should we plot best fits?
     plot_fits = kwargs.pop('plot_fits', False)
+    assert all(res.hasFit for res in resList), "At least one resonator has not been fit yet."
 
+    #Set the units for the frequency axes
     freq_units = kwargs.pop('freq_units', 'GHz')
     assert freq_units in ['Hz', 'kHz', 'MHz', 'GHz', 'THz'], "Unsupported units request!"
 
@@ -47,20 +151,23 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                 'GHz':1e9,
                 'THz':1e12}
 
+    #Remove linear phase variation? Buggy...
+    detrend_phase = kwargs.pop('detrend_phase', False)
+
+    #Set some plotting defaults
+    num_cols = kwargs.pop('num_cols', 1)
     fig_size = kwargs.pop('fig_size', 3)
-
     force_square = kwargs.pop('force_square', False)
-
-    #Set the colormap: Default to a nice red/blue thing
-    color_map = kwargs.pop('color_map', 'coolwarm')
-    assert color_map in plt.colormaps(), "Unknown colormap provided"
-    color_gen = plt.get_cmap(color_map)
+    show_colorbar = kwargs.pop('show_colorbar', True)
 
     #Should the temperatures or the powers iterate the colors?
     color_by = kwargs.pop('color_by', 'temps')
     assert color_by in ['temps', 'pwrs'], "color_by must be 'temps' or 'pwrs'."
 
-    show_colorbar = kwargs.pop('show_colorbar', True)
+    #Set the colormap: Default to a nice red/blue thing
+    color_map = kwargs.pop('color_map', 'coolwarm')
+    assert color_map in plt.colormaps(), "Unknown colormap provided"
+    color_gen = plt.get_cmap(color_map)
 
 
     #Set up the figure
@@ -70,6 +177,9 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     num_rows = int(np.ceil(1.0*len(plot_types)/num_cols))
 
     #Set figure size, including some extra spacing for the colorbar
+    #0.1 is the extra space for the colorbar.
+    #*1.2 is the extra padding for the axis labels
+    #15:1 is the ratio of axis width for regular axes to colorbar axis
     if show_colorbar:
         figS.set_size_inches(fig_size*(num_cols+0.1)*1.2, fig_size*num_rows)
 
@@ -81,7 +191,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
         #Initialize the grid for plotting
         plt_grid = gs.GridSpec(num_rows, num_cols)
 
-    #Make a dictionary of axes corresponding to plot types
+    #Initialize a dictionary of axes corresponding to plot types
     axDict = {}
 
     #Set up axes and make labels
@@ -137,13 +247,16 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
         if key == 'rQ':
             ax.set_ylabel('Residual of Q / $\sigma_\mathrm{Q}$')
 
+        #Stuff the axis into the axis dictionary
         axDict[key] = ax
 
     #Plot the data
     for pwr in powers:
         for temp in temps:
+            #Grab the right resonator from the list
             resIndex = indexResList(resList, temp, pwr, itemp=use_itemps)
 
+            #Color magic!
             if color_by == 'temps':
                 if len(temps) > 1:
                     plt_color = color_gen(temp*1.0/max(temps))
@@ -155,6 +268,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                 else:
                     plt_color = color_gen(0)
 
+            #Not every temp/pwr combo corresponds to a resonator. Ignore missing ones.
             if resIndex is not None:
                 res = resList[resIndex]
                 scaled_freq = res.freq/unitsDict[freq_units]
@@ -230,7 +344,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                         x1, x2 = ax.get_xlim()
                         y1, y2 = ax.get_ylim()
 
-                        #Explicitly passing a float to avoid an warning in matplotlib
+                        #Explicitly passing a float to avoid a warning in matplotlib
                         #when it gets a numpy.float64
                         ax.set_aspect(float((x2-x1)/(y2-y1)))
 
@@ -244,13 +358,14 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
             cbar_norm = mpl.colors.Normalize(vmin=min(powers), vmax=max(powers))
             cbar_units = 'dB'
 
-        #Make an axis that spans all rows
+        #Make an axis that spans all rows for the colorbar
         cax = figS.add_subplot(plt_grid[:, num_cols])
 
-        #Plot and label
+        #Plot and label the colorbar
         cbar_plot = mpl.colorbar.ColorbarBase(cax, cmap=color_gen, norm=cbar_norm)
         cbar_plot.set_label(cbar_units)
 
+    #Clean up the subfigs and make sure nothing overlaps
     figS.tight_layout()
 
     return figS
