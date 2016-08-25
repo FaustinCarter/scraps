@@ -102,6 +102,14 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
         ``matplotlib.pyplot.colormaps()`` is a valid option. Default is
         'coolwarm'.
 
+    plot_kwargs : dict, optional
+        A dict of keyword arguments to pass through to the individual plots.
+        Attempting to set 'color' will result in an error.
+
+    fit_kwargs : dict, optional
+        A dict of keyword arguments to pass through to the fit plots. Default is
+        a dashed black line.
+
     Returns
     -------
     figS : matplotlib.pyplot.figure
@@ -121,7 +129,8 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
     #Should we use itemps?
     use_itemps = kwargs.pop('use_itemps', False)
-    assert all(hasattr(res, 'itemps') for res in resList), "Could not locate itemp for at least one resonator!"
+    if use_itemps:
+        assert all(hasattr(res, 'itemps') for res in resList), "Could not locate itemp for at least one resonator!"
 
     for res in resList:
         powers.append(res.pwr)
@@ -160,6 +169,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     force_square = kwargs.pop('force_square', False)
     show_colorbar = kwargs.pop('show_colorbar', True)
 
+
     #Should the temperatures or the powers iterate the colors?
     color_by = kwargs.pop('color_by', 'temps')
     assert color_by in ['temps', 'pwrs'], "color_by must be 'temps' or 'pwrs'."
@@ -168,6 +178,13 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     color_map = kwargs.pop('color_map', 'coolwarm')
     assert color_map in plt.colormaps(), "Unknown colormap provided"
     color_gen = plt.get_cmap(color_map)
+
+    #Any extra kwargs for plotting
+    plot_kwargs = kwargs.pop('plot_kwargs', {})
+    fit_kwargs = kwargs.pop('fit_kwargs', {'color' : 'k', 'linestyle' : '--'})
+
+    if kwargs:
+        raise NameError("Unknown keyword argument: " + kwargs.keys()[0])
 
 
     #Set up the figure
@@ -275,67 +292,67 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
                 for key, ax in axDict.iteritems():
                     if key == 'IQ':
-                        ax.plot(res.I, res.Q, color=plt_color)
+                        ax.plot(res.I, res.Q, color=plt_color, **plot_kwargs)
                         if plot_fits:
-                            ax.plot(res.resultI, res.resultQ, 'k--')
+                            ax.plot(res.resultI, res.resultQ, **fit_kwargs)
 
                     if key == 'rIQ':
-                        ax.plot(res.residualI, res.residualQ, color=plt_color)
+                        ax.plot(res.residualI, res.residualQ, color=plt_color, **plot_kwargs)
 
                     if key == 'LogMag':
-                        ax.plot(scaled_freq, res.logmag, color=plt_color)
+                        ax.plot(scaled_freq, res.logmag, color=plt_color, **plot_kwargs)
                         if plot_fits:
-                            ax.plot(scaled_freq, 20*np.log(res.resultMag), 'k--')
+                            ax.plot(scaled_freq, 20*np.log(res.resultMag), **fit_kwargs)
 
                     if key == 'LinMag':
-                        ax.plot(scaled_freq, res.mag, color=plt_color)
+                        ax.plot(scaled_freq, res.mag, color=plt_color, **plot_kwargs)
                         if plot_fits:
-                            ax.plot(scaled_freq, res.resultMag, 'k--')
+                            ax.plot(scaled_freq, res.resultMag, **fit_kwargs)
 
                     if key == 'rMag':
-                        ax.plot(scaled_freq, res.resultMag-res.mag, color=plt_color)
+                        ax.plot(scaled_freq, res.resultMag-res.mag, color=plt_color, **plot_kwargs)
 
                     if key == 'Phase':
                         if detrend_phase:
-                            ax.plot(scaled_freq, sps.detrend(res.phase), color=plt_color)
+                            ax.plot(scaled_freq, sps.detrend(res.phase), color=plt_color, **plot_kwargs)
                             if plot_fits:
-                                ax.plot(scaled_freq, sps.detrend(res.resultPhase), 'k--')
+                                ax.plot(scaled_freq, sps.detrend(res.resultPhase), **fit_kwargs)
                         else:
-                            ax.plot(scaled_freq, res.phase, color=plt_color)
+                            ax.plot(scaled_freq, res.phase, color=plt_color, **plot_kwargs)
                             if plot_fits:
-                                ax.plot(scaled_freq, res.resultPhase, 'k--')
+                                ax.plot(scaled_freq, res.resultPhase, **fit_kwargs)
 
                     if key == 'rPhase':
-                        ax.plot(scaled_freq, res.resultPhase-res.phase, color=plt_color)
+                        ax.plot(scaled_freq, res.resultPhase-res.phase, color=plt_color, **plot_kwargs)
 
                     if key == 'uPhase':
                         if detrend_phase:
-                            ax.plot(scaled_freq, sps.detrend(res.uphase), color=plt_color)
+                            ax.plot(scaled_freq, sps.detrend(res.uphase), color=plt_color, **plot_kwargs)
                             if plot_fits:
-                                ax.plot(scaled_freq, sps.detrend(np.unwrap(res.resultPhase)), 'k--')
+                                ax.plot(scaled_freq, sps.detrend(np.unwrap(res.resultPhase)), **fit_kwargs)
                         else:
-                            ax.plot(scaled_freq, res.uphase, color=plt_color)
+                            ax.plot(scaled_freq, res.uphase, color=plt_color, **plot_kwargs)
                             if plot_fits:
-                                ax.plot(scaled_freq, np.unwrap(res.resultPhase), 'k--')
+                                ax.plot(scaled_freq, np.unwrap(res.resultPhase), **fit_kwargs)
 
                     if key == 'ruPhase':
-                        ax.plot(scaled_freq, np.unwrap(res.resultPhase)-res.uphase, color=plt_color)
+                        ax.plot(scaled_freq, np.unwrap(res.resultPhase)-res.uphase, color=plt_color, **plot_kwargs)
 
                     if key == 'I':
-                        ax.plot(scaled_freq, res.I, color=plt_color)
+                        ax.plot(scaled_freq, res.I, color=plt_color, **plot_kwargs)
                         if plot_fits:
-                            ax.plot(scaled_freq, res.resultI, 'k--')
+                            ax.plot(scaled_freq, res.resultI, **fit_kwargs)
 
                     if key == 'rI':
-                        ax.plot(scaled_freq, res.residualI, color=plt_color)
+                        ax.plot(scaled_freq, res.residualI, color=plt_color, **plot_kwargs)
 
                     if key == 'Q':
-                        ax.plot(scaled_freq, res.Q, color=plt_color)
+                        ax.plot(scaled_freq, res.Q, color=plt_color, **plot_kwargs)
                         if plot_fits:
-                            ax.plot(scaled_freq, res.resultQ, 'k--')
+                            ax.plot(scaled_freq, res.resultQ, **fit_kwargs)
 
                     if key == 'rQ':
-                        ax.plot(scaled_freq, res.residualQ, color=plt_color)
+                        ax.plot(scaled_freq, res.residualQ, color=plt_color, **plot_kwargs)
 
                     ax.set_xticklabels(ax.get_xticks(),rotation=45)
 
