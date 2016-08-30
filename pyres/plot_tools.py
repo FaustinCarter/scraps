@@ -4,7 +4,7 @@ import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import scipy.signal as sps
-from .containers import indexResList
+from .resonator import indexResList
 
 def plotResListData(resList, plot_types=['IQ'], **kwargs):
     r"""Plot resonator data and fits.

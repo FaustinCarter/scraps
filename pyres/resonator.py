@@ -427,3 +427,57 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
 
     #Return resonator object
     return res
+
+def makeResList(fileFunc, dataPath, resName):
+    """Create a list of resonator objects from a directory of dataDict
+
+    Returns:
+    resList -- a list of Resonator objects
+
+    Arguments:
+    fileFunc -- the function that converts files into a data dictionary
+    dataPath -- path to the directory holding the data
+    resName -- the name of the resonator you want to pull data from"""
+    #Find the files that match the resonator you care about
+    fileList = glob.glob(dataPath + '*' + resName + '_*' + '*')
+
+    #loop through files and process all the data
+    fileDataDicts = map(fileFunc, fileList)
+
+    #Create resonator objects from the data
+    #makeResFromData returns a tuple of (res, temp, pwr),
+    #but only care about the first one
+    resList = [makeResFromData(fileDataDict) for fileDataDict in fileDataDicts]
+
+    return resList
+
+#Index a list of resonator objects easily
+def indexResList(resList, temp, pwr, **kwargs):
+    """Index resList by temp and pwr.
+
+    Returns:
+    index -- an int corresponding to the location of the Resonator specified by the Arguments
+
+    Arguments:
+    resList -- a list of Resonator objects
+    temp -- the temperature of a single Resonator object
+    pwr -- the power of a single Resonator object
+
+    Keyword Args:
+    itemp -- boolean switch to determine whether lookup uses temp or itemp (rounded value of temp)
+
+    Note:
+    The combination of temp and pwr must be unique. indexResList does not check for duplicates."""
+    itemp = kwargs.pop('itemp', False)
+    assert itemp in [True, False], "'itemp' must be boolean."
+
+
+    for index, res in enumerate(resList):
+        if itemp is True:
+            if res.itemp == temp and res.pwr == pwr:
+                return index
+        else:
+            if res.temp == temp and res.pwr == pwr:
+                return index
+
+    return None
