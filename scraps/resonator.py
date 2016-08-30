@@ -1,5 +1,6 @@
 import numpy as np
 import lmfit as lf
+import glob
 import scipy.signal as sps
 
 class Resonator(object):
