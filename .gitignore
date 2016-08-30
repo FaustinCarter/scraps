@@ -13,3 +13,6 @@
 
 #Data for editing notebooks
 /ExampleData
+
+#Unused file that I want to keep around
+./scraps/resMCMC.py
