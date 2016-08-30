@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import glob
 import matplotlib.pyplot as plt
+import lmfit as lf
 from .pyres import makeResFromData
 from .process_file import process_file
 
@@ -30,6 +31,26 @@ class ResonatorSweep(dict):
 
     rountTo : float
         The number of mK to round to when ``smartIndex == 'round'``.
+
+    lmfit_results : dict
+        A dictionary containing the fit results for different data by key.
+        Initially empty, results are added by calling
+        ``ResonatorSweep.do_lmfit``.
+
+    emcee_results : dict
+        A dictionary containing the MCMC results for different data by key.
+        Initially empty, results are added by calling
+        ``ResonatorSweep.do_emcee``.
+
+    lmfit_joint_results : dict
+        If multiple data sets are fit simultaneously via
+        ``ResonatorSweep.do_lmfit``, the results will appear in this attribute
+        by key, where ``key = 'key1+key2' == 'key2+key1'.
+
+    emcee_joint_results : dict
+        If multiple data sets are fit simultaneously via
+        ``ResonatorSweep.do_emcee``, the results will appear in this attribute
+        by key, where ``key = 'key1+key2'.
 
     Keys
     ----
@@ -76,6 +97,12 @@ class ResonatorSweep(dict):
         #Call the base class initialization for an empty dict.
         #Not sure this is totally necessary, but don't want to break the dict...
         dict.__init__(self)
+
+        #Create some objects that will be filled in the future:
+        self.lmfit_results = {} #Holds fit results for individual quantities
+        self.emcee_results = {}
+        self.lmfit_joint_results = {} #Holds fit results for joint quantities
+        self.emcee_joint_results = {}
 
         #Build a list of keys that will eventually become the dict keys:
 
@@ -182,13 +209,27 @@ class ResonatorSweep(dict):
             #Start out with a 2D dataframe full of NaN of type float
             #Row and Column indices are temperature and power values
             self[pname] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
-            self[pname+'_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+
+
+            if pname in resList[0].params.keys():
+                self[pname+'_sigma'] = pd.DataFrame(np.nan, index=self.tvec, columns = self.pvec)
+                self[pname+'_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
 
             #Fill it with as much data as exists
             for index, res in enumerate(resList):
                 if pname in res.lmfit_result.params.keys():
                     if res.lmfit_result.params[pname].vary is True:
+                        #The actual best fit value
                         self[pname][res.pwr][res.itemp] = res.lmfit_result.params[pname].value
+
+                        #Get the right index to find the uncertainty in the covariance matrix
+                        cx = res.lmfit_result.var_names.index(pname)
+
+                        #The uncertainty is the sqrt of the autocovariance
+                        if res.lmfit_result.covar is not None:
+                            self[pname+'_sigma'][res.pwr][res.itemp] = np.sqrt(res.lmfit_result.covar[cx, cx])
+
+                        #Get the maximum liklihood if it exists
                         if res.hasChain is True:
                             self[pname+'_mc'][res.pwr][res.itemp] = res.emcee_result.params[pname].value
                 elif pname == 'temps':
@@ -209,6 +250,129 @@ class ResonatorSweep(dict):
                     qi = res.lmfit_result.params['qi'].value
                     qc = res.lmfit_result.params['qc'].value
                     self[pname][res.pwr][res.itemp] = qi*qc/(qi+qc)
+
+    def do_lmfit(self, fit_keys, models_list, params_list, model_kwargs=None, param_kwargs=None, kwargs=None):
+        r"""Run simulatneous fits on the temp/pwr data for several parameters.
+        Results are stored in either the ``lmfit_results`` or
+        ``lmfit_joint_results`` attribute depending on whether one or multiple
+        keys are passed to `fit_keys`.
+
+        Parameters
+        ----------
+        fit_keys : list-like
+            A list of keys that correspond to existing data. Any combination of
+            keys from `self.keys()`` is acceptable, but duplicates are not
+            permitted.
+
+        models_list : list-like
+            A list of fit functions, one per key in `fit_keys`. Function must
+            return a one-dimensional residual. Ideally it would be scaled by the
+            standard deviation of the data. Function signature is
+            ``model_func(params, temps, powers, data, sigmas=None)``. The model
+            functions should also gracefully handle ``np.NaN`` or ``None``
+            values.
+
+        params_list : list-like
+            A list of ``lmfit.Parameters`` objects, one for each key in
+            `fit_keys`. Parameters sharing the same name will be merged so that
+            the fit is truly joint. Alternately, a list of functions that return
+            ``lmfit.Parameters`` objects may be passed. In this case, one should
+            use `param_kwargs` to pass any needed options to the functions.
+
+        model_kwargs : list-like (optional)
+            A list of ``dict`` objects to pass to the individual model functions
+            as **kwargs. ``None`` is also an acceptable entry  if there are no
+            **kwargs to pass to a model function. Default is ``None.``
+
+        param_kwargs : list-like (optional)
+            A list of ``dict`` objects to pass to the individual params
+            functions as **kwargs. ``None`` is also an acceptable entry  if
+            there are no **kwargs to pass to a model function. Default is
+            ``None.``
+
+        lmfit_kwargs : dict (optional)
+            Keyword arguments to pass options to the fitter
+
+        kwargs : dict (optional)
+            Supported keyword arugments are 'min_temp', 'max_temp', 'min_pwr',
+            and 'max_pwr'. These set limits on which data to fit.
+
+        """
+
+        #Set some limits
+        min_temp = kwargs.pop('min_temp', min(self.tvec))
+        max_temp = kwargs.pop('max_temp', max(self.tvec))
+        t_filter = (self.tvec >= min_temp) * (self.tvec <= max_temp)
+
+        min_pwr = kwargs.pop('min_pwr', min(self.pvec))
+        max_pwr = kwargs.pop('max_pwr', max(self.pvec))
+        p_filter = (self.pvec >= min_pwr) * (self.pvec <= max_pwr)
+
+
+
+        assert len(fit_keys) == len(models_list) == len(params_list), "Make sure argument lists match in number."
+
+        #Check to see if this should go in the joint_fits dict, and build a key if needed.
+        if len(fit_keys) > 1:
+            joint_key = '+'.join(fit_keys)
+        else:
+            joint_key = None
+
+        #Check if params looks like a lmfit.Parameters object.
+        #If not, assume is function and try to set params by calling it
+        for px, p in enumerate(params_list):
+            if not hasattr(p, 'valuesdict'):
+                assert params_kwargs[px] is not None, "If passing functions to params, must specfify params_kwargs."
+                params_list[px] = p(**param_kwargs[px])
+
+        #Combine the different params objects into one large list
+        #Only the first of any duplicates will be transferred
+        merged_params = lf.Parameters
+        if len(params_list) > 1:
+            for key in params_list.keys():
+                if key not in merged_params.keys():
+                    merged_params[key] = params_list[key]
+        else:
+            merged_params = params_list[0]
+
+        #Get all the possible temperature/power combos in two lists
+        ts, ps = np.meshgrid(self.tvec[t_filter], self.pvec[p_filter])
+        ts = ts.flatten()
+        ps = ps.flatten()
+
+        #Create a list to hold the fit data and the sigmas
+        fit_data_list = []
+        fit_sigmas_list = []
+
+        #Get the data that corresponds to each temperature power combo and
+        #flatten it to match the ts/ps combinations
+        for key in fit_keys:
+            fit_data_list.append(self[key].values.T[p_filter, t_filter].flatten())
+            fit_sigmas_list.append(self[key+'_sigma'].values.T[p_filter, t_filter].flatten())
+
+        #Create a new model function that will be passed to the minimizer.
+        #Basically this runs each fit and passes all the residuals back out
+        def model_func(params, models, ts, ps, data, sigmas, kwargs):
+            residual = []
+            for ix, key in enumerate(fit_keys):
+                residual.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
+
+            return np.asarray(residual).flatten()
+
+
+        #Create a lmfit minimizer object
+        minObj = lf.Minimizer(model_func, merged_params, fcn_args=(models_list, ts, ps, data_list, sigmas_list, model_kwargs))
+
+        #Call the lmfit minimizer method and minimize the residual
+        lmfit_result = minObj.minimize(method = 'leastsq')
+
+        #Put the result in the appropriate dictionary
+        if joint_key is not None:
+            self.lmfit_joint_results[joint_key] = lmfit_result
+        else:
+            self.lmfit_results[fit_keys[0]] = lmfit_result
+
+
 
 
 def makeResList(fileFunc, dataPath, resName):
