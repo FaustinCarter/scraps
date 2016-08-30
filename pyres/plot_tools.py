@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
 import matplotlib as mpl
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import scipy.signal as sps
 from .containers import indexResList
@@ -175,6 +176,8 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     assert color_by in ['temps', 'pwrs'], "color_by must be 'temps' or 'pwrs'."
 
     #Set the colormap: Default to a nice red/blue thing
+    #TODO: Allow for custom colormaps (like from Seaborn, etc)
+
     color_map = kwargs.pop('color_map', 'coolwarm')
     assert color_map in plt.colormaps(), "Unknown colormap provided"
     color_gen = plt.get_cmap(color_map)
@@ -397,6 +400,9 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     #TODO: fix for other smartindex types
 
     #set defaults
+    plot_labels = kwargs.pop('plot_labels', None)
+
+    unit_multipliers = kwargs.pop('unit_multipliers', None)
 
     #Which fit data should be plot? lmfit or emcee?
     fitter = kwargs.pop('fitter', 'lmfit')
@@ -467,16 +473,24 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
 
         axs = figS.add_subplot(plt_grid[iRow, iCol])
 
+        if unit_multipliers is not None:
+            mult = unit_multipliers[ix]
+        else:
+            mult = 1
+
         for pwr in powers:
             if len(powers) > 1:
                 plt_color = color_gen(1-((max(powers)-pwr)*1.0/(max(powers)-min(powers))))
             else:
                 plt_color = color_gen(0)
 
-            axs.plot(resSweep.tvec[tempMask],resSweep[key].loc[tempMask, pwr],'--',color=plt_color, label='Power: '+str(pwr))
+            axs.plot(resSweep.tvec[tempMask],mult*resSweep[key].loc[tempMask, pwr],'--',color=plt_color, label='Power: '+str(pwr))
 
         axs.set_xlabel('Temperature (mK)')
-        axs.set_ylabel(key)
+        if plot_labels is not None:
+            axs.set_ylabel(plot_labels[ix])
+        else:
+            axs.set_ylabel(key)
         axs.set_xticklabels(axs.get_xticks(),rotation=45)
 
         if force_square:
@@ -513,6 +527,8 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
     #TODO: fix for other smartindex types
 
     #set defaults:
+    plot_labels = kwargs.pop('plot_labels', None)
+    unit_multipliers = kwargs.pop('unit_multipliers', None)
 
     #Which fit data should be plot? lmfit or emcee?
     fitter = kwargs.pop('fitter', 'lmfit')
@@ -580,6 +596,11 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
 
         axs = figS.add_subplot(plt_grid[iRow, iCol])
 
+        if unit_multipliers is not None:
+            mult = unit_multipliers[ix]
+        else:
+            mult = 1
+
         for tmp in temps:
             if len(temps) > 1:
                 plt_color = color_gen(tmp*1.0/max(temps))
@@ -589,7 +610,10 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
             axs.plot(resSweep.pvec[pwrMask],resSweep[key].loc[tmp,pwrMask],'--', color=plt_color, label='Temperature: '+str(tmp))
 
         axs.set_xlabel('Power (dB)')
-        axs.set_ylabel(key)
+        if plot_labels is not None:
+            axs.set_ylabel(plot_labels[ix])
+        else:
+            axs.set_ylabel(key)
         axs.set_xticklabels(axs.get_xticks(),rotation=45)
 
         if force_square:
@@ -616,4 +640,113 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
     cbar_plot.set_label(cbar_units)
 
     figS.tight_layout()
+    return figS
+
+def plotResSweep3D(resSweep, plot_keys, **kwargs):
+    r"""Make 3D surface or mesh plots of any key in the ``ResonatorSweep`` object as functions
+    of temperature and power.
+
+    Parameters
+    ----------
+    resSweep : ``ResonatorSweep`` object
+        A ``pyres.ResonatorSweep`` object containing all of the data to be
+        plotted.
+
+    plot_keys : list-like
+        List of strings where each string is a key corresponding to a plot that
+        should be made. For a list of acccetable keys, run ``print
+        resSweep.keys()``.
+
+    min_temp : numeric (optional)
+        The minimum temperature to plot. Defaults to ``min(temperatures)``.
+
+    max_temp : numeric (optional)
+        The maximum temperature to plot. Defaults to ``max(temperatres)``.
+
+    min_pwr : numeric (optional)
+        The minimum power to plot. Defaults to ``min(powers)``.
+
+    max_pwr : numeric (optional)
+        The maximum power to plot. Defauts to ``max(powers)``.
+
+    num_cols : int (optional)
+        The number of columns in the resulting plot grid. Default is 1.
+
+    fig_size : numeric (optional)
+        The size of an individual subplot in inches. Default is 3.
+
+    plot_kwargs : dict (optional)
+        A dictionary of keyword arguments to pass the plotting function.
+        Default is ``None``.
+
+    """
+    #Some plotting niceties
+    plot_labels = kwargs.pop('plot_labels', None)
+    unit_multipliers = kwargs.pop('unit_multipliers', None)
+
+
+    #Set some limits
+    min_temp = kwargs.pop('min_temp', min(resSweep.tvec))
+    max_temp = kwargs.pop('max_temp', max(resSweep.tvec))
+    t_filter = (resSweep.tvec >= min_temp) * (resSweep.tvec <= max_temp)
+
+    min_pwr = kwargs.pop('min_pwr', min(resSweep.pvec))
+    max_pwr = kwargs.pop('max_pwr', max(resSweep.pvec))
+    p_filter = (resSweep.pvec >= min_pwr) * (resSweep.pvec <= max_pwr)
+
+    #Get all the possible temperature/power combos in two lists
+    ts, ps = np.meshgrid(resSweep.tvec[t_filter], resSweep.pvec[p_filter])
+
+    #Set up the figure
+    figS = plt.figure()
+
+    fig_size = kwargs.pop('fig_size', 3)
+
+    assert all(key in resSweep.keys() for key in plot_keys), "Unknown key"
+
+    num_keys = len(plot_keys)
+    num_cols = kwargs.pop('num_cols', 1)
+
+    #Don't need more columns than plots
+    if num_keys < num_cols:
+        num_cols = num_keys
+
+    #Calculate rows for figure size
+    num_rows = int(np.ceil(1.0*num_keys/num_cols))
+
+    #Set figure size, including some extra spacing for the colorbar
+    figS.set_size_inches(fig_size*(num_cols)*1.5, fig_size*num_rows)
+
+    #Initialize the grid for plotting
+    plt_grid = gs.GridSpec(num_rows, num_cols)
+
+    #Grab any kwargs for the plotting functions
+    plot_kwargs = kwargs.pop('plot_kwargs', {})
+
+    #Loop through all the keys in the ResonatorSweep object and plot them
+    for ix, key in enumerate(plot_keys):
+
+        iRow = int(ix/num_cols)
+        iCol = ix%num_cols
+
+        axs = figS.add_subplot(plt_grid[iRow, iCol], projection='3d')
+
+        plt_data = resSweep[key].values.T[p_filter, :][:, t_filter]
+
+        if unit_multipliers is not None:
+            mult = unit_multipliers[ix]
+        else:
+            mult = 1
+
+        axs.plot_wireframe(ts, ps, mult*plt_data, **plot_kwargs)
+        if plot_labels is not None:
+            axs.set_zlabel(plot_labels[ix])
+        else:
+            axs.set_zlabel(key)
+        axs.set_ylabel('Power (dB)')
+        axs.set_xlabel('Temperature (mK)')
+
+
+    figS.tight_layout()
+
     return figS

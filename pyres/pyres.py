@@ -223,7 +223,7 @@ class Resonator(object):
         Parameters
         ----------
         fitFn : function
-            fitFn arguments: lmfit parameter object, [Idata, Qdata], [I error, Q error]
+            fitFn arguemnts lmfit parameter object, [Idata, Qdata], [I error, Q error]
 
         kwargs : optional keywords
             Use this to override any of the lmfit parameter initial guesses or
