@@ -6,16 +6,28 @@ import lmfit as lf
 def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     """Return complex S21 resonance model or, if data is specified, a residual.
 
-    Return value:
-    model or (model-data) -- a complex vector [I, Q]
-        len(I) = len(Q) = len(freqs) = len(data)/2
+    Parameters
+    ----------
+    params : list-like
+        A an ``lmfit.Parameters`` object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain1, pgain2)
+    freqs : list-like
+        A list of frequency points at which the model is calculated
+    data : list-like (optional)
+        A list of complex data in the form I + Q where I and Q are both lists of data and
+        ``len(I) == len(Q) == len(freqs)``. If data is not passed, then the return value is the model
+        calculated at each frequency point.
+    eps : list-like (optional)
+        A list of errors, one for each point in data.
+    kwargs : dict (optional)
+        Currently no keyword arguments are accepted.
 
-    Arguments:
-    params -- a list or an lmfit Parameters object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain1, pgain2)
-    freqs -- a vector of frequency points at which the model is calculated
-    data -- a vector of complex data in the form [I, Q]
-        len(I) = len(Q) = len(freqs)
-    eps -- a vector of errors for each point in data
+    Returns
+    -------
+    model or (model-data) : ``numpy.array``
+        If data is specified, the return is the residuals. If not, the return is the model
+        values calculated at the frequency points. The returned array is in the form
+        ``I + Q`` or ``residualI + residualQ``.
+
     """
     #Check if the paramsVec looks like a lmfit params object. If so, unpack to list
     if hasattr(paramsVec, 'valuesdict'):
@@ -86,7 +98,34 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
         return (model-data)/eps
 
 def cmplxIQ_params(res, **kwargs):
-    """Initialize fitting parameters used by the cmplxIQ_fit function."""
+    """Initialize fitting parameters used by the cmplxIQ_fit function.
+
+    Parameters
+    ----------
+    res : ``scraps.Resonator`` object
+        The object you want to calculate parameter guesses for.
+
+    Keyword Arguments
+    -----------------
+    hardware : string {'VNA', 'mixer'}
+        This determines whether or not the Ioffset and Qoffset parameters are
+        allowed to vary by default.
+
+    use_filter : bool
+        Whether or not to use a smoothing filter on the data before calculating
+        parameter guesses. This is especially useful for very noisy data where
+        the noise spikes might be lower than the resonance minimum.
+
+    filter_win_length : int
+        The length of the window used in the Savitsky-Golay filter that smoothes
+        the data when ``use_filter == True``. Default is ``0.1 * len(data)`` or
+        3, whichever is larger.
+
+    Returns
+    -------
+    params : ``lmfit.Parameters`` object
+
+    """
 
     #Check if some other type of hardware is supplied
     hardware = kwargs.pop('hardware', 'VNA')

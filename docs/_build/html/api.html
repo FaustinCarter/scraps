@@ -42,7 +42,15 @@
   <div class="section" id="api">
 <h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
 <p>The two main objects that constitue the scraps framework are the <code class="xref py py-class docutils literal"><span class="pre">Resonator</span></code>
-and <code class="xref py py-class docutils literal"><span class="pre">ResonatorSweep</span></code> objects.</p>
+and <code class="xref py py-class docutils literal"><span class="pre">ResonatorSweep</span></code> objects. Additionally, several helper functions exist
+for building or interacting with these objects. There is also a default function
+for loading in data from a text file provided, althogh you will likely need to write
+your own.</p>
+<p>Fitting has been semantically separated, and you will likely want to supply your
+own functions for initializing parameters and fitting data, but some default
+fit functions are also provided. See the fit functions section of this page.</p>
+<p>Plotting is handled by a separate set of plotting functions that take as an argument
+either a <code class="xref py py-class docutils literal"><span class="pre">Resonator</span></code> or <code class="xref py py-class docutils literal"><span class="pre">ResonatorSweep</span></code> object.</p>
 <div class="section" id="resonator-class">
 <h2>Resonator class<a class="headerlink" href="#resonator-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -374,6 +382,46 @@ See the <code class="docutils literal"><span class="pre">lmfit</span></code> doc
 <div class="section" id="resonator-helper-functions">
 <h3>Resonator helper functions<a class="headerlink" href="#resonator-helper-functions" title="Permalink to this headline">¶</a></h3>
 <p>These functions are designed to make it easy to use the <code class="xref py py-class docutils literal"><span class="pre">Resonator</span></code> class.</p>
+<div class="section" id="process-file">
+<h4>process_file()<a class="headerlink" href="#process-file" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="scraps.process_file">
+<code class="descclassname">scraps.</code><code class="descname">process_file</code><span class="sig-paren">(</span><em>fileName</em>, <em>rows_to_skip=1</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.process_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load Keysight PNA file data into dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fileName</strong> (<em>string</em>) &#8211; <p>Path to data. Actual name of the file should be in the format:
+<code class="docutils literal"><span class="pre">name</span> <span class="pre">+</span> <span class="pre">'_'</span> <span class="pre">+</span> <span class="pre">pwr</span> <span class="pre">+</span> <span class="pre">'_DBM_TEMP_'</span> <span class="pre">+</span> <span class="pre">temp</span> <span class="pre">+</span> <span class="pre">'.S2P'</span></code> where:</p>
+<ul>
+<li>name: Must be &#8216;RES-N&#8217; where N is any single character you like.</li>
+<li>pwr: The power the resonator sees in dBm, three characters Example: &#8216;-25&#8217;</li>
+<li>temp: The temperature of the resonator in K, five characters Example: &#8216;0.150&#8217;</li>
+</ul>
+</li>
+<li><strong>rows_to_skip</strong> (<em>int</em>) &#8211; Number of rows to skip at start of file. Default is 1.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dataDict</strong> &#8211; Dictionary contains the following keys: &#8216;name&#8217;, &#8216;temp&#8217;, &#8216;pwr&#8217;, &#8216;freq&#8217;,
+&#8216;I&#8217;, &#8216;Q&#8217;. If fileName does not exist, then returns <code class="docutils literal"><span class="pre">None</span></code>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict or <code class="docutils literal"><span class="pre">None</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>This assumes the data in the file is in three columns in the order frequency, I, Q.</p>
+<p class="last">This is also a terribly written function, and you really should write your own!</p>
+</div>
+</dd></dl>
+
+</div>
 <div class="section" id="makeresfromdata">
 <h4>makeResFromData()<a class="headerlink" href="#makeresfromdata" title="Permalink to this headline">¶</a></h4>
 <dl class="function">
@@ -910,6 +958,88 @@ in some other application.</p>
 
 </div>
 </div>
+<div class="section" id="fit-models">
+<h2>Fit models<a class="headerlink" href="#fit-models" title="Permalink to this headline">¶</a></h2>
+<p>Each fit model consists of two functions. One that returns a <code class="xref py py-class docutils literal"><span class="pre">lmfit.Parameters</span></code> object,
+and one that takes parameters and data and returns a residual.</p>
+<div class="section" id="i-and-q-vs-frequency">
+<h3>I and Q vs frequency<a class="headerlink" href="#i-and-q-vs-frequency" title="Permalink to this headline">¶</a></h3>
+<p>The built-in fit model is called complx_IQ.py and is located in the fitsS21 folder.
+It has two functions, one that calculates best guess values for each of the ten fit
+parameters, and one that applies those guesses to the data and calculates the residual.</p>
+<div class="section" id="cmplxiq-params">
+<h4>cmplxIQ_params()<a class="headerlink" href="#cmplxiq-params" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="scraps.cmplxIQ_params">
+<code class="descclassname">scraps.</code><code class="descname">cmplxIQ_params</code><span class="sig-paren">(</span><em>res</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.cmplxIQ_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize fitting parameters used by the cmplxIQ_fit function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>res</strong> (<code class="docutils literal"><span class="pre">scraps.Resonator</span></code> object) &#8211; The object you want to calculate parameter guesses for.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
+<li><strong>hardware</strong> (<em>string {&#8216;VNA&#8217;, &#8216;mixer&#8217;}</em>) &#8211; This determines whether or not the Ioffset and Qoffset parameters are
+allowed to vary by default.</li>
+<li><strong>use_filter</strong> (<em>bool</em>) &#8211; Whether or not to use a smoothing filter on the data before calculating
+parameter guesses. This is especially useful for very noisy data where
+the noise spikes might be lower than the resonance minimum.</li>
+<li><strong>filter_win_length</strong> (<em>int</em>) &#8211; The length of the window used in the Savitsky-Golay filter that smoothes
+the data when <code class="docutils literal"><span class="pre">use_filter</span> <span class="pre">==</span> <span class="pre">True</span></code>. Default is <code class="docutils literal"><span class="pre">0.1</span> <span class="pre">*</span> <span class="pre">len(data)</span></code> or
+3, whichever is larger.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>params</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="cmplxiq-fit">
+<h4>cmplxIQ_fit()<a class="headerlink" href="#cmplxiq-fit" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="scraps.cmplxIQ_fit">
+<code class="descclassname">scraps.</code><code class="descname">cmplxIQ_fit</code><span class="sig-paren">(</span><em>paramsVec</em>, <em>freqs</em>, <em>data=None</em>, <em>eps=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.cmplxIQ_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return complex S21 resonance model or, if data is specified, a residual.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>params</strong> (<em>list-like</em>) &#8211; A an <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain1, pgain2)</li>
+<li><strong>freqs</strong> (<em>list-like</em>) &#8211; A list of frequency points at which the model is calculated</li>
+<li><strong>data</strong> (<em>list-like (optional)</em>) &#8211; A list of complex data in the form I + Q where I and Q are both lists of data and
+<code class="docutils literal"><span class="pre">len(I)</span> <span class="pre">==</span> <span class="pre">len(Q)</span> <span class="pre">==</span> <span class="pre">len(freqs)</span></code>. If data is not passed, then the return value is the model
+calculated at each frequency point.</li>
+<li><strong>eps</strong> (<em>list-like (optional)</em>) &#8211; A list of errors, one for each point in data.</li>
+<li><strong>kwargs</strong> (<em>dict (optional)</em>) &#8211; Currently no keyword arguments are accepted.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>model or (model-data)</strong> &#8211; If data is specified, the return is the residuals. If not, the return is the model
+values calculated at the frequency points. The returned array is in the form
+<code class="docutils literal"><span class="pre">I</span> <span class="pre">+</span> <span class="pre">Q</span></code> or <code class="docutils literal"><span class="pre">residualI</span> <span class="pre">+</span> <span class="pre">residualQ</span></code>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">numpy.array</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
 </div>
 
 
@@ -932,6 +1062,7 @@ in some other application.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#resonator-helper-functions">Resonator helper functions</a><ul>
+<li><a class="reference internal" href="#process-file">process_file()</a></li>
 <li><a class="reference internal" href="#makeresfromdata">makeResFromData()</a></li>
 <li><a class="reference internal" href="#makereslist">makeResList()</a></li>
 <li><a class="reference internal" href="#indexreslist">indexResList()</a></li>
@@ -952,6 +1083,14 @@ in some other application.</p>
 <li><a class="reference internal" href="#plotressweepparamsvstemp">plotResSweepParamsVsTemp()</a></li>
 <li><a class="reference internal" href="#plotressweepparamsvspwr">plotResSweepParamsVsPwr()</a></li>
 <li><a class="reference internal" href="#plotressweep3d">plotResSweep3D()</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fit-models">Fit models</a><ul>
+<li><a class="reference internal" href="#i-and-q-vs-frequency">I and Q vs frequency</a><ul>
+<li><a class="reference internal" href="#cmplxiq-params">cmplxIQ_params()</a></li>
+<li><a class="reference internal" href="#cmplxiq-fit">cmplxIQ_fit()</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

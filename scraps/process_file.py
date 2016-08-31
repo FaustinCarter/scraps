@@ -1,12 +1,22 @@
 import numpy as np
 
-def process_file(fileName):
+def process_file(fileName, rows_to_skip = 1):
     """Load Keysight PNA file data into dict.
 
     Parameters
     ----------
     fileName : string
-        Path to data.
+        Path to data. Actual name of the file should be in the format:
+        ``name + '_' + pwr + '_DBM_TEMP_' + temp + '.S2P'`` where:
+
+        - name: Must be 'RES-N' where N is any single character you like.
+
+        - pwr: The power the resonator sees in dBm, three characters Example: '-25'
+
+        - temp: The temperature of the resonator in K, five characters Example: '0.150'
+
+    rows_to_skip : int
+        Number of rows to skip at start of file. Default is 1.
 
     Returns
     -------
@@ -14,6 +24,11 @@ def process_file(fileName):
         Dictionary contains the following keys: 'name', 'temp', 'pwr', 'freq',
         'I', 'Q'. If fileName does not exist, then returns ``None``.
 
+    Note
+    ----
+    This assumes the data in the file is in three columns in the order frequency, I, Q.
+
+    This is also a terribly written function, and you really should write your own!
     """
     #Find the temperature, power, and name locations from the filename
     tempLoc = fileName.find('TEMP') + 5
@@ -32,7 +47,7 @@ def process_file(fileName):
         resName = fileName[resNameLoc:resNameLoc+5]
 
         #Grab frequency, I, and Q
-        fileData = np.loadtxt(fileName, skiprows=1)
+        fileData = np.loadtxt(fileName, skiprows=rows_to_skip)
         freqData = fileData[:,0]
         IData = fileData[:,1]
         QData = fileData[:,2]
