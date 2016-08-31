@@ -34,3 +34,7 @@ Short description of files that aren't code:
   microstrip resonator made at ANL by Dr. Trupti Khaire.
 
 Feedback is always appreciated!
+
+Happy Coding,
+
+Faustin W. Carter
