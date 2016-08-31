@@ -287,13 +287,13 @@ class ResonatorSweep(dict):
 
         model_kwargs : list-like (optional)
             A list of ``dict`` objects to pass to the individual model functions
-            as **kwargs. ``None`` is also an acceptable entry  if there are no
-            **kwargs to pass to a model function. Default is ``None.``
+            as kwargs. ``None`` is also an acceptable entry  if there are no
+            kwargs to pass to a model function. Default is ``None.``
 
         param_kwargs : list-like (optional)
             A list of ``dict`` objects to pass to the individual params
-            functions as **kwargs. ``None`` is also an acceptable entry  if
-            there are no **kwargs to pass to a model function. Default is
+            functions as kwargs. ``None`` is also an acceptable entry  if
+            there are no kwargs to pass to a model function. Default is
             ``None.``
 
         lmfit_kwargs : dict (optional)
@@ -377,3 +377,7 @@ class ResonatorSweep(dict):
             self.lmfit_joint_results[joint_key] = lmfit_result
         else:
             self.lmfit_results[fit_keys[0]] = lmfit_result
+
+    def do_emcee(self):
+        r"""Not yet implemented"""
+        pass

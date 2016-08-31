@@ -23,37 +23,52 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
         - 'IQ': Plots the real part of the transmission (`I`) vs the imaginary
         part (`Q`). This is the default plot.
+
         - 'rIQ': Plots the residual of `I` vs the residual of `Q`. This plot is
         only available if the ``do_lmfit`` method of each ``Resonator`` object
         has been called. The `I` and `Q` residuals are normalized by the
         uncertainty of the `I` and `Q` data respectively. If this is not
         explicitly supplied, it is calculated by taking the standard deviation
         of the first 10 data points.
+
         - 'LinMag': Plots the magnitude of the tranmission in Volts vs
         frequency.
+
         - 'LogMag': Plots the magnitude of the transmission in dB vs frequency.
         ``LogMag = 20*np.log(LinMag)``.
+
         - 'rMag': Plots the difference of `LinMag` and the best-fit magnitude vs
         frequency. This plot is only available if the ``do_lmfit`` method of
         each ``Resonator`` object has been called.
+
         - 'Phase': Plots the phase of the transmision vs frequency.
         ``Phase = np.arctan2(Q, I)``.
+
         - 'rPhase': Plots the difference of `Phase` and the best-fit phase vs
         frequency. This plot is only available if the ``do_lmfit`` method of
         each ``Resonator`` object has been called.
+
         - 'uPhase': Plots the unwrapped phase vs frequency.
         ``uPhase = np.unwrap(Phase)``.
+
         - 'ruPhase': Plots the difference of `uPhase` and the unwrapped best-fit
         phase vs frequency. This plot is only available if the ``do_lmfit``
         method of each ``Resonator`` object has been called.
+
         - 'I': Plots the real part of the transmission vs frequency.
+
         - 'rI': Plots the residual of `I` vs frequency. The residual is weighted
         by the uncertainty in `I`. This plot is only available if the
         ``do_lmfit`` method of each ``Resonator`` object has been called.
+
         - 'Q': Plots the imaginary part of the transmission vs frequency.
+
         - 'rQ': Plots the residual of `Q` vs frequency. The residual is weighted
         by the uncertainty in `Q`. This plot is only available if the
         ``do_lmfit`` method of each ``Resonator`` object has been called.
+
+    Keyword Arguments
+    -----------------
 
     plot_fits : {False, True}, optional
         Whether or not to overplot the best fit on the data. This is only
@@ -115,7 +130,8 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
     Returns
     -------
-    figS : matplotlib.pyplot.figure
+    figS : ``matplotlib.pyplot.figure``
+        A ``matplotlib.pyplot`` figure object.
 
     """
     #TODO: Add temperature and power masking that makes more sense, like the ability
@@ -395,7 +411,67 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
 
 def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwargs):
-    """Plot parameter data vs temperature from a ResonatorSweep object."""
+    """Plot parameter data vs temperature from a ResonatorSweep object.
+
+    Parameters
+    ----------
+    resSweep : ``scraps.ResonatorSweep`` object
+        The object containing the data you want to look at.
+
+    plot_keys : list-like (optional)
+        A list of strings corresponding to avaiable plot data. The available
+        keys depend on your parameter definitions and may be found by executing
+        ``print resSweep.keys()``. Some keys may point to empty (NaN) objects.
+        Default is to plot all of the keys that exist. If you pass plot_keys
+        you may not pass ignore_ignore keys.
+
+    ignore_keys : list-like (optional)
+        A list of strings corresponding to plots that should not be made. This
+        is useful if you want to plot most of the avaialble data, but ignore one
+        or two sets of data. Default is ``None``. If you pass ignore_keys you
+        may not pass plot_keys.
+
+    Keyword Arguments
+    -----------------
+    plot_labels : list-like
+        A list of strings to use to label the y-axes of the plots. There must be
+        one for each plot requested. ``None`` is acceptable for any position in
+        the list and will default to using the key as the label. Default is to
+        use the key as the label.
+
+    unit_multipliers : list-like
+        A list of numbers to multiply against the y-axis data. There must be one
+        for each plot requested. ``None`` is acceptable for any position in the
+        list and will default to 1. Default is 1.
+
+    fitter : string {'lmfit', 'emcee'}
+        Which fit data to use when overlaying best fits. Default is 'lmfit'.
+
+    num_cols : int
+        The number of columns to create in the plot grid. Default is 1. The
+        number of rows will be calculated based on num_cols and the number of
+        requested plots.
+
+    powers : list
+        List of powers to plot. Default is to plot all available.
+
+    max_temp : numeric
+        Don't plot any temperatures above this value. Default is infinity.
+
+    min_temp : numeric
+        Don't plot any temperatures below this value. Default is 0.
+
+    fig_size : numeric
+        Size in inches for each plot in the figure.
+
+    color_map : string
+        Specifies the colormap to use. Any value in ``matplotlib.pyplot.colormaps()``
+        is a valid option.
+
+    force_square : bool
+        Whether or not to force each subplot to have perfectly square axes.
+
+    """
 
     #This will really only work for sure if block is sucessful
     assert resSweep.smartindex == 'block', "index must be 'block' for plotting to work."
@@ -522,7 +598,67 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     return figS
 
 def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs):
-    """Plot parameter data vs power from a ResonatorSweep object."""
+    """Plot parameter data vs power from a ResonatorSweep object.
+
+    Parameters
+    ----------
+    resSweep : ``scraps.ResonatorSweep`` object
+        The object containing the data you want to look at.
+
+    plot_keys : list-like (optional)
+        A list of strings corresponding to avaiable plot data. The available
+        keys depend on your parameter definitions and may be found by executing
+        ``print resSweep.keys()``. Some keys may point to empty (NaN) objects.
+        Default is to plot all of the keys that exist. If you pass plot_keys
+        you may not pass ignore_ignore keys.
+
+    ignore_keys : list-like (optional)
+        A list of strings corresponding to plots that should not be made. This
+        is useful if you want to plot most of the avaialble data, but ignore one
+        or two sets of data. Default is ``None``. If you pass ignore_keys you
+        may not pass plot_keys.
+
+    Keyword Arguments
+    -----------------
+    plot_labels : list-like
+        A list of strings to use to label the y-axes of the plots. There must be
+        one for each plot requested. ``None`` is acceptable for any position in
+        the list and will default to using the key as the label. Default is to
+        use the key as the label.
+
+    unit_multipliers : list-like
+        A list of numbers to multiply against the y-axis data. There must be one
+        for each plot requested. ``None`` is acceptable for any position in the
+        list and will default to 1. Default is 1.
+
+    fitter : string {'lmfit', 'emcee'}
+        Which fit data to use when overlaying best fits. Default is 'lmfit'.
+
+    num_cols : int
+        The number of columns to create in the plot grid. Default is 1. The
+        number of rows will be calculated based on num_cols and the number of
+        requested plots.
+
+    temps : list
+        List of temperatures to plot. Default is to plot all available.
+
+    max_power : numeric
+        Don't plot any powers above this value. Default is infinity.
+
+    min_power : numeric
+        Don't plot any powers below this value. Default is -infinity.
+
+    fig_size : numeric
+        Size in inches for each plot in the figure.
+
+    color_map : string
+        Specifies the colormap to use. Any value in ``matplotlib.pyplot.colormaps()``
+        is a valid option.
+
+    force_square : bool
+        Whether or not to force each subplot to have perfectly square axes.
+
+    """
 
     #This will really only work for sure if block is sucessful
     assert resSweep.smartindex == 'block', "index must be 'block' for plotting to work."
@@ -659,6 +795,9 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
         should be made. For a list of acccetable keys, run ``print
         resSweep.keys()``.
 
+    Keyword arguments
+    -----------------
+
     min_temp : numeric (optional)
         The minimum temperature to plot. Defaults to ``min(temperatures)``.
 
@@ -680,6 +819,14 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
     plot_kwargs : dict (optional)
         A dictionary of keyword arguments to pass the plotting function.
         Default is ``None``.
+
+    Note
+    ----
+    This function is currently a little buggy, because I can't figure out how
+    to intelligently adjust the label positions, sizes, etc to deal with large
+    numbers in the ticks. The current workaround is to pick a large fig_size
+    (so far anything larger than 5 seems ok) and then scale the plot as needed
+    in some other application.
 
     """
     #Some plotting niceties

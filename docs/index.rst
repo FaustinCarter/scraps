@@ -13,7 +13,3 @@ Contents:
 
    installation
    api
-
-Indices and Tables
-==================
-* :ref: `genindex`

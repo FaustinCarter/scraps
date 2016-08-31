@@ -204,29 +204,46 @@ class Resonator(object):
 
 
     def load_params(self, paramsFn, **kwargs):
-        """Load up a lmfit Parameters object for a custom fit function."""
+        """Load up a lmfit Parameters object for a custom fit function.
+
+        Parameters
+        ----------
+        paramsFn : method
+            The paramsFn method should return a ``lmfit.Paramters`` object. This
+            object will be passed to the fit method when ``do_lmfit`` or
+            ``do_emcee`` is
+            called.
+
+        kwargs : dict
+            A dictionary of keyword arguments to pass to paramsFn.
+
+        """
         params = paramsFn(self, **kwargs)
         self.params = params
         self.hasParams = True
 
     def torch_params(self):
-        """Reset ``lmfit`` params to ``None``."""
+        """Reset params attribute to ``None``."""
         self.params = None
         self.hasParams = False
 
     def do_lmfit(self, fitFn, **kwargs):
-        """Run lmfit on an existing resonator object and update the results.
+        r"""Run lmfit on an existing resonator object and update the results.
 
         Parameters
         ----------
         fitFn : function
-            fitFn arguemnts lmfit parameter object, [Idata, Qdata], [I error, Q error]
+            fitFn must have the signature ([A,B] means concatenate lists A and
+            B): fitFn(params, [Idata, Qdata], [I error, Q error]) and must
+            return a 1D list-like object of residuals with form [I residual, Q
+            residual].
 
         kwargs : optional keywords
             Use this to override any of the lmfit parameter initial guesses or
             toggle whether the paramter varys. Example: ``qi=1e6`` is equivalent
-            to calling ``res.params['qi'].value = 1e6``. Example:
-            ``qi_vary=False`` will fix the ``qi`` parameter.
+            to calling ``Resonator.params['qi'].value = 1e6``. Example:
+            ``qi_vary=False`` will set ``Resonator.params['qi'].vary = False``.
+            Any parameter name can be used in this way.
         """
         assert self.hasParams == True, "Must load params before running a fit."
 
@@ -287,6 +304,8 @@ class Resonator(object):
         self.lmfit_labels = [key for key, val in lmfit_result.params.iteritems() if val.vary is True]
 
     def torch_lmfit(self):
+        r"""Reset all the lmfit attributes to ``None`` and set ``hasFit = False``.
+        """
         #Delete all the lmfit results
         self.hasFit = False
         self.lmfit_result = None
@@ -301,6 +320,22 @@ class Resonator(object):
 
 
     def do_emcee(self, fitFn, **kwargs):
+        r"""Run the Monte-Carlo Markov Chain routine to generate samples for
+        each parameter given a model.
+
+        Parameters
+        ----------
+        fitFn : function
+            fitFn must have the signature ([A,B] means concatenate lists A and
+            B): fitFn(params, [Idata, Qdata], [I error, Q error]) and must
+            return a 1D list-like object of residuals with form [I residual, Q
+            residual].
+
+        kwargs : optional keyword arguments
+            These are passed through to the ``lmfit.Minimizer.emcee`` method.
+            See the ``lmfit`` documentation for more information.
+
+        """
         #Should do the following (have not implemented any of this yet):
         #Pack MLE values into their own params object by adding back in non-varying Parameters
         #Should consider the ability to filter results for better parameter estimations
@@ -340,7 +375,7 @@ class Resonator(object):
         self.hasChain = True
 
     def torch_emcee(self):
-        #Delete the emcee results
+        r"""Set the emcee-related attributes to ``None`` and ``hasChain = False``."""
         self.hasChain = False
         self.emcee_result = None
         self.mle_vals = None
@@ -368,16 +403,15 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
         automatically.
 
     fitFn_kwargs : dict (optional)
-        A dict of keyword arguments passed to fitFn as **kwargs.
+        A dict of keyword arguments passed to fitFn.
 
     paramsFn_kwargs: dict (optional)
-        A dict of keyword arguments passed to paramsFn as **kwargs.
+        A dict of keyword arguments passed to paramsFn.
 
     Returns
     -------
-    (res, temp, pwr) : tuple or ``None``
-        A tuple containing the resonator object and state variables, or ``None``
-        if there is an error loading the data.
+    res : ``Resonator`` object or ``None``
+        A Resonator object or ``None`` if there is an error loading the data.
 
     """
     if fitFn is not None:
@@ -428,13 +462,24 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
 def makeResList(fileFunc, dataPath, resName):
     """Create a list of resonator objects from a directory of dataDict
 
-    Returns:
-    resList -- a list of Resonator objects
+    Parameters
+    ----------
+    fileFunc : function
+        A function that converts a single data file into a dictionary. The
+        resulting dictionary must have the following keys: 'I', 'Q', 'temp',
+        'pwr', 'freq', 'name', and may have the following ptional keys:
+        'sigmaI', 'sigmaQ'
 
-    Arguments:
-    fileFunc -- the function that converts files into a data dictionary
-    dataPath -- path to the directory holding the data
-    resName -- the name of the resonator you want to pull data from"""
+    dataPath : string
+        Path to the directory containing the data files that will be processed
+        by fileFunc.
+
+    resName : string
+        The name of your resonator. This can be anything, but it is useful to
+        use the same name for every data file that comes from the same physical
+        resonator.
+
+    """
     #Find the files that match the resonator you care about
     fileList = glob.glob(dataPath + '*' + resName + '_*' + '*')
 
@@ -452,19 +497,29 @@ def makeResList(fileFunc, dataPath, resName):
 def indexResList(resList, temp, pwr, **kwargs):
     """Index resList by temp and pwr.
 
-    Returns:
-    index -- an int corresponding to the location of the Resonator specified by the Arguments
+    Parameters
+    ----------
+    resList : list-like
+        resList is a list of ``scraps.Resonator`` objects
+    temp : numeric
+        The temperature of a single Resonator object.
+    pwr : int
+        The power of a single Resonator object
 
-    Arguments:
-    resList -- a list of Resonator objects
-    temp -- the temperature of a single Resonator object
-    pwr -- the power of a single Resonator object
+    itemp : boolean (optional)
+        Switch to determine whether lookup uses temp or itemp (rounded value of
+        temp). Default is ``False``.
 
-    Keyword Args:
-    itemp -- boolean switch to determine whether lookup uses temp or itemp (rounded value of temp)
+    Returns
+    -------
+    index : int
+        Index is the index of the Resonator in resList
 
-    Note:
-    The combination of temp and pwr must be unique. indexResList does not check for duplicates."""
+    Notes
+    -----
+    indexResList does not check for duplicates and will return the first match.
+
+    """
     itemp = kwargs.pop('itemp', False)
     assert itemp in [True, False], "'itemp' must be boolean."
 
