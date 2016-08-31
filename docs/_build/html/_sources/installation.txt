@@ -25,8 +25,10 @@ If you like pip, you can install with::
 
   pip install scraps
 
-Or, alternatively, from source with::
+Or, alternatively, download and extract the tarball from the above link and then
+install from source with::
 
+  cd directory_you_unpacked_scraps_into
   python setup.py install
 
 
@@ -44,4 +46,8 @@ And you can install it in developer mode with pip::
 
 or from source::
 
+  cd directory_cloned_scraps_into
   python setup.py develop
+
+If you like this project and want to contribute, send a message over at the
+github repo and you can be added as a collaborator!
