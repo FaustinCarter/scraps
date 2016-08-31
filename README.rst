@@ -2,9 +2,12 @@ scraps stands for: SuperConducting Resonator Analysis and Plotting Software
 
 scraps is a project designed to make processing superconducting resonator data as painless as possible.
 
+Documentation is at: http://scraps.readthedocs.io
+
 If you want to write custom code to load in some type of file that is not a modern Agilent PNA, you'll need a custom process_file function.
 
 Short description of files:
+
 resonator.py - Defines the Resonator object
 resonator_sweep.py - Defines the ResonatorSweep object, which is designed to help you when you have so much data.
 plot_tools.py - Helps you make beautiful plots from the data in your Resonator and ResonatorSweep objects
