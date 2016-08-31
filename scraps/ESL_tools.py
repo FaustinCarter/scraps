@@ -1,4 +1,4 @@
-from .pyres import Resonator, makeResFromData
+from .resonator import Resonator, makeResFromData
 import numpy as np
 
 def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):

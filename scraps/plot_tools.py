@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
 import matplotlib as mpl
-from mpl_toolkits.mplot3d import Axes3D
+import mpl_toolkits.mplot3d
 import numpy as np
 import scipy.signal as sps
 from .resonator import indexResList
+
+Axes3D = mpl_toolkits.mplot3d.Axes3D
 
 def plotResListData(resList, plot_types=['IQ'], **kwargs):
     r"""Plot resonator data and fits.
