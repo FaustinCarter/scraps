@@ -12,6 +12,20 @@ from .process_file import process_file
 class ResonatorSweep(dict):
     r"""Dictionary object with custom ``__init__`` method.\
 
+    Parameters
+    ----------
+    resList : list-like
+        A list of ``scraps.Resonator`` objects. Each object must have the
+        attribute ``hasFit == True``.
+
+    Keyword Arguments
+    -----------------
+    index : string{'raw', 'round', 'block'} (optional)
+        Selects which method to use for indexing.
+
+    roundto : int (optional)
+        Number to round temperature index to in mK. Default is 5.
+
     Attributes
     ----------
     tvec : array-like[nUniqeTemps]
@@ -50,8 +64,10 @@ class ResonatorSweep(dict):
         ``ResonatorSweep.do_emcee``, the results will appear in this attribute
         by key, where ``key = 'key1+key2'.
 
-    Keys
+    Note
     ----
+    The following keys are added to the self dict:
+
     'temps' : ``pandas.DataFrame``
         The temperature of each resonator in the sweep.
 
@@ -83,14 +99,6 @@ class ResonatorSweep(dict):
     def __init__(self, resList, **kwargs):
         """Formats temp/pwr sweeps into easily parsed pandas DataFrame objects.
 
-        Parameters
-        ----------
-        resList : list of ``pyres.Resonator`` objects
-
-        Attributes
-        ----------
-        self.tvec -- index of temperature values
-        self.pvec -- index of power values
         """
         #Call the base class initialization for an empty dict.
         #Not sure this is totally necessary, but don't want to break the dict...

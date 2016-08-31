@@ -1,0 +1,423 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API &mdash; scraps 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="scraps 0.1.0 documentation" href="index.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<p>The two main objects that constitue the scraps framework are the <code class="xref py py-class docutils literal"><span class="pre">Resonator</span></code>
+and <code class="xref py py-class docutils literal"><span class="pre">ResonatorSweep</span></code> objects.</p>
+<dl class="class">
+<dt id="scraps.Resonator">
+<em class="property">class </em><code class="descclassname">scraps.</code><code class="descname">Resonator</code><span class="sig-paren">(</span><em>name</em>, <em>temp</em>, <em>pwr</em>, <em>freq</em>, <em>I</em>, <em>Q</em>, <em>sigmaI=None</em>, <em>sigmaQ=None</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.Resonator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit an S21 measurement of a hanger (or notch) type resonator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) &#8211; The resonator name. Does not have to be unique, but each physical
+resonator in the experiment should have a unique name to avoid
+confusion when using some of the other tools in scraps.</li>
+<li><strong>temp</strong> (<em>float</em>) &#8211; The temperature in (K) that the S21 measurement was taken at.</li>
+<li><strong>pwr</strong> (<em>float</em>) &#8211; The power (in dBm) at which the resonator was measured.</li>
+<li><strong>freq</strong> (<em>array-like[nDataPoints]</em>) &#8211; The frequency points at which the S21 scan was measured.</li>
+<li><strong>I</strong> (<em>array-like[nDataPoints]</em>) &#8211; The in-phase (or real part) of the complex S21 measurement. Units
+are typically volts, and I should be specified in linear units (as
+opposed to dB).</li>
+<li><strong>Q</strong> (<em>array-like[nDataPoints]</em>) &#8211; The out-of-phase (or imaginary part) of the complex S21 measurement.
+Units are typically volts, and I should be specified in linear units
+(as opposed to dB).</li>
+<li><strong>sigmaI</strong> (<em>array-like[nDataPoints] (optional)</em>) &#8211; An array of uncertaintly values for each data point in <cite>I</cite>. Default
+is <code class="docutils literal"><span class="pre">None</span></code>.</li>
+<li><strong>sigmaQ</strong> (<em>array-like[nDataPoints] (optional)</em>) &#8211; An array of uncertaintly values for each data point in <cite>Q</cite>. Default
+is <code class="docutils literal"><span class="pre">None</span></code>.</li>
+<li><strong>following attributes are automatically calculated and added during</strong> (<em>The</em>) &#8211; </li>
+<li><strong>initialization.</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="Resonator.name">
+<code class="descname">name</code><a class="headerlink" href="#Resonator.name" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>string</em> &#8211; The resonator name passed at initialization.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.temp">
+<code class="descname">temp</code><a class="headerlink" href="#Resonator.temp" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; The temperature passed at initialization.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.pwr">
+<code class="descname">pwr</code><a class="headerlink" href="#Resonator.pwr" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; The power passed at initialization.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.freq">
+<code class="descname">freq</code><a class="headerlink" href="#Resonator.freq" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The frequency points passed at initialization.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.I">
+<code class="descname">I</code><a class="headerlink" href="#Resonator.I" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The I data points passed at initialization.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.Q">
+<code class="descname">Q</code><a class="headerlink" href="#Resonator.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The Q data points passed at initialization.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.sigmaI">
+<code class="descname">sigmaI</code><a class="headerlink" href="#Resonator.sigmaI" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The sigmaI values passed at initialization.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.sigmaQ">
+<code class="descname">sigmaQ</code><a class="headerlink" href="#Resonator.sigmaQ" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The sigmaQ values passed at initialization.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.S21">
+<code class="descname">S21</code><a class="headerlink" href="#Resonator.S21" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The complex transmission <code class="docutils literal"><span class="pre">S21</span> <span class="pre">=</span> <span class="pre">I</span> <span class="pre">+</span> <span class="pre">1j*Q</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.phase">
+<code class="descname">phase</code><a class="headerlink" href="#Resonator.phase" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The raw phase <code class="docutils literal"><span class="pre">phase</span> <span class="pre">=</span> <span class="pre">np.arctan2(Q,</span> <span class="pre">I)</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.uphase">
+<code class="descname">uphase</code><a class="headerlink" href="#Resonator.uphase" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The unwrapped phase is equivalent to the phase, but with jumps of 2 Pi
+removed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.mag">
+<code class="descname">mag</code><a class="headerlink" href="#Resonator.mag" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The magnitude <code class="docutils literal"><span class="pre">mag</span> <span class="pre">=</span> <span class="pre">np.abs(S21)</span></code> or, equivalently <code class="docutils literal"><span class="pre">mag</span> <span class="pre">=</span>
+<span class="pre">np.sqrt(I**2</span> <span class="pre">+</span> <span class="pre">Q**2)</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.hasFit">
+<code class="descname">hasFit</code><a class="headerlink" href="#Resonator.hasFit" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; Indicates whether or not <code class="docutils literal"><span class="pre">Resonator.do_lmfit</span></code> method has been called.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.lmfit_result">
+<code class="descname">lmfit_result</code><a class="headerlink" href="#Resonator.lmfit_result" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">lmfit.Result</span></code> object &#8211; The result object created by <code class="docutils literal"><span class="pre">lmfit</span></code> containing all the fit
+information. Some of the fit information is futher extracted for
+convenience in the following Attributes. For an exhaustive list of the
+attributes of lmfit_result see the docs for <code class="docutils literal"><span class="pre">lmfit</span></code>. The most useful
+attribute of this object is <code class="docutils literal"><span class="pre">lmfit_result.params</span></code>, which contains the
+best-fit parameter values.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.residualI">
+<code class="descname">residualI</code><a class="headerlink" href="#Resonator.residualI" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The residual of the fit model against the <cite>I</cite> data, wieghted by the
+uncertainties.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.residualQ">
+<code class="descname">residualQ</code><a class="headerlink" href="#Resonator.residualQ" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The residual of the fit model against the <cite>Q</cite> data, wieghted by the
+uncertainties.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.resultI">
+<code class="descname">resultI</code><a class="headerlink" href="#Resonator.resultI" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The best <code class="docutils literal"><span class="pre">lmfit</span></code> fit result to the fit model for <cite>I</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.resultQ">
+<code class="descname">resultQ</code><a class="headerlink" href="#Resonator.resultQ" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The best <code class="docutils literal"><span class="pre">lmfit</span></code> fit result to the fit model for <cite>Q</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.resultMag">
+<code class="descname">resultMag</code><a class="headerlink" href="#Resonator.resultMag" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; <code class="docutils literal"><span class="pre">resultMag</span> <span class="pre">=</span> <span class="pre">np.abs(resultI</span> <span class="pre">+</span> <span class="pre">1j*resultQ)</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.resultPhase">
+<code class="descname">resultPhase</code><a class="headerlink" href="#Resonator.resultPhase" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; <code class="docutils literal"><span class="pre">resultPhase</span> <span class="pre">=</span> <span class="pre">np.arctan2(resultQ/resultI)</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.emcee_result">
+<code class="descname">emcee_result</code><a class="headerlink" href="#Resonator.emcee_result" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">lmfit.Result</span></code> object &#8211; This object is nearly identical to the <cite>lmfit_result</cite> object, but also
+contains the maximum-liklihood values for the <em>varying</em> parameters of
+the fit model as well as the <cite>chains</cite> returned by <code class="docutils literal"><span class="pre">emcee</span></code>. The most
+important attribute is probably <code class="docutils literal"><span class="pre">emcee_result.flatchain</span></code>, which can be
+passed directly to <code class="docutils literal"><span class="pre">pygtc</span></code> or <code class="docutils literal"><span class="pre">corner</span></code> to make a really nice
+GTC/Triangle/Corner plot. For an exhaustive list of the attributes of
+emcee_result see the docs for <code class="docutils literal"><span class="pre">lmfit</span></code>, specifically the section
+involving the <code class="docutils literal"><span class="pre">lmfit</span></code> implementation of <code class="docutils literal"><span class="pre">emcee</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.mle_vals">
+<code class="descname">mle_vals</code><a class="headerlink" href="#Resonator.mle_vals" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list of float</em> &#8211; The maximum-liklihood estimate values of the <em>varying</em> parameter in the
+fit model as calculated by <code class="docutils literal"><span class="pre">emcee</span></code>. Unpacked here for convenience from
+<code class="docutils literal"><span class="pre">emcee_result.params</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.mle_labels">
+<code class="descname">mle_labels</code><a class="headerlink" href="#Resonator.mle_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list of string</em> &#8211; The parameter names of the values in <cite>mle_vals</cite>. Provided here for easy
+passing to  <code class="docutils literal"><span class="pre">pygtc</span></code> or <code class="docutils literal"><span class="pre">corner</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.magBaseLine">
+<code class="descname">magBaseLine</code><a class="headerlink" href="#Resonator.magBaseLine" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The best initial guess of the baseline of the magnitude. Calculated by
+fitting a quadratic polynomial to the beginning and end of the magnitdue
+vs frequency curve.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.phaseBaseLine">
+<code class="descname">phaseBaseLine</code><a class="headerlink" href="#Resonator.phaseBaseLine" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nDataPoints]</em> &#8211; The best initial guess of the baseline of the phase. Calculated by
+fitting a line to the beginning and end of the phase vs frequency curve.
+This is equivalent to calculating the electrical delay in the
+measurement lines.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Resonator.params">
+<code class="descname">params</code><a class="headerlink" href="#Resonator.params" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object &#8211; The initial parameter guesses for fitting the <cite>S21</cite> data. See <code class="docutils literal"><span class="pre">lmfit</span></code>
+documentation for a complete overview. To get the parameter names, call
+<code class="docutils literal"><span class="pre">params.keys()</span></code>. Default is <code class="docutils literal"><span class="pre">None</span></code>. Initialize params by calling
+<code class="docutils literal"><span class="pre">Resonator.load_params</span></code>. Delete params with
+<code class="docutils literal"><span class="pre">Resonator.torch_params</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="scraps.ResonatorSweep">
+<em class="property">class </em><code class="descclassname">scraps.</code><code class="descname">ResonatorSweep</code><span class="sig-paren">(</span><em>resList</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.ResonatorSweep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary object with custom <code class="docutils literal"><span class="pre">__init__</span></code> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>resList</strong> (<em>list-like</em>) &#8211; A list of <code class="docutils literal"><span class="pre">scraps.Resonator</span></code> objects. Each object must have the
+attribute <code class="docutils literal"><span class="pre">hasFit</span> <span class="pre">==</span> <span class="pre">True</span></code>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> (<em>string{&#8216;raw&#8217;, &#8216;round&#8217;, &#8216;block&#8217;} (optional)</em>) &#8211; Selects which method to use for indexing.</li>
+<li><strong>roundto</strong> (<em>int (optional)</em>) &#8211; Number to round temperature index to in mK. Default is 5.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="ResonatorSweep.tvec">
+<code class="descname">tvec</code><a class="headerlink" href="#ResonatorSweep.tvec" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nUniqeTemps]</em> &#8211; Index of temperature values, one for each unique temperature.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ResonatorSweep.pvec">
+<code class="descname">pvec</code><a class="headerlink" href="#ResonatorSweep.pvec" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array-like[nUniqePowers]</em> &#8211; Index of powers values, one for each unique power.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ResonatorSweep.smartindex">
+<code class="descname">smartindex</code><a class="headerlink" href="#ResonatorSweep.smartindex" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>string</em> &#8211; Indicates the method of formatting temperature values in tvec. &#8216;raw&#8217;
+means to take temperature values as they are, &#8216;round&#8217; means to round to
+the neareast <cite>X</cite> mK, where <cite>X</cite> is set by <cite>roundTo</cite>, &#8216;block&#8217; means to
+figure out which temperature values are nominally the same and set each
+block of those temperatures to the same value.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ResonatorSweep.rountTo">
+<code class="descname">rountTo</code><a class="headerlink" href="#ResonatorSweep.rountTo" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; The number of mK to round to when <code class="docutils literal"><span class="pre">smartIndex</span> <span class="pre">==</span> <span class="pre">'round'</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ResonatorSweep.lmfit_results">
+<code class="descname">lmfit_results</code><a class="headerlink" href="#ResonatorSweep.lmfit_results" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> &#8211; A dictionary containing the fit results for different data by key.
+Initially empty, results are added by calling
+<code class="docutils literal"><span class="pre">ResonatorSweep.do_lmfit</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ResonatorSweep.emcee_results">
+<code class="descname">emcee_results</code><a class="headerlink" href="#ResonatorSweep.emcee_results" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> &#8211; A dictionary containing the MCMC results for different data by key.
+Initially empty, results are added by calling
+<code class="docutils literal"><span class="pre">ResonatorSweep.do_emcee</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ResonatorSweep.lmfit_joint_results">
+<code class="descname">lmfit_joint_results</code><a class="headerlink" href="#ResonatorSweep.lmfit_joint_results" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> &#8211; If multiple data sets are fit simultaneously via
+<code class="docutils literal"><span class="pre">ResonatorSweep.do_lmfit</span></code>, the results will appear in this attribute
+by key, where <a href="#id1"><span class="problematic" id="id2">``</span></a>key = &#8216;key1+key2&#8217; == &#8216;key2+key1&#8217;.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ResonatorSweep.emcee_joint_results">
+<code class="descname">emcee_joint_results</code><a class="headerlink" href="#ResonatorSweep.emcee_joint_results" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> &#8211; If multiple data sets are fit simultaneously via
+<code class="docutils literal"><span class="pre">ResonatorSweep.do_emcee</span></code>, the results will appear in this attribute
+by key, where <a href="#id3"><span class="problematic" id="id4">``</span></a>key = &#8216;key1+key2&#8217;.</p>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The following keys are added to the self dict:</p>
+<dl class="last docutils">
+<dt>&#8216;temps&#8217;</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The temperature of each resonator in the sweep.</dd>
+<dt>&#8216;fmin&#8217;</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The minimum value of the magnitude vs frequency curve after subtraction
+of the best-guess baseline.</dd>
+<dt>&#8216;chisq&#8217;</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The Chi-squared value of each fit in the sweep.</dd>
+<dt>&#8216;redchi&#8217;</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The reduced Chi-squared value of each fit in the sweep.</dd>
+<dt>&#8216;feval&#8217;</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The number of function evaluations for each fit in the sweep.</dd>
+<dt>&#8216;listIndex&#8217;</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The sweep objects are built from a list of <code class="docutils literal"><span class="pre">pyres.Resonator</span></code>
+objects; this is the index of the original list for
+each data value in the sweep.</dd>
+<dt>paramValues</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>There is a key for each parameter value in the <code class="docutils literal"><span class="pre">Resonator.params</span></code>
+attribute.</dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Faustin W. Carter.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/api.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

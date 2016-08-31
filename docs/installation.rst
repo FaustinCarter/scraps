@@ -19,7 +19,7 @@ Downloading and installing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The latest stable version of scraps is hosted at `PyPi
-<http://pypi.python.org/pypi/lmfit/>`_.
+<http://pypi.python.org/pypi/scraps/>`_.
 
 If you like pip, you can install with::
 

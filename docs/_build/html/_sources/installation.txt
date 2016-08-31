@@ -5,7 +5,7 @@ Installation
 Required packages
 ~~~~~~~~~~~~~~~~~
 
-``scraps`` is written in Python 2.7 and requires the following packages:
+Scraps is written in Python 2.7 and requires the following packages:
 
 * numpy
 * pandas
@@ -18,10 +18,10 @@ Required packages
 Downloading and installing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The latest stable version of ``scraps`` is hosted at `PyPi
-<http://pypi.python.org/pypi/lmfit/>`_.
+The latest stable version of scraps is hosted at `PyPi
+<http://pypi.python.org/pypi/scraps/>`_.
 
-If you like ``pip``, you can install with::
+If you like pip, you can install with::
 
   pip install scraps
 
@@ -38,7 +38,7 @@ clone the repo with::
 
   git clone http://github.com/faustin315/scraps
 
-And you can install it in developer mode with `pip`::
+And you can install it in developer mode with pip::
 
   pip install -e directory_where_you_cloned_scraps
 

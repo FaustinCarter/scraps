@@ -6,12 +6,12 @@ import scipy.signal as sps
 class Resonator(object):
     r"""Fit an S21 measurement of a hanger (or notch) type resonator.
 
-    Attributes
+    Parameters
     ----------
     name : string
         The resonator name. Does not have to be unique, but each physical
-        resonator in the experiment should have a unique name to avoid confusion
-        when using some of the other tools in ``pyres``.
+        resonator in the experiment should have a unique name to avoid
+        confusion when using some of the other tools in scraps.
 
     temp : float
         The temperature in (K) that the S21 measurement was taken at.
@@ -23,22 +23,51 @@ class Resonator(object):
         The frequency points at which the S21 scan was measured.
 
     I : array-like[nDataPoints]
-        The in-phase (or real part) of the complex S21 measurement. Units are
-        typically volts, and I should be specified in linear units (as opposed
-        to dB).
+        The in-phase (or real part) of the complex S21 measurement. Units
+        are typically volts, and I should be specified in linear units (as
+        opposed to dB).
 
     Q : array-like[nDataPoints]
         The out-of-phase (or imaginary part) of the complex S21 measurement.
-        Units are typically volts, and I should be specified in linear units (as
-        opposed to dB).
+        Units are typically volts, and I should be specified in linear units
+        (as opposed to dB).
+
+    sigmaI : array-like[nDataPoints] (optional)
+        An array of uncertaintly values for each data point in `I`. Default
+        is ``None``.
+
+    sigmaQ : array-like[nDataPoints] (optional)
+        An array of uncertaintly values for each data point in `Q`. Default
+        is ``None``.
+
+    The following attributes are automatically calculated and added during
+    initialization.
+
+    Attributes
+    ----------
+    name : string
+        The resonator name passed at initialization.
+
+    temp : float
+        The temperature passed at initialization.
+
+    pwr : float
+        The power passed at initialization.
+
+    freq : array-like[nDataPoints]
+        The frequency points passed at initialization.
+
+    I : array-like[nDataPoints]
+        The I data points passed at initialization.
+
+    Q : array-like[nDataPoints]
+        The Q data points passed at initialization.
 
     sigmaI : array-like[nDataPoints]
-        An array of uncertaintly values for each data point in `I`. Default
-        is to calculate this from the tail of the power-spectral density of `I`.
+        The sigmaI values passed at initialization.
 
     sigmaQ : array-like[nDataPoints]
-        An array of uncertaintly values for each data point in `Q`. Default
-        is to calculate this from the tail of the power-spectral density of `Q`.
+        The sigmaQ values passed at initialization.
 
     S21 : array-like[nDataPoints]
         The complex transmission ``S21 = I + 1j*Q``.
@@ -127,42 +156,9 @@ class Resonator(object):
 
     #Do some initialization
     def __init__(self, name, temp, pwr, freq, I, Q, sigmaI = None, sigmaQ = None):
-        r"""Initializes a resonator object by calculating magnitude, phase, and a
-        bunch of fit parameters for a hanger (or notch) type S21 measurement.
+        r"""Initializes a resonator object by calculating magnitude, phase, and
+        a bunch of fit parameters for a hanger (or notch) type S21 measurement.
 
-        Parameters
-        ----------
-        name : string
-            The resonator name. Does not have to be unique, but each physical
-            resonator in the experiment should have a unique name to avoid
-            confusion when using some of the other tools in ``pyres``.
-
-        temp : float
-            The temperature in (K) that the S21 measurement was taken at.
-
-        pwr : float
-            The power (in dBm) at which the resonator was measured.
-
-        freq : array-like[nDataPoints]
-            The frequency points at which the S21 scan was measured.
-
-        I : array-like[nDataPoints]
-            The in-phase (or real part) of the complex S21 measurement. Units
-            are typically volts, and I should be specified in linear units (as
-            opposed to dB).
-
-        Q : array-like[nDataPoints]
-            The out-of-phase (or imaginary part) of the complex S21 measurement.
-            Units are typically volts, and I should be specified in linear units
-            (as opposed to dB).
-
-        sigmaI : array-like[nDataPoints] (optional)
-            An array of uncertaintly values for each data point in `I`. Default
-            is ``None``.
-
-        sigmaQ : array-like[nDataPoints] (optional)
-            An array of uncertaintly values for each data point in `Q`. Default
-            is ``None``.
         """
         self.name = name
         self.temp = temp
