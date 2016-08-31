@@ -4,7 +4,7 @@ import scraps
 setup(
     name = 'scraps',
     description = 'SuperConducting Resonator Analysis and Plotting Software.',
-    version = '0.1.0',
+    version = '0.1.1',
     author = 'Faustin Carter',
     author_email = 'faustin.carter@gmail.com',
     license = 'MIT',
