@@ -11,5 +11,9 @@
 #pictures
 *.png
 
+#Python packaging
+*.egg-info
+dist
+
 #Data for editing notebooks
 /ExampleData
