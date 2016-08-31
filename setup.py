@@ -9,7 +9,7 @@ setup(
     author_email = 'faustin.carter@gmail.com',
     license = 'MIT',
     url = 'http://github.com/faustin315/scraps',
-    download_url = 'http://github.com/faustin315/scaps/tarball/0.1.0',
+    download_url = 'http://github.com/faustin315/scaps/tarball/v0.1.0',
     packages = ['scraps'],
     long_description = open('README.rst').read(),
     install_requires = [
