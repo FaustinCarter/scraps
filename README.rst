@@ -1,6 +1,9 @@
 scraps stands for: SuperConducting Resonator Analysis and Plotting Software
 =============
 
+.. |DOI| image:: https://zenodo.org/badge/23506/faustin315/scraps.svg
+  :target: https://zenodo.org/badge/latestdoi/23506/faustin315/scraps
+
 Scraps is a package designed to help you analyze lots of data from superconducting
 resonators. The basic idea is that you hook up your VNA (or mixer) and measure S21
 at several different temperatures and driving powers. Maybe you have a PID and some
@@ -19,6 +22,8 @@ Scraps is licensed under the MIT license, so feel free to copy it, play with it,
 modify it, etc. under those terms (which are pretty loose!).
 
 Documentation is at: http://scraps.readthedocs.io
+
+If you use this in a publication, please cite the Zenodo DOI:  |DOI|
 
 If you want to write custom code to load in some type of file that is not a modern Agilent PNA, you'll need a custom process_file function.
 
