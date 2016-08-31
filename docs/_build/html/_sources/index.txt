@@ -11,18 +11,4 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-Installation
-============
-You can use ``pip install scrap``, but since you probably want to play with the
-code and make lots of changes, a better way is to clone the git repository to
-myDirectory, and then run ``pip install -e path_to_myDirectory``. This way you
-can edit the source and enjoy those changes without having to reinstall.
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   installation
