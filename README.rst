@@ -1,4 +1,5 @@
 scraps stands for: SuperConducting Resonator Analysis and Plotting Software
+=============
 
 Scraps is a package designed to help you analyze lots of data from superconducting
 resonators. The basic idea is that you hook up your VNA (or mixer) and measure S21
