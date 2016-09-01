@@ -16,7 +16,7 @@ journal article.
 Currently scraps is designed to handle resonator S21 data at varying temperatures
 and input powers. There are plans to extend scraps to handle varying magnetic field
 also, as well as noise in addition to S21. If you would like to be a part of that,
-get involved by posting a message at the github repo.
+get involved by posting a message here.
 
 License
 -----
