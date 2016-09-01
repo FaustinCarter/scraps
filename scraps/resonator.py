@@ -371,7 +371,7 @@ class Resonator(object):
         self.mle_labels = [key for key, val in emcee_result.params.iteritems() if val.vary is True]
 
         #This is also nice to have explicitly for passing to triangle-plotting routines
-        self.chain = emcee_result.flatchain
+        self.chain = emcee_result.flatchain.copy()
         self.hasChain = True
 
     def torch_emcee(self):
