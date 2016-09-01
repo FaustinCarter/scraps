@@ -34,7 +34,7 @@ example tutorials, see the official documentation at: http://scraps.readthedocs.
 
 Citation
 ------
-If you use this in a publication, please cite the Zenodo DOI:  |DOI|
+If you use scraps in a publication, please cite the Zenodo DOI:  |DOI|
 
 Short description of files that aren't code:
 ------------------
@@ -46,10 +46,9 @@ Short description of files that aren't code:
   several temperatures and powers.
 
 - ExampleData.zip: A ton of actual superconducting resonator data from a Nb
-  microstrip resonator made at ANL by Dr. Trupti Khaire.
+  microstrip resonator made at ANL.
 
-Feedback is always appreciated!
-
-Happy Coding,
-
-Faustin W. Carter
+Support
+------
+Please post any bugs or feature requests here on GitHub. Bugs will be squashed ASAP.
+Feature requests will be seriously considered!
