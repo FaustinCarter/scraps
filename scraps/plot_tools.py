@@ -22,58 +22,59 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
         types are:
 
         - 'IQ': Plots the real part of the transmission (`I`) vs the imaginary
-        part (`Q`). This is the default plot.
+            part (`Q`). This is the default plot.
 
         - 'rIQ': Plots the residual of `I` vs the residual of `Q`. This plot is
-        only available if the ``do_lmfit`` method of each ``Resonator`` object
-        has been called. The `I` and `Q` residuals are normalized by the
-        uncertainty of the `I` and `Q` data respectively. If this is not
-        explicitly supplied, it is calculated by taking the standard deviation
-        of the first 10 data points.
+            only available if the ``do_lmfit`` method of each ``Resonator``
+            object has been called. The `I` and `Q` residuals are normalized by
+            the uncertainty of the `I` and `Q` data respectively. If this is not
+            explicitly supplied, it is calculated by taking the standard
+            deviation of the first 10 data points.
 
         - 'LinMag': Plots the magnitude of the tranmission in Volts vs
-        frequency.
+            frequency.
 
         - 'LogMag': Plots the magnitude of the transmission in dB vs frequency.
-        ``LogMag = 20*np.log(LinMag)``.
+            ``LogMag = 20*np.log(LinMag)``.
 
         - 'rMag': Plots the difference of `LinMag` and the best-fit magnitude vs
-        frequency. This plot is only available if the ``do_lmfit`` method of
-        each ``Resonator`` object has been called.
+            frequency. This plot is only available if the ``do_lmfit`` method of
+            each ``Resonator`` object has been called.
 
         - 'Phase': Plots the phase of the transmision vs frequency.
-        ``Phase = np.arctan2(Q, I)``.
+            ``Phase = np.arctan2(Q, I)``.
 
         - 'rPhase': Plots the difference of `Phase` and the best-fit phase vs
-        frequency. This plot is only available if the ``do_lmfit`` method of
-        each ``Resonator`` object has been called.
+            frequency. This plot is only available if the ``do_lmfit`` method of
+            each ``Resonator`` object has been called.
 
         - 'uPhase': Plots the unwrapped phase vs frequency.
-        ``uPhase = np.unwrap(Phase)``.
+            ``uPhase = np.unwrap(Phase)``.
 
         - 'ruPhase': Plots the difference of `uPhase` and the unwrapped best-fit
-        phase vs frequency. This plot is only available if the ``do_lmfit``
-        method of each ``Resonator`` object has been called.
+            phase vs frequency. This plot is only available if the ``do_lmfit``
+            method of each ``Resonator`` object has been called.
 
         - 'I': Plots the real part of the transmission vs frequency.
 
         - 'rI': Plots the residual of `I` vs frequency. The residual is weighted
-        by the uncertainty in `I`. This plot is only available if the
-        ``do_lmfit`` method of each ``Resonator`` object has been called.
+            by the uncertainty in `I`. This plot is only available if the
+            ``do_lmfit`` method of each ``Resonator`` object has been called.
 
         - 'Q': Plots the imaginary part of the transmission vs frequency.
 
         - 'rQ': Plots the residual of `Q` vs frequency. The residual is weighted
-        by the uncertainty in `Q`. This plot is only available if the
-        ``do_lmfit`` method of each ``Resonator`` object has been called.
+            by the uncertainty in `Q`. This plot is only available if the
+            ``do_lmfit`` method of each ``Resonator`` object has been called.
 
     Keyword Arguments
     -----------------
 
-    plot_fits : {False, True}, optional
-        Whether or not to overplot the best fit on the data. This is only
-        effective if the  ``do_lmfit`` method of each ``Resonator`` object has
-        been called. Default is False.
+    plot_fits : list-like, optional
+        A list of boolean flags, one for each plot type specified. Determines
+        whether or not to overplot the best fit on the data. This is only
+        effective if the ``do_lmfit`` method of each ``Resonator`` object has
+        been called. Default is all False.
 
     powers : list-like, optional
         A list of power values to plot. Default is to plot all of the unique
@@ -166,8 +167,10 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     temps = kwargs.pop('temps', temps)
 
     #Should we plot best fits?
-    plot_fits = kwargs.pop('plot_fits', False)
-    assert all(res.hasFit for res in resList), "At least one resonator has not been fit yet."
+    plot_fits = kwargs.pop('plot_fits', [False]*len(plot_types))
+    assert len(plot_fits) == len(plot_types), "Must specify a fit bool for each plot type."
+    if any(plot_fits):
+        assert all(res.hasFit for res in resList), "At least one resonator has not been fit yet."
 
     #Set the units for the frequency axes
     freq_units = kwargs.pop('freq_units', 'GHz')
@@ -202,7 +205,9 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
     #Any extra kwargs for plotting
     plot_kwargs = kwargs.pop('plot_kwargs', {})
-    fit_kwargs = kwargs.pop('fit_kwargs', {'color' : 'k', 'linestyle' : '--'})
+    fit_kwargs = kwargs.pop('fit_kwargs', {'color' : 'k',
+                                            'linestyle' : '--',
+                                            'linewidth' : 1.5})
 
     if kwargs:
         raise NameError("Unknown keyword argument: " + kwargs.keys()[0])
@@ -312,9 +317,11 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                 scaled_freq = res.freq/unitsDict[freq_units]
 
                 for key, ax in axDict.iteritems():
+                    pix = plot_types.index(key)
+                    plot_fit = plot_fits[pix]
                     if key == 'IQ':
                         ax.plot(res.I, res.Q, color=plt_color, **plot_kwargs)
-                        if plot_fits:
+                        if plot_fit:
                             ax.plot(res.resultI, res.resultQ, **fit_kwargs)
 
                     if key == 'rIQ':
@@ -322,12 +329,12 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
                     if key == 'LogMag':
                         ax.plot(scaled_freq, res.logmag, color=plt_color, **plot_kwargs)
-                        if plot_fits:
+                        if plot_fit:
                             ax.plot(scaled_freq, 20*np.log(res.resultMag), **fit_kwargs)
 
                     if key == 'LinMag':
                         ax.plot(scaled_freq, res.mag, color=plt_color, **plot_kwargs)
-                        if plot_fits:
+                        if plot_fit:
                             ax.plot(scaled_freq, res.resultMag, **fit_kwargs)
 
                     if key == 'rMag':
@@ -336,11 +343,11 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                     if key == 'Phase':
                         if detrend_phase:
                             ax.plot(scaled_freq, sps.detrend(res.phase), color=plt_color, **plot_kwargs)
-                            if plot_fits:
+                            if plot_fit:
                                 ax.plot(scaled_freq, sps.detrend(res.resultPhase), **fit_kwargs)
                         else:
                             ax.plot(scaled_freq, res.phase, color=plt_color, **plot_kwargs)
-                            if plot_fits:
+                            if plot_fit:
                                 ax.plot(scaled_freq, res.resultPhase, **fit_kwargs)
 
                     if key == 'rPhase':
@@ -349,11 +356,11 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                     if key == 'uPhase':
                         if detrend_phase:
                             ax.plot(scaled_freq, sps.detrend(res.uphase), color=plt_color, **plot_kwargs)
-                            if plot_fits:
+                            if plot_fit:
                                 ax.plot(scaled_freq, sps.detrend(np.unwrap(res.resultPhase)), **fit_kwargs)
                         else:
                             ax.plot(scaled_freq, res.uphase, color=plt_color, **plot_kwargs)
-                            if plot_fits:
+                            if plot_fit:
                                 ax.plot(scaled_freq, np.unwrap(res.resultPhase), **fit_kwargs)
 
                     if key == 'ruPhase':
@@ -361,7 +368,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
                     if key == 'I':
                         ax.plot(scaled_freq, res.I, color=plt_color, **plot_kwargs)
-                        if plot_fits:
+                        if plot_fit:
                             ax.plot(scaled_freq, res.resultI, **fit_kwargs)
 
                     if key == 'rI':
@@ -369,7 +376,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
                     if key == 'Q':
                         ax.plot(scaled_freq, res.Q, color=plt_color, **plot_kwargs)
-                        if plot_fits:
+                        if plot_fit:
                             ax.plot(scaled_freq, res.resultQ, **fit_kwargs)
 
                     if key == 'rQ':

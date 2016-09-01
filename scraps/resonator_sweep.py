@@ -272,9 +272,11 @@ class ResonatorSweep(dict):
 
         models_list : list-like
             A list of fit functions, one per key in `fit_keys`. Function must
-            return a one-dimensional residual. Ideally it would be scaled by the
-            standard deviation of the data. Function signature is
-            ``model_func(params, temps, powers, data, sigmas=None)``. The model
+            return a residual of the form: ``residual = (model-data)/sigma``
+            where ``residual``, ``model``, and ``data`` are all ``numpy``
+            arrays. Function signature is ``model_func(params, temps, powers,
+            data=None, sigmas=None)``. If ``data==None`` the functions must
+            return the model calculated at ``temps`` and ``powers``. The model
             functions should also gracefully handle ``np.NaN`` or ``None``
             values.
 
@@ -302,6 +304,20 @@ class ResonatorSweep(dict):
         kwargs : dict (optional)
             Supported keyword arugments are 'min_temp', 'max_temp', 'min_pwr',
             and 'max_pwr'. These set limits on which data to fit.
+
+        Note
+        ----
+        If the fits are succesful, the resulting fit data (ie the best fit
+        surface) will be added to the self dict in the form of a
+        ``pandas.DataFrame`` under the following keys:
+
+        For a joint fit (``len(fit_keys) > 1``)::
+
+            'lmfit_joint_'+joint_key+'_'+key for each key in fit_keys
+
+        For a single fit (``len(fit_keys) == 1``)::
+
+            'lmfit_'+key
 
         """
 
@@ -341,29 +357,29 @@ class ResonatorSweep(dict):
         else:
             merged_params = params_list[0]
 
-        #Get all the possible temperature/power combos in two lists
+        #Get all the possible temperature/power combos into two grids
         ts, ps = np.meshgrid(self.tvec[t_filter], self.pvec[p_filter])
-        ts = ts.flatten()
-        ps = ps.flatten()
 
-        #Create a list to hold the fit data and the sigmas
+        #Create grids to hold the fit data and the sigmas
         fit_data_list = []
         fit_sigmas_list = []
 
         #Get the data that corresponds to each temperature power combo and
         #flatten it to match the ts/ps combinations
+        #Transposing is important because numpy matrices are transposed from
+        #Pandas DataFrames
         for key in fit_keys:
-            fit_data_list.append(self[key].values.T[p_filter, t_filter].flatten())
-            fit_sigmas_list.append(self[key+'_sigma'].values.T[p_filter, t_filter].flatten())
+            fit_data_list.append(self[key].values.T[p_filter, t_filter])
+            fit_sigmas_list.append(self[key+'_sigma'].values.T[p_filter, t_filter])
 
         #Create a new model function that will be passed to the minimizer.
         #Basically this runs each fit and passes all the residuals back out
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
-            residual = []
             for ix, key in enumerate(fit_keys):
-                residual.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
+                residuals = []
+                residuals.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
 
-            return np.asarray(residual).flatten()
+            return np.asarray(residuals).flatten()
 
 
         #Create a lmfit minimizer object
@@ -377,6 +393,27 @@ class ResonatorSweep(dict):
             self.lmfit_joint_results[joint_key] = lmfit_result
         else:
             self.lmfit_results[fit_keys[0]] = lmfit_result
+
+        #Calculate the best-fit model from the params returned
+        #And put it into a pandas DF with the appropriate key.
+        #The appropriate key format is: 'lmfit_joint_'+joint_key+'_'+key
+        #or, for a single fit: 'lmfit_'+key
+        for ix, key in enumerate(fit_keys):
+            #Call the fit model without data to have it return the model
+            returned_model = models_list[ix](lmfit_result.params, ts, ps)
+
+            #Build the appropriate key
+            if joint_key is not None:
+                new_key = 'lmfit_joint_'+joint_key+'_'+key
+            else:
+                new_key = 'lmfit_'+key
+
+            #Make a new dict entry to the self dictioary with the right key.
+            #Have to transpose the matrix to turn it back into a DF
+            self[new_key] = pd.DataFrame(returned_model.T, index=self.tvec[t_filter], columns=self.pvec[p_filter])
+
+
+
 
     def do_emcee(self):
         r"""Not yet implemented"""
