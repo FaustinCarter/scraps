@@ -18,16 +18,26 @@ and input powers. There are plans to extend scraps to handle varying magnetic fi
 also, as well as noise in addition to S21. If you would like to be a part of that,
 get involved by posting a message at the github repo.
 
+License
+-----
 Scraps is licensed under the MIT license, so feel free to copy it, play with it,
 modify it, etc. under those terms (which are pretty loose!).
 
-Documentation is at: http://scraps.readthedocs.io
+Documentation
+--------
+Installation is as simple as::
 
+  pip install scraps
+
+For complete API documentation, more in depth installation instructions and some
+example tutorials, see the official documentation at: http://scraps.readthedocs.io
+
+Citation
+------
 If you use this in a publication, please cite the Zenodo DOI:  |DOI|
 
-If you want to write custom code to load in some type of file that is not a modern Agilent PNA, you'll need a custom process_file function.
-
 Short description of files that aren't code:
+------------------
 
 - Example1: a JuPyter notebook that will help you get started with the basics.
   Focus is on a single S21 sweep.
