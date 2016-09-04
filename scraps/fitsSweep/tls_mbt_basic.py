@@ -40,11 +40,19 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
 
         all(numpy.shape(x) == numpy.shape(data) for x in [temps, powers, eps])
 
+    It is almost certain that this model does NOT apply to your device as the
+    assumptions it makes are highly constraining and ignore several material
+    parameters. It is included here more as an example for how to write a model
+    than anything else, and it does at least qualitatively describe the behavior
+    of most superconducting resonators.
+
+    (2.54) gives for MBD: ``1/Q(T)-1/Q(0) = alpha * R(T)/X(0)``
+    (5.72) and (5.65) give for TLS: ``1/Q(T)-1/Q(0) = Fd*tanh(hf/2kT)/sqrt(1+P/P0)``
+
+    R(T)/X(0) calculated from (2.80), (2.89), and (2.90), using the ``deltaBCS``
+    function in this module for returning gap as a function of temperature.
+
     """
-    pass
-    #Gao 2.54 gives for MBD 1/Q(T)-1/Q(0) = alpha * (R(T)-R(0))/X(0)
-    #Gao 5.72 gives for TLS 1/Q(T)-1/Q(0) = Fd*tanh(hf/2kT)
-    #Gao 5.65 gives for power: "" = Fd*tanh(hf/2kT)/sqrt(1+P^2/P0^2)
 
     Fd = params['Fd'].value
     Pc = params['Pc'].value
@@ -139,12 +147,20 @@ def f0_tlsAndMBT(params, temps, powers, data = None, eps = None, **kwargs):
 
         all(numpy.shape(x) == numpy.shape(data) for x in [temps, powers, eps])
 
-    Also, it is almost certain that this model does NOT apply to your device, or
-    that is deeply wrong in some other way. It is included here more as an
-    example for how to write a model than anything else.
+    It is almost certain that this model does NOT apply to your device as the
+    assumptions it makes are highly constraining and ignore several material
+    parameters. It is included here more as an example for how to write a model
+    than anything else, and it does at least qualitatively describe the behavior
+    of most superconducting resonators.
 
-    Gao, 2008 (2.54) gives for MBD (f(T)-f(0))/f(0) = -alpha*0.5*(X(T)-X(0))/X(0)
-    Gao, 2008 (5.71) gives for TLS "" = Fd/pi * (usual TLS expression from Phillips)
+    This model is taken from J. Gao's Caltech dissertation (2008) and the below
+    equations are from that work.
+
+    (2.54) gives for MBD (f(T)-f(0))/f(0) = -alpha*0.5*(X(T)-X(0))/X(0)
+    (5.71) gives for TLS "" = Fd/pi * (usual TLS expression from Phillips)
+
+    (X(T)-X(0))/X(0) calculated from (2.80), (2.89), and (2.90), using the ``deltaBCS``
+    function in this module for returning gap as a function of temperature.
 
     """
     #Unpack parameter values from params
