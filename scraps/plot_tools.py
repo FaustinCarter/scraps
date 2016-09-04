@@ -817,11 +817,22 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
     max_pwr : numeric (optional)
         The maximum power to plot. Defauts to ``max(powers)``.
 
+    unit_multipliers : list (optional)
+        Values to scale the z-axis by. Default is 1.
+        ``len(unit_multipliers) == len(plot_keys)``.
+
+    plot_labels : list (optional)
+        Labels for the z-axis. Default is the plot key.
+        ``len(plot_labels) == len(plot_keys)``.
+
     num_cols : int (optional)
         The number of columns in the resulting plot grid. Default is 1.
 
     fig_size : numeric (optional)
         The size of an individual subplot in inches. Default is 3.
+
+    plot_lmfits : bool (optional)
+        Whether or not to show a fit. The fit must exist! Default is False.
 
     plot_kwargs : dict (optional)
         A dictionary of keyword arguments to pass the plotting function.
@@ -838,8 +849,12 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
     """
     #Some plotting niceties
     plot_labels = kwargs.pop('plot_labels', None)
-    unit_multipliers = kwargs.pop('unit_multipliers', None)
+    if plot_labels is not None:
+        assert len(plot_labels) == len(plot_keys), "Number of labels must equal number of plots."
 
+    unit_multipliers = kwargs.pop('unit_multipliers', None)
+    if unit_multipliers is not None:
+        assert len(unit_multipliers) == len(plot_keys), "One multiplier per plot required."
 
     #Set some limits
     min_temp = kwargs.pop('min_temp', min(resSweep.tvec))
@@ -849,6 +864,10 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
     min_pwr = kwargs.pop('min_pwr', min(resSweep.pvec))
     max_pwr = kwargs.pop('max_pwr', max(resSweep.pvec))
     p_filter = (resSweep.pvec >= min_pwr) * (resSweep.pvec <= max_pwr)
+
+    #Check for fits
+    plot_lmfits = kwargs.pop('plot_lmfits', False)
+    assert all('lmfit_'+key in resSweep.keys() for key in plot_keys), "No fit to plot for "+key+"."
 
     #Get all the possible temperature/power combos in two lists
     ts, ps = np.meshgrid(resSweep.tvec[t_filter], resSweep.pvec[p_filter])
@@ -879,6 +898,31 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
     #Grab any kwargs for the plotting functions
     plot_kwargs = kwargs.pop('plot_kwargs', {})
 
+    #Set some defaults that can be overwritten
+    if 'cstride' not in plot_kwargs.keys():
+        plot_kwargs['cstride'] = 1
+
+    if 'rstride' not in plot_kwargs.keys():
+        plot_kwargs['rstride'] = 1
+
+    if 'cmap' not in plot_kwargs.keys():
+        plot_kwargs['cmap'] = 'viridis'
+
+    if 'alpha' not in plot_kwargs.keys():
+        plot_kwargs['alpha'] = 0.2
+
+    #Grab any kwargs for the fits
+    fit_kwargs = kwargs.pop('fit_kwargs', {})
+
+    #Set some defaults
+    if 'color' not in fit_kwargs.keys():
+        fit_kwargs['color'] = 'k'
+
+    if 'linestyle' not in fit_kwargs.keys():
+        fit_kwargs['linestyle'] ='--'
+
+
+
     #Loop through all the keys in the ResonatorSweep object and plot them
     for ix, key in enumerate(plot_keys):
 
@@ -887,14 +931,21 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
 
         axs = figS.add_subplot(plt_grid[iRow, iCol], projection='3d')
 
-        plt_data = resSweep[key].values.T[p_filter, :][:, t_filter]
+        axs.ticklabel_format(useOffset=False)
+
+        plt_data = resSweep[key].loc[t_filter, p_filter].values.T
 
         if unit_multipliers is not None:
             mult = unit_multipliers[ix]
         else:
             mult = 1
 
-        axs.plot_wireframe(ts, ps, mult*plt_data, **plot_kwargs)
+        axs.plot_surface(ts, ps, mult*plt_data, **plot_kwargs)
+
+        if plot_lmfits:
+            fit_data = resSweep['lmfit_'+key].loc[t_filter, p_filter].values.T
+            axs.plot_wireframe(ts, ps, mult*fit_data, **fit_kwargs)
+
         if plot_labels is not None:
             axs.set_zlabel(plot_labels[ix])
         else:
