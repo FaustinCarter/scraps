@@ -846,7 +846,15 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
     (so far anything larger than 5 seems ok) and then scale the plot as needed
     in some other application.
 
+    You can also use something like the following to adjust the ticks on a
+    specific axis::
+
+        figX.axes[0].tick_params(axis='z', pad=8)
+        figX.axes[0].zaxis.labelpad = 13
+
     """
+    #TODO: Fix the labels issues when tick labels are very long.
+
     #Some plotting niceties
     plot_labels = kwargs.pop('plot_labels', None)
     if plot_labels is not None:
