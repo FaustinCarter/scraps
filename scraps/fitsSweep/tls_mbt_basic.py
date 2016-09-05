@@ -2,7 +2,6 @@ import numpy as np
 from scipy.special import digamma, i0, k0
 import scipy.constants as sc
 import scipy.interpolate as si
-import deltaBCS
 
 
 def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
@@ -46,7 +45,11 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     than anything else, and it does at least qualitatively describe the behavior
     of most superconducting resonators.
 
+    This model is taken from J. Gao's Caltech dissertation (2008) and the below
+    equations are from that work.
+
     (2.54) gives for MBD: ``1/Q(T)-1/Q(0) = alpha * R(T)/X(0)``
+
     (5.72) and (5.65) give for TLS: ``1/Q(T)-1/Q(0) = Fd*tanh(hf/2kT)/sqrt(1+P/P0)``
 
     R(T)/X(0) calculated from (2.80), (2.89), and (2.90), using the ``deltaBCS``
@@ -157,6 +160,7 @@ def f0_tlsAndMBT(params, temps, powers, data = None, eps = None, **kwargs):
     equations are from that work.
 
     (2.54) gives for MBD (f(T)-f(0))/f(0) = -alpha*0.5*(X(T)-X(0))/X(0)
+
     (5.71) gives for TLS "" = Fd/pi * (usual TLS expression from Phillips)
 
     (X(T)-X(0))/X(0) calculated from (2.80), (2.89), and (2.90), using the ``deltaBCS``

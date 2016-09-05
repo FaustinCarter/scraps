@@ -32,6 +32,7 @@ Contents:
    :maxdepth: 2
 
    installation
-   Example 1 <Example1_LoadAndPlot>
-   Example 2 <Example2_LotsOfData>
+   Example 1: Introduction <Example1_LoadAndPlot>
+   Example 2: Lots of Data <Example2_LotsOfData>
+   Example 3: Beautiful Figures <Example3_FiguresForManuscript>
    api

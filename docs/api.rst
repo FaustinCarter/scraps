@@ -119,3 +119,21 @@ cmplxIQ_params()
 cmplxIQ_fit()
 -------------
 .. autofunction :: scraps.cmplxIQ_fit
+
+Two-level system (TLS) and Mattis-Bardeen effect (BMD)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This model is for fitting frequency shifts and internal quality factors as functions
+of temperature and input power. It is a very simple model, employs a lot of
+simplifying assumptions, and should be regarded with extreme skepticism. However,
+it qualitatively describes the dominant behavior of most resonators and so is
+useful as an example.
+
+There is no accompanying parameter-generation function. See Example 3 for usage.
+
+qi_tlsAndMBT()
+----------------------------
+.. autofunction :: scraps.fitsSweep.qi_tlsAndMBT
+
+f0_tlsAndMBT()
+-----------------------------
+.. autofunction :: scraps.fitsSweep.f0_tlsAndMBT

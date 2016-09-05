@@ -29,6 +29,8 @@ MOCK_MODULES = ['numpy',
                 'lmfit',
                 'scipy.signal',
                 'scipy.special',
+                'scipy.constants',
+                'scipy.interpolate',
                 'glob']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
