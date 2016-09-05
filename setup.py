@@ -9,7 +9,7 @@ setup(
     license = 'MIT',
     url = 'http://github.com/faustin315/scraps',
     download_url = 'http://github.com/faustin315/scaps/tarball/v0.1.0',
-    packages = ['scraps', 'scraps.fitsS21', 'sraps.fitsSweep'],
+    packages = ['scraps', 'scraps.fitsS21', 'scraps.fitsSweep'],
     long_description = open('README.rst').read(),
     install_requires = [
         'numpy>=1.5',
