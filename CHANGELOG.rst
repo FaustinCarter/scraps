@@ -1,3 +1,7 @@
+Version 0.2.1:
+
+* Fixed importing bug
+
 Version 0.2.0:
 
 * Huge update to plotting. Check it out!
