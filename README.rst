@@ -1,7 +1,7 @@
 scraps stands for: SuperConducting Resonator Analysis and Plotting Software
 =============
 
-.. |DOI| .. image:: https://zenodo.org/badge/23506/FaustinCarter/scraps.svg
+.. |DOI| image:: https://zenodo.org/badge/23506/FaustinCarter/scraps.svg
    :target: https://zenodo.org/badge/latestdoi/23506/FaustinCarter/scraps
   
 
