@@ -121,6 +121,10 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
         ``matplotlib.pyplot.colormaps()`` is a valid option. Default is
         'coolwarm'.
 
+    waterfall : numeric, optional
+        The value used to space out LogMag vs frequency plots. Currently only
+        available for LogMag. Default is 0.
+
     plot_kwargs : dict, optional
         A dict of keyword arguments to pass through to the individual plots.
         Attempting to set 'color' will result in an error.
@@ -181,6 +185,9 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                 'MHz':1e6,
                 'GHz':1e9,
                 'THz':1e12}
+
+    #A spacing value to apply to magnitude vs. frequency plots.
+    waterfall = kwargs.pop('waterfall', 0)
 
     #Remove linear phase variation? Buggy...
     detrend_phase = kwargs.pop('detrend_phase', False)
@@ -295,6 +302,8 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
     #Plot the data
     for pwr in powers:
+        #The waterfall index should be reset each iteration
+        wix = 0
         for temp in temps:
             #Grab the right resonator from the list
             resIndex = indexResList(resList, temp, pwr, itemp=use_itemps)
@@ -328,9 +337,11 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                         ax.plot(res.residualI, res.residualQ, color=plt_color, **plot_kwargs)
 
                     if key == 'LogMag':
-                        ax.plot(scaled_freq, res.logmag, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq, res.logmag+wix*waterfall, color=plt_color, **plot_kwargs)
                         if plot_fit:
-                            ax.plot(scaled_freq, 20*np.log(res.resultMag), **fit_kwargs)
+                            ax.plot(scaled_freq, 20*np.log(res.resultMag)+wix*waterfall, **fit_kwargs)
+                        #Step the waterfall plot
+                        wix+=1
 
                     if key == 'LinMag':
                         ax.plot(scaled_freq, res.mag, color=plt_color, **plot_kwargs)
@@ -875,7 +886,9 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
 
     #Check for fits
     plot_lmfits = kwargs.pop('plot_lmfits', False)
-    assert all('lmfit_'+key in resSweep.keys() for key in plot_keys), "No fit to plot for "+key+"."
+
+    if plot_lmfits:
+        assert all('lmfit_'+key in resSweep.keys() for key in plot_keys), "No fit to plot for "+key+"."
 
     #Get all the possible temperature/power combos in two lists
     ts, ps = np.meshgrid(resSweep.tvec[t_filter], resSweep.pvec[p_filter])

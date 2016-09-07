@@ -529,7 +529,7 @@ def indexResList(resList, temp, pwr, **kwargs):
             if res.itemp == temp and res.pwr == pwr:
                 return index
         else:
-            if res.temp == temp and res.pwr == pwr:
+            if np.isclose(res.temp, temp) and res.pwr == pwr:   
                 return index
 
     return None
