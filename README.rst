@@ -46,8 +46,8 @@ Short description of files that aren't code:
 - Example2: a slightly more advanced tutorial that focuses on lots of sweeps at
   several temperatures and powers.
   
-- Example3: a notebook showcasing some of the more advanced plotting functions.
-   If you want to run this notebook, you'll need the data, which is archived at: http://dx.doi.org/10.5281/zenodo.61575
+- Example3: an example showcasing some of the more advanced plotting features. The data for this note book is at: http://dx.doi.org/10.5281/zenodo.61575
+
 
 - ExampleData.zip: A ton of actual superconducting resonator data from a Nb
   microstrip resonator made at ANL.
