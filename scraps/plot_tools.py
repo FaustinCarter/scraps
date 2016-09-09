@@ -429,7 +429,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
 
 def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwargs):
-    """Plot parameter data vs temperature from a ResonatorSweep object.
+    r"""Plot parameter data vs temperature from a ResonatorSweep object.
 
     Parameters
     ----------
@@ -458,7 +458,7 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
         use the key as the label.
 
     unit_multipliers : list-like
-        A list of numbers to multiply against the y-axis data. There must be one
+        A list of numbers to multiply against the y-axes data. There must be one
         for each plot requested. ``None`` is acceptable for any position in the
         list and will default to 1. Default is 1.
 
@@ -479,6 +479,10 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     min_temp : numeric
         Don't plot any temperatures below this value. Default is 0.
 
+    errorbars: {None, 'lmfit', 'emcee'}
+        Add error bars to the data. Pulls from either the least-squares or the
+        MCMC fits. Default is None.
+
     fig_size : numeric
         Size in inches for each plot in the figure.
 
@@ -488,6 +492,13 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
 
     force_square : bool
         Whether or not to force each subplot to have perfectly square axes.
+
+    plot_kwargs : dict
+        Dict of keyword args to pass through to the plotting function. Default
+        is {'linestyle':'--', label='Power X dB'}. If errorbars is not None,
+        then default linestyle is {'linestyle':'o'}. Attempting to set 'color'
+        or 'yerr' will result in an exception. Use the color_map and errorbars
+        keywords to set those.
 
     """
 
@@ -516,6 +527,9 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
 
     tempMask = (resSweep.tvec >= min_temp) * (resSweep.tvec <= max_temp)
 
+    errorbars = kwargs.pop('errorbars', None)
+    assert errorbars in [None, 'lmfit', 'emcee'], "Invalid option for errorbars. Try None, 'lmfit', or 'emcee'."
+
     if ignore_keys is None:
         ignore_keys = ['listIndex',
                         'temps']
@@ -533,6 +547,9 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     color_map = kwargs.pop('color_map', 'rainbow')
     assert color_map in plt.colormaps(), "Unknown colormap provided"
     color_gen = plt.get_cmap(color_map)
+
+    #Defaults for this are set later
+    plot_kwargs = kwargs.pop('plot_kwargs', {})
 
 
     #Set up the figure
@@ -580,7 +597,31 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
             else:
                 plt_color = color_gen(0)
 
-            axs.plot(resSweep.tvec[tempMask],mult*resSweep[key].loc[tempMask, pwr],'--',color=plt_color, label='Power: '+str(pwr))
+            x_data = resSweep.tvec[tempMask]
+            plt_data = mult*resSweep[key].loc[tempMask, pwr]
+
+            if 'label' not in plot_kwargs.keys():
+                plot_kwargs['label'] = 'Power: '+str(pwr)
+
+            if 'linestyle' not in plot_kwargs.keys():
+                if errorbars is not None:
+                    plot_kwargas['linestyle'] = 'o'
+                else:
+                    plot_kwargs['linestyle'] = '--'
+
+            if errorbars is None:
+                axs.plot(x_data ,plt_data, color=plt_color, **plot_kwargs)
+            elif errorbars == 'lmfit':
+                #lmfit uncertainty was stored in the _sigma key, so just grab it back out
+                plt_err = mult*resSweep[key + '_sigma'].loc[tempMask, pwr]
+                axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs)
+            elif errorbars == 'emcee':
+                #emcee uncertainty was placed in the _sigma_plus_mc and _sigma_minus_mc keys
+                plt_err_plus = mult*resSweep[key + '_sigma_plus_mc'].loc[tempMask, pwr]
+                plt_err_minus = mult*resSweep[key + '_sigma_minus_mc'].loc[tempMask, pwr]
+                plt_err = [plt_err_plus, plt_err_minus]
+                axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs)
+
 
         axs.set_xlabel('Temperature (mK)')
         if plot_labels is not None:
@@ -616,7 +657,7 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     return figS
 
 def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs):
-    """Plot parameter data vs power from a ResonatorSweep object.
+    r"""Plot parameter data vs power from a ResonatorSweep object.
 
     Parameters
     ----------

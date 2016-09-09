@@ -366,9 +366,19 @@ class Resonator(object):
         emcee_result = minObj.emcee(**kwargs)
         self.emcee_result = emcee_result
 
-        #It is useful to have easy access to the maximum-liklihood estimates
-        self.mle_vals = np.asarray([val.value for key, val in emcee_result.params.iteritems() if val.vary is True])
-        self.mle_labels = [key for key, val in emcee_result.params.iteritems() if val.vary is True]
+        #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
+        self.emcee_vals = np.asarray([np.percentile(emcee_result.flatchain[key], 50) for key in emcee_result.flatchain.keys()])
+        err_plus = np.asarray([np.percentile(res.emcee_result.flatchain[key], 84) for key in res.emcee_result.flatchain.keys()])
+        err_minus = np.asarray([np.percentile(res.emcee_result.flatchain[key], 16) for key in res.emcee_result.flatchain.keys()])
+
+        #Make a list of tuples that are (+err, -err) for each paramter
+        self.emcee_sigmas = zip(err_plus-self.emcee_vals, self.emcee_vals-err_minus)
+
+        #It is also useful to have easy access to the maximum-liklihood estimates
+        self.mle_vals = emcee_result.flatchain.iloc[np.argmax(emcee_result.lnprob)]
+
+        #This is useful because only varying parameters have mle vals
+        self.mle_labels = self.mle_vals.keys()
 
         #This is also nice to have explicitly for passing to triangle-plotting routines
         self.chain = emcee_result.flatchain.copy()
@@ -378,6 +388,8 @@ class Resonator(object):
         r"""Set the emcee-related attributes to ``None`` and ``hasChain = False``."""
         self.hasChain = False
         self.emcee_result = None
+        self.emcee_vals = None
+        self.emcee_sigmas = None
         self.mle_vals = None
         self.mle_labels = None
         self.chain = None
@@ -529,7 +541,7 @@ def indexResList(resList, temp, pwr, **kwargs):
             if res.itemp == temp and res.pwr == pwr:
                 return index
         else:
-            if np.isclose(res.temp, temp) and res.pwr == pwr:   
+            if np.isclose(res.temp, temp) and res.pwr == pwr:
                 return index
 
     return None
