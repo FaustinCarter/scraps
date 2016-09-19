@@ -506,7 +506,7 @@ def makeResList(fileFunc, dataPath, resName):
     return resList
 
 #Index a list of resonator objects easily
-def indexResList(resList, temp, pwr, **kwargs):
+def indexResList(resList, temp=None, pwr=None, **kwargs):
     """Index resList by temp and pwr.
 
     Parameters
@@ -524,8 +524,9 @@ def indexResList(resList, temp, pwr, **kwargs):
 
     Returns
     -------
-    index : int
-        Index is the index of the Resonator in resList
+    index : int or list
+        Index is the index of the Resonator in resList or a list of indices of
+        all matches if only pwr or only temp is specified.
 
     Notes
     -----
@@ -535,13 +536,31 @@ def indexResList(resList, temp, pwr, **kwargs):
     itemp = kwargs.pop('itemp', False)
     assert itemp in [True, False], "'itemp' must be boolean."
 
+    assert (pwr is not None) or (temp is not None), "Must specify at least either a temp or a pwr."
 
-    for index, res in enumerate(resList):
-        if itemp is True:
-            if res.itemp == temp and res.pwr == pwr:
-                return index
-        else:
-            if np.isclose(res.temp, temp) and res.pwr == pwr:
-                return index
+
+    if (pwr is not None) and (temp is not None):
+        for index, res in enumerate(resList):
+            if itemp is True:
+                if res.itemp == temp and res.pwr == pwr:
+                    return index
+            else:
+                if np.isclose(res.temp, temp) and res.pwr == pwr:
+                    return index
+    elif (pwr is None):
+        index = []
+        for ix, res in enumerate(resList):
+            if itemp is True:
+                if res.itemp == temp:
+                    index.append(ix)
+                else:
+                    if np.isclose(res.temp, temp):
+                        index.append(ix)
+    elif (temp is None):
+        index = []
+        for ix, res in enumerate(resList):
+            if res.pwr == pwr:
+                index.append(ix)
+        return index
 
     return None
