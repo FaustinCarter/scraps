@@ -4,6 +4,8 @@ Version Next:
 * Proper calculation of errorbars from MCMC
 * indexResList can now return a list of all indices matching a given power or
   temperature.
+* Documentation update to detail adding custom derived data to ResonatorSweep
+  objects.
 
 Version 0.2.3:
 
