@@ -1,3 +1,10 @@
+Version Next:
+
+* Added errorbars to plotting
+* Proper calculation of errorbars from MCMC
+* indexResList can now return a list of all indices matching a given power or
+  temperature.
+
 Version 0.2.3:
 
 * Fix importing bug
