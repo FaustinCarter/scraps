@@ -69,6 +69,29 @@ indexResList()
 
 ResonatorSweep class
 ~~~~~~~~~~~~~~~~~~~~
+The ResonatorSweep class inherits python's ``dict`` class. Each key of the dict
+corresponds to a ``pandas.DataFrame`` of data. Because of this, you can add your
+own custom derived data sets by simply assigning them to a dict entry. As an
+example::
+
+  #Start with a ResonatorSweep object called resSweep that contains a
+  #key called 'f0', which is the resonant frequency of many different
+  #resonators. Maybe what you want to plot though, is the reduced
+  #frequency df = (f-fr)/fr where fr is some reference frequency
+
+  #Choose a reference frequency from the existing data
+  fr = resSweep['f0'].iloc[0,0]
+
+  #Pick a descriptive key to describe the data
+  key = 'df_over_fr'
+
+  #Calculate the derived quantity and add it to the ResonatorSweep
+  resSweep[key] = (resSweep['f0']-fr)/fr
+
+  #And now you can plot it by just passing that key when you use the
+  #plotting tools. If you want errorbars, you'll need to calculate those
+  #for the derived quantity as well, and store them in: key + '_sigma'.
+
 .. autoclass :: scraps.ResonatorSweep
 
 ResonatorSweep methods

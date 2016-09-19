@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 scraps: SuperConducting Resonator Analysis and Plotting Software
-==================================
+================================================================
 
 Scraps is a package designed to help you analyze lots of data from superconducting
 resonators. The basic idea is that you hook up your VNA (or mixer) and measure S21
@@ -27,6 +27,7 @@ Development of scraps happens over at `github <http://github.com/faustin315/scra
 so that is a great place to post bug reports, requests, kudos, etc.
 
 Contents:
+---------
 
 .. toctree::
    :maxdepth: 2

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>API &mdash; scraps 0.1.1 documentation</title>
+    <title>API &mdash; scraps 0.2.3 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1.1',
+        VERSION:     '0.2.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="scraps 0.1.1 documentation" href="index.html" />
+    <link rel="top" title="scraps 0.2.3 documentation" href="index.html" />
     <link rel="prev" title="Figure generation for a manuscript (using NbN CPW resonator data)" href="Example3_FiguresForManuscript.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -519,6 +519,29 @@ temp). Default is <code class="docutils literal"><span class="pre">False</span><
 </div>
 <div class="section" id="resonatorsweep-class">
 <h2>ResonatorSweep class<a class="headerlink" href="#resonatorsweep-class" title="Permalink to this headline">¶</a></h2>
+<p>The ResonatorSweep class inherits python&#8217;s <code class="docutils literal"><span class="pre">dict</span></code> class. Each key of the dict
+corresponds to a <code class="docutils literal"><span class="pre">pandas.DataFrame</span></code> of data. Because of this, you can add your
+own custom derived data sets by simply assigning them to a dict entry. As an
+example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Start with a ResonatorSweep object called resSweep that contains a</span>
+<span class="c1">#key called &#39;f0&#39;, which is the resonant frequency of many different</span>
+<span class="c1">#resonators. Maybe what you want to plot though, is the reduced</span>
+<span class="c1">#frequency df = (f-fr)/fr where fr is some reference frequency</span>
+
+<span class="c1">#Choose a reference frequency from the existing data</span>
+<span class="n">fr</span> <span class="o">=</span> <span class="n">resSweep</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1">#Pick a descriptive key to describe the data</span>
+<span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;df_over_fr&#39;</span>
+
+<span class="c1">#Calculate the derived quantity and add it to the ResonatorSweep</span>
+<span class="n">resSweep</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">resSweep</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">fr</span><span class="p">)</span><span class="o">/</span><span class="n">fr</span>
+
+<span class="c1">#And now you can plot it by just passing that key when you use the</span>
+<span class="c1">#plotting tools. If you want errorbars, you&#39;ll need to calculate those</span>
+<span class="c1">#for the derived quantity as well, and store them in: key + &#39;_sigma&#39;.</span>
+</pre></div>
+</div>
 <dl class="class">
 <dt id="scraps.ResonatorSweep">
 <em class="property">class </em><code class="descclassname">scraps.</code><code class="descname">ResonatorSweep</code><span class="sig-paren">(</span><em>resList</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.ResonatorSweep" title="Permalink to this definition">¶</a></dt>
