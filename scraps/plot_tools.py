@@ -598,14 +598,14 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
                 plt_color = color_gen(0)
 
             x_data = resSweep.tvec[tempMask]
-            plt_data = mult*resSweep[key].loc[tempMask, pwr]
+            plt_data = mult*resSweep[key].loc[tempMask, pwr].values
 
             if 'label' not in plot_kwargs.keys():
                 plot_kwargs['label'] = 'Power: '+str(pwr)
 
             if 'linestyle' not in plot_kwargs.keys():
                 if errorbars is not None:
-                    plot_kwargas['linestyle'] = 'o'
+                    plot_kwargs['marker'] = 'o'
                 else:
                     plot_kwargs['linestyle'] = '--'
 
@@ -613,12 +613,12 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
                 axs.plot(x_data ,plt_data, color=plt_color, **plot_kwargs)
             elif errorbars == 'lmfit':
                 #lmfit uncertainty was stored in the _sigma key, so just grab it back out
-                plt_err = mult*resSweep[key + '_sigma'].loc[tempMask, pwr]
+                plt_err = mult*resSweep[key + '_sigma'].loc[tempMask, pwr].values
                 axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs)
             elif errorbars == 'emcee':
                 #emcee uncertainty was placed in the _sigma_plus_mc and _sigma_minus_mc keys
-                plt_err_plus = mult*resSweep[key + '_sigma_plus_mc'].loc[tempMask, pwr]
-                plt_err_minus = mult*resSweep[key + '_sigma_minus_mc'].loc[tempMask, pwr]
+                plt_err_plus = mult*resSweep[key + '_sigma_plus_mc'].loc[tempMask, pwr].values
+                plt_err_minus = mult*resSweep[key + '_sigma_minus_mc'].loc[tempMask, pwr].values
                 plt_err = [plt_err_plus, plt_err_minus]
                 axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs)
 
