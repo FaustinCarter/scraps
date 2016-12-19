@@ -493,7 +493,7 @@ def makeResList(fileFunc, dataPath, resName):
 
     """
     #Find the files that match the resonator you care about
-    fileList = glob.glob(dataPath + '*' + resName + '_*' + '*')
+    fileList = glob.glob(dataPath + resName + '_*')
 
     #loop through files and process all the data
     fileDataDicts = map(fileFunc, fileList)

@@ -1,5 +1,7 @@
 Version Next:
 
+* Default colormap is now 'viridis'
+* Can omit colorbar if desired
 * Added errorbars to plotting
 * Proper calculation of errorbars from MCMC
 * indexResList can now return a list of all indices matching a given power or

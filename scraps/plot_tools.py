@@ -490,6 +490,11 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
         Specifies the colormap to use. Any value in ``matplotlib.pyplot.colormaps()``
         is a valid option.
 
+    show_colorbar : {True, False}, optional
+        Whether or not to add a colorbar to the right edge of the figure. The
+        colorbar will correspond to the limits of the colored data. Default is
+        True.
+
     force_square : bool
         Whether or not to force each subplot to have perfectly square axes.
 
@@ -527,9 +532,11 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
 
     tempMask = (resSweep.tvec >= min_temp) * (resSweep.tvec <= max_temp)
 
+    #Very early errobar code. Still in beta.
     errorbars = kwargs.pop('errorbars', None)
     assert errorbars in [None, 'lmfit', 'emcee'], "Invalid option for errorbars. Try None, 'lmfit', or 'emcee'."
 
+    #Figure out which parameters to plot
     if ignore_keys is None:
         ignore_keys = ['listIndex',
                         'temps']
@@ -539,26 +546,33 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
         ignore_keys.append('listIndex')
         ignore_keys.append('temps')
 
-    fig_size = kwargs.pop('fig_size', 3)
-
-    force_square = kwargs.pop('force_square', False)
-
-    #Set the colormap: Default to a nice red/blue thing
-    color_map = kwargs.pop('color_map', 'rainbow')
-    assert color_map in plt.colormaps(), "Unknown colormap provided"
-    color_gen = plt.get_cmap(color_map)
-
-    #Defaults for this are set later
-    plot_kwargs = kwargs.pop('plot_kwargs', {})
-
-
-    #Set up the figure
-    figS = plt.figure()
-
     if plot_keys is None:
         plot_keys = set(resSweep.keys())-set(ignore_keys)
     else:
         assert all(key in resSweep.keys() for key in plot_keys), "Unknown key"
+
+    #Some general defaults
+    fig_size = kwargs.pop('fig_size', 3)
+
+    force_square = kwargs.pop('force_square', False)
+
+    #Set the colormap: Default to viridis
+    color_map = kwargs.pop('color_map', 'viridis')
+    assert color_map in plt.colormaps(), "Unknown colormap provided"
+    color_gen = plt.get_cmap(color_map)
+
+    #Set whether to show the colorbar
+    show_colorbar = kwargs.pop('show_colorbar', True)
+
+    #Defaults for this are set later
+    plot_kwargs = kwargs.pop('plot_kwargs', {})
+
+    #Unknown kwargs are discouraged
+    if kwargs:
+        raise NameError("Unknown keyword argument: " + kwargs.keys()[0])
+
+    #Set up the figure
+    figS = plt.figure()
 
     num_keys = len(plot_keys)
 
@@ -573,10 +587,19 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     num_rows = int(np.ceil(1.0*num_keys/num_cols))
 
     #Set figure size, including some extra spacing for the colorbar
-    figS.set_size_inches(fig_size*(num_cols+0.1)*1.2, fig_size*num_rows)
+    #0.1 is the extra space for the colorbar.
+    #*1.2 is the extra padding for the axis labels
+    #15:1 is the ratio of axis width for regular axes to colorbar axis
+    if show_colorbar:
+        figS.set_size_inches(fig_size*(num_cols+0.1)*1.2, fig_size*num_rows)
 
-    #Initialize the grid for plotting
-    plt_grid = gs.GridSpec(num_rows, num_cols+1, width_ratios=[15]*num_cols+[1])
+        #Initialize the grid for plotting
+        plt_grid = gs.GridSpec(num_rows, num_cols+1, width_ratios=[15]*num_cols+[1])
+    else:
+        figS.set_size_inches(fig_size*(num_cols)*1.2, fig_size*num_rows)
+
+        #Initialize the grid for plotting
+        plt_grid = gs.GridSpec(num_rows, num_cols)
 
     #Loop through all the keys in the ResonatorSweep object and plot them
     for ix, key in enumerate(plot_keys):
@@ -642,16 +665,16 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
         #Stick some legends where they won't crowd too much
         # if key == 'f0' or key == 'fmin':
         #     axs.legend(loc='best')
+    if show_colorbar:
+        cbar_norm = mpl.colors.Normalize(vmin=min(powers), vmax=max(powers))
+        cbar_units = 'dB'
 
-    cbar_norm = mpl.colors.Normalize(vmin=min(powers), vmax=max(powers))
-    cbar_units = 'dB'
+        #Make an axis that spans all rows
+        cax = figS.add_subplot(plt_grid[:, num_cols])
 
-    #Make an axis that spans all rows
-    cax = figS.add_subplot(plt_grid[:, num_cols])
-
-    #Plot and label
-    cbar_plot = mpl.colorbar.ColorbarBase(cax, cmap=color_gen, norm=cbar_norm)
-    cbar_plot.set_label(cbar_units)
+        #Plot and label
+        cbar_plot = mpl.colorbar.ColorbarBase(cax, cmap=color_gen, norm=cbar_norm)
+        cbar_plot.set_label(cbar_units)
 
     figS.tight_layout()
     return figS
