@@ -504,7 +504,7 @@ class ResonatorSweep(dict):
 
 
 
-    def do_emcee(self, fit_keys, models_list, params_list=None, model_kwargs=None, param_kwargs=None, emcee_kwargs={}, **kwargs):
+    def do_emcee(self, fit_keys, models_list, params_list=None, model_kwargs=None, param_kwargs=None, emcee_kwargs=None, **kwargs):
         r"""Run simulatneous MCMC sampling on the temp/pwr data for several
         parameters. Results are stored in either the ``emcee_results`` or
         ``emcee_joint_results`` attribute depending on whether one or multiple
@@ -622,6 +622,9 @@ class ResonatorSweep(dict):
 
         if param_kwargs is None:
             params_kwargs = [{}]*len(fit_keys)
+
+        if emcee_kwargs is None:
+            emcee_kwargs = {}
 
 
         #Check to see if this should go in the joint_fits dict, and build a key if needed.
