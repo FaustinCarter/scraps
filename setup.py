@@ -1,14 +1,18 @@
 from setuptools import setup, find_packages
+import os
+
+version_file = open(os.path.join('.', 'VERSION.txt'))
+version_number = version_file.read().strip()
+version_file.close()
 
 setup(
     name = 'scraps',
     description = 'SuperConducting Resonator Analysis and Plotting Software.',
-    version = 'v0.2.3',
+    version = version_number,
     author = 'Faustin Carter',
     author_email = 'faustin.carter@gmail.com',
     license = 'MIT',
     url = 'http://github.com/faustin315/scraps',
-    download_url = 'http://github.com/faustin315/scaps/tarball/v0.1.0',
     packages = ['scraps', 'scraps.fitsS21', 'scraps.fitsSweep'],
     long_description = open('README.rst').read(),
     install_requires = [
