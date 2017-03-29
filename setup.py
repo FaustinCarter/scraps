@@ -12,7 +12,7 @@ setup(
     author = 'Faustin Carter',
     author_email = 'faustin.carter@gmail.com',
     license = 'MIT',
-    url = 'http://github.com/faustin315/scraps',
+    url = 'http://github.com/FaustinCarter/scraps',
     packages = ['scraps', 'scraps.fitsS21', 'scraps.fitsSweep'],
     long_description = open('README.rst').read(),
     install_requires = [
