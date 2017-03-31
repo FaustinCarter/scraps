@@ -368,8 +368,8 @@ class Resonator(object):
 
         #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
         self.emcee_vals = np.asarray([np.percentile(emcee_result.flatchain[key], 50) for key in emcee_result.flatchain.keys()])
-        err_plus = np.asarray([np.percentile(res.emcee_result.flatchain[key], 84) for key in res.emcee_result.flatchain.keys()])
-        err_minus = np.asarray([np.percentile(res.emcee_result.flatchain[key], 16) for key in res.emcee_result.flatchain.keys()])
+        err_plus = np.asarray([np.percentile(self.emcee_result.flatchain[key], 84) for key in self.emcee_result.flatchain.keys()])
+        err_minus = np.asarray([np.percentile(self.emcee_result.flatchain[key], 16) for key in self.emcee_result.flatchain.keys()])
 
         #Make a list of tuples that are (+err, -err) for each paramter
         self.emcee_sigmas = zip(err_plus-self.emcee_vals, self.emcee_vals-err_minus)
