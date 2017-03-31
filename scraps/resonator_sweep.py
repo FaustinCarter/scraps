@@ -272,7 +272,7 @@ class ResonatorSweep(dict):
                         if res.hasChain is True:
 
                             #Grab the index of the parameter in question
-                            sx = list(emcee_result.flatchain.iloc[np.argmax(emcee_result.lnprob)].keys()).index(pname)
+                            sx = list(res.emcee_result.flatchain.iloc[np.argmax(res.emcee_result.lnprob)].keys()).index(pname)
                             self[pname+'_mle'][res.pwr][res.itemp] = res.mle_vals[pname]
                             self[pname+'_mc'][res.pwr][res.itemp] = res.emcee_result.params[pname].value
 
