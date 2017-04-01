@@ -471,8 +471,8 @@ class ResonatorSweep(dict):
         #Create a new model function that will be passed to the minimizer.
         #Basically this runs each fit and passes all the residuals back out
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
+            residuals = []
             for ix, key in enumerate(fit_keys):
-                residuals = []
                 residuals.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
 
             return np.asarray(residuals).flatten()
@@ -705,8 +705,8 @@ class ResonatorSweep(dict):
         #Create a new model function that will be passed to the minimizer.
         #Basically this runs each fit and passes all the residuals back out
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
+            residuals = []
             for ix, key in enumerate(fit_keys):
-                residuals = []
                 residuals.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
 
             return np.asarray(residuals).flatten()
