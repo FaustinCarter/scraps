@@ -251,8 +251,12 @@ class ResonatorSweep(dict):
                 #50th percentile value of MCMC chain
                 self[pname+'_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
 
-                #[84th-50th, 50th-16th] values from MCMC chain
-                self[pname+'sigmas_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+                #84th-50th values from MCMC chain
+                self[pname+'_sigma_plus_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+
+                #50th-16th values from MCMC chain
+                self[pname+'_sigma_minus_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+
 
             #Fill it with as much data as exists
             for index, res in enumerate(resList):
@@ -396,6 +400,10 @@ class ResonatorSweep(dict):
         min_pwr = kwargs.pop('min_pwr', min(self.pvec))
         max_pwr = kwargs.pop('max_pwr', max(self.pvec))
         p_filter = (self.pvec >= min_pwr) * (self.pvec <= max_pwr)
+
+        #Process the final kwarg:
+        raw_data = kwargs.pop('raw_data', 'lmfit')
+        assert raw_data in ['lmfit', 'emcee', 'mle'], "raw_data must be 'lmfit' or 'emcee'."
 
 
 
