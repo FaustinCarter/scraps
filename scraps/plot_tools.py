@@ -908,6 +908,14 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
 
     plot_lmfits : bool (optional)
         Whether or not to show a fit. The fit must exist! Default is False.
+        Deprecated! Use plot_fits.
+
+    plot_fits : list (optional)
+        A list of fit keys to plot. Fits must exist for all parameters specified
+        in plot_keys. Example: `plot_fits = ['lmfit', 'lmfit_joint_f0+qi']`
+        will plot the `lmfit` results for each key in plot_keys, and the joint
+        fit results from the 'f0+qi' fit for each key in plot_keys. If only one
+        fit result is desired, a single string may be passed instead of a list.
 
     plot_kwargs : dict (optional)
         A dictionary of keyword arguments to pass the plotting function.
@@ -949,10 +957,27 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
     p_filter = (resSweep.pvec >= min_pwr) * (resSweep.pvec <= max_pwr)
 
     #Check for fits
+
+    #plot_lmfits is deprecated and due to be removed
     plot_lmfits = kwargs.pop('plot_lmfits', False)
 
     if plot_lmfits:
         assert all('lmfit_'+key in resSweep.keys() for key in plot_keys), "No fit to plot for "+key+"."
+
+    #get list of fits to plot
+    plot_fits = kwargs.pop('plot_fits', None)
+
+    #Check that all the requested plots exist
+    if plot_fits is not None:
+        requested_fits = []
+        #Hacky way to turn a single string into a list
+        if len(np.shape(plot_fits)) == 0:
+            plot_fits = [plot_fits]
+        for fit in plot_fits:
+            for key in plot_keys:
+                requested_fits.append(fit + '_' + key)
+
+        assert all(fit in resSweep.keys() for fit in requested_fits), "No fit to plot for "+fit+"."
 
     #Get all the possible temperature/power combos in two lists
     ts, ps = np.meshgrid(resSweep.tvec[t_filter], resSweep.pvec[p_filter])
@@ -1030,6 +1055,14 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
         if plot_lmfits:
             fit_data = resSweep['lmfit_'+key].loc[t_filter, p_filter].values.T
             axs.plot_wireframe(ts, ps, mult*fit_data, **fit_kwargs)
+
+        #Deprecated. Will be removed in next major version
+        if plot_fits is not None:
+            for fit in plot_fits:
+                fit_data = resSweep[fit + '_' + key].loc[t_filter, p_filter].values.T
+                axs.plot_wireframe(ts, ps, mult*fit_data, **fit_kwargs)
+
+        #TODO: Implement plot_fits here.
 
         if plot_labels is not None:
             axs.set_zlabel(plot_labels[ix])

@@ -9,6 +9,7 @@ Version Next:
 * Documentation update to detail adding custom derived data to ResonatorSweep
   objects.
 * Automatic version numbering from VERSION.txt file in setup.py
+* Ability to plot multiple different fits on the same axis using plotResSweep3D
 
 Version 0.2.3:
 
