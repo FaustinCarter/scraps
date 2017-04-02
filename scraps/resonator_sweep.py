@@ -142,6 +142,8 @@ class ResonatorSweep(dict):
         params = resList[0].params.keys()
 
         #Add a few more
+        #TODO: Right now, only fit information from the most recent fit is stored
+        #TODO: Would be good to maybe have keys for each joint fit?
         params.append('temps') #Actual temperature value of measured resonator
         params.append('fmin') #Frequency at magnitude minimum
         params.append('chisq') #Chi-squared value from fit
@@ -742,3 +744,9 @@ class ResonatorSweep(dict):
             #Have to transpose the matrix to turn it back into a DF
             self[new_key] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
             self[new_key].loc[self.tvec[t_filter], self.pvec[p_filter]] = returned_model.T
+
+    def info():
+        """Print out some information on all the keys that are stored in the object."""
+
+        #For now, this just spits out all the keys. Could be more useful.
+        print sorted(self.keys())
