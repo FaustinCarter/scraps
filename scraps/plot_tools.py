@@ -80,9 +80,25 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
         A list of power values to plot. Default is to plot all of the unique
         powers that exist in the list of ``Resonator`` objects.
 
+    max_pwr : float
+        An upper bound on the powers to plot. Applies to values passed to
+        powers also.
+
+    min_pwr : float
+        A lower bound on the powers to plot. Applies to values passed to
+        powers also.
+
     temps : list-like, optional
-        A list of temperature values to plot. Default os to plot all of the
+        A list of temperature values to plot. Default is to plot all of the
         unique temperatures that exist in the list of ``Resonator`` obejcts.
+
+    max_temp : float
+        An upper bound on the temperatures to plot. Applies to values passed to
+        temps also.
+
+    min_temp : float
+        A lower bound on the temperatures to plot. Applies to values passed to
+        temps also.
 
     use_itemps : {False, True}, optional
         If a ``ResonatorSweep`` object has been generated from the resList it
@@ -167,8 +183,19 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     temps = np.unique(temps)
 
     #Optionally override either list
-    powers = kwargs.pop('powers', powers)
-    temps = kwargs.pop('temps', temps)
+    powers = np.asarray(kwargs.pop('powers', powers))
+    temps = np.asarray(kwargs.pop('temps', temps))
+
+    #Get min/max pwrs/temps
+    max_pwr = kwargs.pop('max_pwr', np.max(powers)+1)
+    min_pwr = kwargs.pop('min_pwr', np.min(powers)-1)
+
+    max_temp = kwargs.pop('max_temp', np.max(temps)+1)
+    min_temp = kwargs.pop('min_temp', 0.0)
+
+    #Enforce bounds
+    powers = powers[np.where(np.logical_and(powers < max_pwr, powers > min_pwr))]
+    temps = temps[np.where(np.logical_and(temps < max_temp, temps > min_temp))]
 
     #Should we plot best fits?
     plot_fits = kwargs.pop('plot_fits', [False]*len(plot_types))

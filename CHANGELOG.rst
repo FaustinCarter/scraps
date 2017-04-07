@@ -10,6 +10,7 @@ Version Next:
   objects.
 * Automatic version numbering from VERSION.txt file in setup.py
 * Ability to plot multiple different fits on the same axis using plotResSweep3D
+* plotResListData now allows kwargs to set upper/lower temp/pwr limits
 
 Version 0.2.3:
 
