@@ -35,7 +35,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
             frequency.
 
         - 'LogMag': Plots the magnitude of the transmission in dB vs frequency.
-            ``LogMag = 20*np.log(LinMag)``.
+            ``LogMag = 20*np.log10(LinMag)``.
 
         - 'rMag': Plots the difference of `LinMag` and the best-fit magnitude vs
             frequency. This plot is only available if the ``do_lmfit`` method of
@@ -366,7 +366,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                     if key == 'LogMag':
                         ax.plot(scaled_freq, res.logmag+wix*waterfall, color=plt_color, **plot_kwargs)
                         if plot_fit:
-                            ax.plot(scaled_freq, 20*np.log(res.resultMag)+wix*waterfall, **fit_kwargs)
+                            ax.plot(scaled_freq, 20*np.log10(res.resultMag)+wix*waterfall, **fit_kwargs)
                         #Step the waterfall plot
                         wix+=1
 

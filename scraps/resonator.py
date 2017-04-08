@@ -172,7 +172,7 @@ class Resonator(object):
         self.phase = np.arctan2(Q,I) #use arctan2 because it is quadrant-aware
         self.uphase = np.unwrap(self.phase) #Unwrap the 2pi phase jumps
         self.mag = np.abs(self.S21) #Units are volts.
-        self.logmag = 20*np.log(self.mag) #Units are dB (20 because V->Pwr)
+        self.logmag = 20*np.log10(self.mag) #Units are dB (20 because V->Pwr)
 
         #Find the frequency at magnitude minimum (this can, and should, be
         #overwritten by a custom params function)
