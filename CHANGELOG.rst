@@ -12,6 +12,7 @@ Version Next:
 * Ability to plot multiple different fits on the same axis using plotResSweep3D
 * plotResListData now allows kwargs to set upper/lower temp/pwr limits
 * Fixed bug where log of S21 magnitude was base e and not base 10; now is 10.
+* Added option to fit a quadratic function to the phase baseline
 
 Version 0.2.3:
 

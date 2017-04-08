@@ -9,7 +9,7 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     Parameters
     ----------
     params : list-like
-        A an ``lmfit.Parameters`` object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain1, pgain2)
+        A an ``lmfit.Parameters`` object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain0, pgain1, pgain2)
     freqs : list-like
         A list of frequency points at which the model is calculated
     data : list-like (optional)
@@ -49,9 +49,22 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     pgain0 = paramsVec[7]
     pgain1 = paramsVec[8]
 
-    #Voltage offset at mixer output. Not needed for VNA
-    Ioffset = paramsVec[9]
-    Qoffset = paramsVec[10]
+    #Need to add an if statement here to keep compatibility with older version
+    #Will be deprecated in the future
+    if len(paramsVec) == 12:
+        pgain2 = paramsVec[9]
+
+        #Voltage offset at mixer output. Not needed for VNA
+        Ioffset = paramsVec[10]
+        Qoffset = paramsVec[11]
+    else:
+        print "Warning: new model also fits for quadratic phase. Setting pgain2 = 0."
+        print "If using Resonator.do_lmfit() pass kwarg: pgain2_vary = False for legacy behavior."
+        pgain2 = 0
+
+        #Voltage offset at mixer output. Not needed for VNA
+        Ioffset = paramsVec[9]
+        Qoffset = paramsVec[10]
 
     #Make everything referenced to the shifted, unitless, reduced frequency
     fs = f0+df
@@ -71,7 +84,7 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
 
     #Calculate magnitude and phase gain
     gain = gain0 + gain1*ffm+ 0.5*gain2*ffm**2
-    pgain = np.exp(1j*(pgain0 + pgain1*ffm))
+    pgain = np.exp(1j*(pgain0 + pgain1*ffm + 0.5*pgain2*ffm**2))
 
     #Allow for voltage offset of I and Q
     offset = Ioffset + 1j*Qoffset
@@ -107,6 +120,10 @@ def cmplxIQ_params(res, **kwargs):
 
     Keyword Arguments
     -----------------
+    fit_quadratic_phase : bool
+        This determines whether the phase baseline is fit by a line or a
+        quadratic function. Default is False for fitting only a line.
+
     hardware : string {'VNA', 'mixer'}
         This determines whether or not the Ioffset and Qoffset parameters are
         allowed to vary by default.
@@ -147,6 +164,9 @@ def cmplxIQ_params(res, **kwargs):
             filter_win_length = 3
 
     assert (filter_win_length % 2 == 1) and (filter_win_length >= 3), "Filter window length must be odd and greater than 3."
+
+    #Whether to fit a line or a parabola to the phase:
+    fit_quadratic_phase = kwargs.pop('fit_quadratic_phase', False)
 
     #There shouldn't be any more kwargs left
     if kwargs:
@@ -208,7 +228,13 @@ def cmplxIQ_params(res, **kwargs):
     phaseEnds = np.concatenate((resUPhase[0:findex_5pc], resUPhase[-findex_5pc:-1]))
     phaseRot = resUPhase[findex_min]-resPhase[findex_min]+np.pi
 
-    phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds+phaseRot, 1)
+    if fit_quadratic_phase:
+        phase_poly_order = 2
+    else:
+        phase_poly_order = 1
+
+    #This fits a second order polynomial
+    phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds+phaseRot, phase_poly_order)
     phaseBase = np.poly1d(phaseBaseCoefs)
 
     #Add to resonator object
@@ -253,8 +279,14 @@ def cmplxIQ_params(res, **kwargs):
     params.add('gain2', value = magBaseCoefs[0], vary=True)
 
     #Allow for linear phase variation
-    params.add('pgain0', value = phaseBaseCoefs[1], vary=True)
-    params.add('pgain1', value = phaseBaseCoefs[0], vary=True)
+    params.add('pgain0', value = phaseBaseCoefs[phase_poly_order], vary=True)
+    params.add('pgain1', value = phaseBaseCoefs[phase_poly_order-1], vary=True)
+
+    if fit_quadratic_phase:
+        params.add('pgain2', value = phaseBaseCoefs[0], vary=True)
+    else:
+        params.add('pgain2', value = 0, vary=False)
+
 
     #Add in complex offset (should not be necessary on a VNA, but might be needed for a mixer)
     if hardware == 'VNA':
