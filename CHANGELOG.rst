@@ -11,8 +11,10 @@ Version Next:
 * Automatic version numbering from VERSION.txt file in setup.py
 * Ability to plot multiple different fits on the same axis using plotResSweep3D
 * plotResListData now allows kwargs to set upper/lower temp/pwr limits
-* Fixed bug where log of S21 magnitude was base e and not base 10; now is 10.
+* Fixed bug where log of S21 magnitude was base e and not base 10; now is 10
 * Added option to fit a quadratic function to the phase baseline
+* Added models for qi and f0 based on full Mattis-Bardeen calculations from barmat
+* Added some helper utilities for viewing resList data structure
 
 Version 0.2.3:
 

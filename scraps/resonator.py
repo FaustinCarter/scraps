@@ -564,3 +564,99 @@ def indexResList(resList, temp=None, pwr=None, **kwargs):
         return index
 
     return None
+
+def print_resList(resList):
+    """Print all the temperatures and powers in a table-like form"""
+    #Get all possible powers
+    pwrs = np.unique([res.pwr for res in resList])
+
+    #This will hold a list of temps at each power
+    tlists = []
+    max_len = 0
+
+    #Populate the lists of temps for each power
+    for p in pwrs:
+        tlist = [res.temp for res in resList if res.pwr == p]
+        tlist.sort()
+        tlists.append(tlist)
+        if len(tlist) > max_len:
+            max_len = len(tlist)
+
+    for ix, tlist in enumerate(tlists):
+        pad = max_len - len(tlist)
+        tlist = tlist + pad*['NaN']
+        tlists[ix] = tlist
+
+    block = zip(*tlists)
+
+    print repr(list(pwrs)).replace(',', ',\t')
+    for b in block:
+        print repr(b).replace(',', ',\t')
+
+
+
+def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
+    """Helper tool for preparing a resList with missing data for resSweep"""
+    #Get all possible powers
+    pwrs = np.unique([res.pwr for res in resList])
+
+    #This will hold a list of temps at each power
+    tlists = []
+
+    #Populate the lists of temps for each power
+    for p in pwrs:
+        tlist = [res.temp for res in resList if res.pwr == p]
+        tlist.sort()
+        tlists.append(tlist)
+
+    #Calculate the lengths and find the shortest one
+    lens = [len(tl) for tl in tlists]
+    shortest = min(lens)
+
+    if all(el == shortest for el in lens) and verbose:
+        print 'All lists have same length.'
+    else:
+        print 'Lengths for each set of powers: ',zip(pwrs,lens)
+
+    #Zip the lists into tuples and take the standard deviation
+    #of each tuple. All the elements in each tuple should be
+    #nominally the same, so the stdev should be small unless
+    #one of the elements doesn't match. Return the first
+    #instance of the stdev being too high
+    block = zip(*tlists)
+    bad_ix = np.argmax([np.std(x) > sdev for x in block])
+
+    #If the first row is returned, everything could be ok. Check first row.
+    if bad_ix == 0:
+        if np.std(block[0]) < sdev:
+            bad_ix = -1
+
+    if verbose:
+        print "Bad index: ", bad_ix
+
+    if bad_ix >= 0:
+
+        if verbose:
+            for i in np.arange(-2,3):
+                if (bad_ix+i < len(block)) and (bad_ix+i >= 0):
+                    print repr(block[bad_ix+i]).replace(',', ',\t')
+                    block_ixs = []
+                    for block_ix, block_temp in enumerate(block[bad_ix+i]):
+                        block_ixs.append(scr.indexResList(resList, block_temp, pwrs[block_ix]))
+                    print repr(block_ixs).replace(',', ',\t')
+
+
+            #The longer list is where the extra file is most likely
+            #so return the temp, power, and resList index of the
+            #suspect.
+            for i, x in enumerate(block[bad_ix]):
+                if np.abs(x-np.mean(block[bad_ix])) > np.std(block[bad_ix]):
+
+                    tl = tlists[i]
+                    t = tl[bad_ix]
+                    p = pwrs[i]
+                    res_ix = scr.indexResList(resList, t, p)
+                    if verbose:
+                        print 'T=',t, 'P=',p, 'Res index=',res_ix
+                    if prune:
+                        resList.pop(res_ix)
