@@ -75,10 +75,10 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     assert units in ['mK', 'K'], "Units must be 'mK' or 'K'."
 
     if units == 'mK':
-        ts = temps*0.001
+        temps = temps*0.001
 
     #Pack all these together for convenience
-    zeta = sc.h*f0/(2*sc.k*ts)
+    zeta = sc.h*f0/(2*sc.k*temps)
 
     #An optional power calibration in dB
     #Without this, the parameter Pc is meaningless
@@ -91,13 +91,15 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     invQtls = Fd*np.tanh(zeta)/np.sqrt(1.0+10**(ps/10.0)/Pc)
 
     #Calculate the inverse Q from MBD using barmat
-    fr = f0/barmat.tools.get_delta0(tc, bcs)
+    fr = sc.h*f0/(sc.e*barmat.tools.get_delta0(tc, bcs))
 
-    Z = barmat.get_Zvec(temps/tc, tc, vf, london0, mfp=mfp, bcs=bcs, fr=fr,
+    Z = barmat.get_Zvec(temps[0]/tc, tc, vf, london0, mfp=mfp, bcs=bcs, fr=fr,
                         axis='temperature', output_depths=False,
                         boundary='diffuse')
 
-    invQmbd = alpha*(Z.imag - Z.real[0])/Z.real[0]
+    invQmbd = alpha*(Z.real - Z.real[0])/Z.imag[0]
+
+    invQmbd = np.array([invQmbd]*len(temps))
 
     #Get the difference from the total Q and
     model = 1.0/(invQtls + invQmbd + 1.0/q0)
@@ -184,23 +186,25 @@ def f0_tlsAndMBT(params, temps, powers, data = None, eps = None, **kwargs):
     assert units in ['mK', 'K'], "Units must be 'mK' or 'K'."
 
     if units == 'mK':
-        ts = temps*0.001
+        temps = temps*0.001
 
     #Pack all these together for convenience
-    zeta = sc.h*f0/(2*sc.k*ts)
+    zeta = sc.h*f0/(2*sc.k*temps)
 
     #TLS contribution
     dfTLS = Fd/sc.pi*(np.real(digamma(0.5+zeta/(1j*sc.pi)))-np.log(zeta/sc.pi))
 
     #MBD contribution
     #Calculate the dfMBD from MBD using barmat
-    fr = f0/barmat.tools.get_delta0(tc, bcs)
+    fr = sc.h*f0/(sc.e*barmat.tools.get_delta0(tc, bcs))
 
-    Z = barmat.get_Zvec(temps/tc, tc, vf, london0, mfp=mfp, bcs=bcs, fr=fr,
+    Z = barmat.get_Zvec(temps[0]/tc, tc, vf, london0, mfp=mfp, bcs=bcs, fr=fr,
                         axis='temperature', output_depths=True,
                         boundary='diffuse')
 
     dfMBD = -0.5*alpha*(Z.imag - Z.imag[0])/Z.imag[0]
+
+    dfMBd = np.array([dfMBD]*len(temps))
 
     #Calculate model from parameters
     model = f0+f0*(dfTLS + dfMBD)
