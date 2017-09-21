@@ -352,7 +352,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                 res = resList[resIndex]
                 scaled_freq = res.freq/unitsDict[freq_units]
 
-                for key, ax in axDict.iteritems():
+                for key, ax in axDict.items():
                     pix = plot_types.index(key)
                     plot_fit = plot_fits[pix]
                     if key == 'IQ':
@@ -466,7 +466,7 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     plot_keys : list-like (optional)
         A list of strings corresponding to avaiable plot data. The available
         keys depend on your parameter definitions and may be found by executing
-        ``print resSweep.keys()``. Some keys may point to empty (NaN) objects.
+        ``print(resSweep.keys())``. Some keys may point to empty (NaN) objects.
         Default is to plot all of the keys that exist. If you pass plot_keys
         you may not pass ignore_ignore keys.
 
@@ -717,7 +717,7 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
     plot_keys : list-like (optional)
         A list of strings corresponding to avaiable plot data. The available
         keys depend on your parameter definitions and may be found by executing
-        ``print resSweep.keys()``. Some keys may point to empty (NaN) objects.
+        ``print(resSweep.keys())``. Some keys may point to empty (NaN) objects.
         Default is to plot all of the keys that exist. If you pass plot_keys
         you may not pass ignore_ignore keys.
 

@@ -32,7 +32,7 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     #Check if the paramsVec looks like a lmfit params object. If so, unpack to list
     if hasattr(paramsVec, 'valuesdict'):
         paramsDict = paramsVec.valuesdict()
-        paramsVec = [value for value in paramsDict.itervalues()]
+        paramsVec = [value for value in paramsDict.values()]
 
     #intrinsic resonator parameters
     df = paramsVec[0] #frequency shift due to mismatched impedances
