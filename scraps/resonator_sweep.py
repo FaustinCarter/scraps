@@ -749,4 +749,4 @@ class ResonatorSweep(dict):
         """Print out some information on all the keys that are stored in the object."""
 
         #For now, this just spits out all the keys. Could be more useful.
-        print sorted(self.keys())
+        print(sorted(self.keys()))

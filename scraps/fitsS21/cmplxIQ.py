@@ -58,8 +58,8 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
         Ioffset = paramsVec[10]
         Qoffset = paramsVec[11]
     else:
-        print "Warning: new model also fits for quadratic phase. Setting pgain2 = 0."
-        print "If using Resonator.do_lmfit() pass kwarg: pgain2_vary = False for legacy behavior."
+        print("Warning: new model also fits for quadratic phase. Setting pgain2 = 0.")
+        print("If using Resonator.do_lmfit() pass kwarg: pgain2_vary = False for legacy behavior.")
         pgain2 = 0
 
         #Voltage offset at mixer output. Not needed for VNA
