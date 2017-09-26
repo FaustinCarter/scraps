@@ -6,6 +6,7 @@ done with scraps, and how to get started.
 
 .. toctree::
   :maxdepth: 1
+  
   Example 1 <Example1_LoadAndPlot>
   Example 2 <Example2_LotsOfData>
   Example 3 <Example3_FiguresForManuscript>

@@ -1,37 +1,37 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>API &mdash; scraps 0.2.3 documentation</title>
-    
+    <title>API &#8212; scraps 0.2.3 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '0.2.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="scraps 0.2.3 documentation" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Figure generation for a manuscript (using NbN CPW resonator data)" href="Example3_FiguresForManuscript.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">
+  <body>
   
 
     <div class="document">
@@ -62,24 +62,24 @@ either a <code class="xref py py-class docutils literal"><span class="pre">Reson
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>string</em>) &#8211; The resonator name. Does not have to be unique, but each physical
+<li><strong>name</strong> (<em>string</em>) – The resonator name. Does not have to be unique, but each physical
 resonator in the experiment should have a unique name to avoid
 confusion when using some of the other tools in scraps.</li>
-<li><strong>temp</strong> (<em>float</em>) &#8211; The temperature in (K) that the S21 measurement was taken at.</li>
-<li><strong>pwr</strong> (<em>float</em>) &#8211; The power (in dBm) at which the resonator was measured.</li>
-<li><strong>freq</strong> (<em>array-like[nDataPoints]</em>) &#8211; The frequency points at which the S21 scan was measured.</li>
-<li><strong>I</strong> (<em>array-like[nDataPoints]</em>) &#8211; The in-phase (or real part) of the complex S21 measurement. Units
+<li><strong>temp</strong> (<em>float</em>) – The temperature in (K) that the S21 measurement was taken at.</li>
+<li><strong>pwr</strong> (<em>float</em>) – The power (in dBm) at which the resonator was measured.</li>
+<li><strong>freq</strong> (<em>array-like</em><em>[</em><em>nDataPoints</em><em>]</em>) – The frequency points at which the S21 scan was measured.</li>
+<li><strong>I</strong> (<em>array-like</em><em>[</em><em>nDataPoints</em><em>]</em>) – The in-phase (or real part) of the complex S21 measurement. Units
 are typically volts, and I should be specified in linear units (as
 opposed to dB).</li>
-<li><strong>Q</strong> (<em>array-like[nDataPoints]</em>) &#8211; The out-of-phase (or imaginary part) of the complex S21 measurement.
+<li><strong>Q</strong> (<em>array-like</em><em>[</em><em>nDataPoints</em><em>]</em>) – The out-of-phase (or imaginary part) of the complex S21 measurement.
 Units are typically volts, and I should be specified in linear units
 (as opposed to dB).</li>
-<li><strong>sigmaI</strong> (<em>array-like[nDataPoints] (optional)</em>) &#8211; An array of uncertaintly values for each data point in <cite>I</cite>. Default
+<li><strong>sigmaI</strong> (<em>array-like</em><em>[</em><em>nDataPoints</em><em>] </em><em>(</em><em>optional</em><em>)</em>) – An array of uncertaintly values for each data point in <cite>I</cite>. Default
 is <code class="docutils literal"><span class="pre">None</span></code>.</li>
-<li><strong>sigmaQ</strong> (<em>array-like[nDataPoints] (optional)</em>) &#8211; An array of uncertaintly values for each data point in <cite>Q</cite>. Default
+<li><strong>sigmaQ</strong> (<em>array-like</em><em>[</em><em>nDataPoints</em><em>] </em><em>(</em><em>optional</em><em>)</em>) – An array of uncertaintly values for each data point in <cite>Q</cite>. Default
 is <code class="docutils literal"><span class="pre">None</span></code>.</li>
-<li><strong>following attributes are automatically calculated and added during</strong> (<em>The</em>) &#8211; </li>
-<li><strong>initialization.</strong> &#8211; </li>
+<li><strong>following attributes are automatically calculated and added during</strong> (<em>The</em>) – </li>
+<li><strong>initialization.</strong> – </li>
 </ul>
 </td>
 </tr>
@@ -88,87 +88,87 @@ is <code class="docutils literal"><span class="pre">None</span></code>.</li>
 <dl class="attribute">
 <dt id="Resonator.name">
 <code class="descname">name</code><a class="headerlink" href="#Resonator.name" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>string</em> &#8211; The resonator name passed at initialization.</p>
+<dd><p><em>string</em> – The resonator name passed at initialization.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.temp">
 <code class="descname">temp</code><a class="headerlink" href="#Resonator.temp" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The temperature passed at initialization.</p>
+<dd><p><em>float</em> – The temperature passed at initialization.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.pwr">
 <code class="descname">pwr</code><a class="headerlink" href="#Resonator.pwr" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The power passed at initialization.</p>
+<dd><p><em>float</em> – The power passed at initialization.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.freq">
 <code class="descname">freq</code><a class="headerlink" href="#Resonator.freq" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The frequency points passed at initialization.</p>
+<dd><p><em>array-like[nDataPoints]</em> – The frequency points passed at initialization.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.I">
 <code class="descname">I</code><a class="headerlink" href="#Resonator.I" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The I data points passed at initialization.</p>
+<dd><p><em>array-like[nDataPoints]</em> – The I data points passed at initialization.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.Q">
 <code class="descname">Q</code><a class="headerlink" href="#Resonator.Q" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The Q data points passed at initialization.</p>
+<dd><p><em>array-like[nDataPoints]</em> – The Q data points passed at initialization.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.sigmaI">
 <code class="descname">sigmaI</code><a class="headerlink" href="#Resonator.sigmaI" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The sigmaI values passed at initialization.</p>
+<dd><p><em>array-like[nDataPoints]</em> – The sigmaI values passed at initialization.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.sigmaQ">
 <code class="descname">sigmaQ</code><a class="headerlink" href="#Resonator.sigmaQ" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The sigmaQ values passed at initialization.</p>
+<dd><p><em>array-like[nDataPoints]</em> – The sigmaQ values passed at initialization.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.S21">
 <code class="descname">S21</code><a class="headerlink" href="#Resonator.S21" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The complex transmission <code class="docutils literal"><span class="pre">S21</span> <span class="pre">=</span> <span class="pre">I</span> <span class="pre">+</span> <span class="pre">1j*Q</span></code>.</p>
+<dd><p><em>array-like[nDataPoints]</em> – The complex transmission <code class="docutils literal"><span class="pre">S21</span> <span class="pre">=</span> <span class="pre">I</span> <span class="pre">+</span> <span class="pre">1j*Q</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.phase">
 <code class="descname">phase</code><a class="headerlink" href="#Resonator.phase" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The raw phase <code class="docutils literal"><span class="pre">phase</span> <span class="pre">=</span> <span class="pre">np.arctan2(Q,</span> <span class="pre">I)</span></code>.</p>
+<dd><p><em>array-like[nDataPoints]</em> – The raw phase <code class="docutils literal"><span class="pre">phase</span> <span class="pre">=</span> <span class="pre">np.arctan2(Q,</span> <span class="pre">I)</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.uphase">
 <code class="descname">uphase</code><a class="headerlink" href="#Resonator.uphase" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The unwrapped phase is equivalent to the phase, but with jumps of 2 Pi
+<dd><p><em>array-like[nDataPoints]</em> – The unwrapped phase is equivalent to the phase, but with jumps of 2 Pi
 removed.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.mag">
 <code class="descname">mag</code><a class="headerlink" href="#Resonator.mag" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The magnitude <code class="docutils literal"><span class="pre">mag</span> <span class="pre">=</span> <span class="pre">np.abs(S21)</span></code> or, equivalently <code class="docutils literal"><span class="pre">mag</span> <span class="pre">=</span>
+<dd><p><em>array-like[nDataPoints]</em> – The magnitude <code class="docutils literal"><span class="pre">mag</span> <span class="pre">=</span> <span class="pre">np.abs(S21)</span></code> or, equivalently <code class="docutils literal"><span class="pre">mag</span> <span class="pre">=</span>
 <span class="pre">np.sqrt(I**2</span> <span class="pre">+</span> <span class="pre">Q**2)</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.hasFit">
 <code class="descname">hasFit</code><a class="headerlink" href="#Resonator.hasFit" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>bool</em> &#8211; Indicates whether or not <code class="docutils literal"><span class="pre">Resonator.do_lmfit</span></code> method has been called.</p>
+<dd><p><em>bool</em> – Indicates whether or not <code class="docutils literal"><span class="pre">Resonator.do_lmfit</span></code> method has been called.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.lmfit_result">
 <code class="descname">lmfit_result</code><a class="headerlink" href="#Resonator.lmfit_result" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal"><span class="pre">lmfit.Result</span></code> object &#8211; The result object created by <code class="docutils literal"><span class="pre">lmfit</span></code> containing all the fit
+<dd><p><code class="docutils literal"><span class="pre">lmfit.Result</span></code> object – The result object created by <code class="docutils literal"><span class="pre">lmfit</span></code> containing all the fit
 information. Some of the fit information is futher extracted for
 convenience in the following Attributes. For an exhaustive list of the
 attributes of lmfit_result see the docs for <code class="docutils literal"><span class="pre">lmfit</span></code>. The most useful
@@ -179,45 +179,45 @@ best-fit parameter values.</p>
 <dl class="attribute">
 <dt id="Resonator.residualI">
 <code class="descname">residualI</code><a class="headerlink" href="#Resonator.residualI" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The residual of the fit model against the <cite>I</cite> data, wieghted by the
+<dd><p><em>array-like[nDataPoints]</em> – The residual of the fit model against the <cite>I</cite> data, wieghted by the
 uncertainties.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.residualQ">
 <code class="descname">residualQ</code><a class="headerlink" href="#Resonator.residualQ" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The residual of the fit model against the <cite>Q</cite> data, wieghted by the
+<dd><p><em>array-like[nDataPoints]</em> – The residual of the fit model against the <cite>Q</cite> data, wieghted by the
 uncertainties.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.resultI">
 <code class="descname">resultI</code><a class="headerlink" href="#Resonator.resultI" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The best <code class="docutils literal"><span class="pre">lmfit</span></code> fit result to the fit model for <cite>I</cite>.</p>
+<dd><p><em>array-like[nDataPoints]</em> – The best <code class="docutils literal"><span class="pre">lmfit</span></code> fit result to the fit model for <cite>I</cite>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.resultQ">
 <code class="descname">resultQ</code><a class="headerlink" href="#Resonator.resultQ" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The best <code class="docutils literal"><span class="pre">lmfit</span></code> fit result to the fit model for <cite>Q</cite>.</p>
+<dd><p><em>array-like[nDataPoints]</em> – The best <code class="docutils literal"><span class="pre">lmfit</span></code> fit result to the fit model for <cite>Q</cite>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.resultMag">
 <code class="descname">resultMag</code><a class="headerlink" href="#Resonator.resultMag" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; <code class="docutils literal"><span class="pre">resultMag</span> <span class="pre">=</span> <span class="pre">np.abs(resultI</span> <span class="pre">+</span> <span class="pre">1j*resultQ)</span></code></p>
+<dd><p><em>array-like[nDataPoints]</em> – <code class="docutils literal"><span class="pre">resultMag</span> <span class="pre">=</span> <span class="pre">np.abs(resultI</span> <span class="pre">+</span> <span class="pre">1j*resultQ)</span></code></p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.resultPhase">
 <code class="descname">resultPhase</code><a class="headerlink" href="#Resonator.resultPhase" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; <code class="docutils literal"><span class="pre">resultPhase</span> <span class="pre">=</span> <span class="pre">np.arctan2(resultQ/resultI)</span></code></p>
+<dd><p><em>array-like[nDataPoints]</em> – <code class="docutils literal"><span class="pre">resultPhase</span> <span class="pre">=</span> <span class="pre">np.arctan2(resultQ/resultI)</span></code></p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.emcee_result">
 <code class="descname">emcee_result</code><a class="headerlink" href="#Resonator.emcee_result" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal"><span class="pre">lmfit.Result</span></code> object &#8211; This object is nearly identical to the <cite>lmfit_result</cite> object, but also
+<dd><p><code class="docutils literal"><span class="pre">lmfit.Result</span></code> object – This object is nearly identical to the <cite>lmfit_result</cite> object, but also
 contains the maximum-liklihood values for the <em>varying</em> parameters of
 the fit model as well as the <cite>chains</cite> returned by <code class="docutils literal"><span class="pre">emcee</span></code>. The most
 important attribute is probably <code class="docutils literal"><span class="pre">emcee_result.flatchain</span></code>, which can be
@@ -230,7 +230,7 @@ involving the <code class="docutils literal"><span class="pre">lmfit</span></cod
 <dl class="attribute">
 <dt id="Resonator.mle_vals">
 <code class="descname">mle_vals</code><a class="headerlink" href="#Resonator.mle_vals" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>list of float</em> &#8211; The maximum-liklihood estimate values of the <em>varying</em> parameter in the
+<dd><p><em>list of float</em> – The maximum-liklihood estimate values of the <em>varying</em> parameter in the
 fit model as calculated by <code class="docutils literal"><span class="pre">emcee</span></code>. Unpacked here for convenience from
 <code class="docutils literal"><span class="pre">emcee_result.params</span></code>.</p>
 </dd></dl>
@@ -238,14 +238,14 @@ fit model as calculated by <code class="docutils literal"><span class="pre">emce
 <dl class="attribute">
 <dt id="Resonator.mle_labels">
 <code class="descname">mle_labels</code><a class="headerlink" href="#Resonator.mle_labels" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>list of string</em> &#8211; The parameter names of the values in <cite>mle_vals</cite>. Provided here for easy
+<dd><p><em>list of string</em> – The parameter names of the values in <cite>mle_vals</cite>. Provided here for easy
 passing to  <code class="docutils literal"><span class="pre">pygtc</span></code> or <code class="docutils literal"><span class="pre">corner</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="Resonator.magBaseLine">
 <code class="descname">magBaseLine</code><a class="headerlink" href="#Resonator.magBaseLine" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The best initial guess of the baseline of the magnitude. Calculated by
+<dd><p><em>array-like[nDataPoints]</em> – The best initial guess of the baseline of the magnitude. Calculated by
 fitting a quadratic polynomial to the beginning and end of the magnitdue
 vs frequency curve.</p>
 </dd></dl>
@@ -253,7 +253,7 @@ vs frequency curve.</p>
 <dl class="attribute">
 <dt id="Resonator.phaseBaseLine">
 <code class="descname">phaseBaseLine</code><a class="headerlink" href="#Resonator.phaseBaseLine" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nDataPoints]</em> &#8211; The best initial guess of the baseline of the phase. Calculated by
+<dd><p><em>array-like[nDataPoints]</em> – The best initial guess of the baseline of the phase. Calculated by
 fitting a line to the beginning and end of the phase vs frequency curve.
 This is equivalent to calculating the electrical delay in the
 measurement lines.</p>
@@ -262,7 +262,7 @@ measurement lines.</p>
 <dl class="attribute">
 <dt id="Resonator.params">
 <code class="descname">params</code><a class="headerlink" href="#Resonator.params" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object &#8211; The initial parameter guesses for fitting the <cite>S21</cite> data. See <code class="docutils literal"><span class="pre">lmfit</span></code>
+<dd><p><code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object – The initial parameter guesses for fitting the <cite>S21</cite> data. See <code class="docutils literal"><span class="pre">lmfit</span></code>
 documentation for a complete overview. To get the parameter names, call
 <code class="docutils literal"><span class="pre">params.keys()</span></code>. Default is <code class="docutils literal"><span class="pre">None</span></code>. Initialize params by calling
 <code class="docutils literal"><span class="pre">Resonator.load_params</span></code>. Delete params with
@@ -284,11 +284,11 @@ documentation for a complete overview. To get the parameter names, call
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>paramsFn</strong> (<em>method</em>) &#8211; The paramsFn method should return a <code class="docutils literal"><span class="pre">lmfit.Paramters</span></code> object. This
+<li><strong>paramsFn</strong> (<em>method</em>) – The paramsFn method should return a <code class="docutils literal"><span class="pre">lmfit.Paramters</span></code> object. This
 object will be passed to the fit method when <code class="docutils literal"><span class="pre">do_lmfit</span></code> or
 <code class="docutils literal"><span class="pre">do_emcee</span></code> is
 called.</li>
-<li><strong>kwargs</strong> (<em>dict</em>) &#8211; A dictionary of keyword arguments to pass to paramsFn.</li>
+<li><strong>kwargs</strong> (<em>dict</em>) – A dictionary of keyword arguments to pass to paramsFn.</li>
 </ul>
 </td>
 </tr>
@@ -317,11 +317,11 @@ called.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fitFn</strong> (<em>function</em>) &#8211; fitFn must have the signature ([A,B] means concatenate lists A and
+<li><strong>fitFn</strong> (<em>function</em>) – fitFn must have the signature ([A,B] means concatenate lists A and
 B): fitFn(params, [Idata, Qdata], [I error, Q error]) and must
 return a 1D list-like object of residuals with form [I residual, Q
 residual].</li>
-<li><strong>kwargs</strong> (<em>optional keywords</em>) &#8211; Use this to override any of the lmfit parameter initial guesses or
+<li><strong>kwargs</strong> (<em>optional keywords</em>) – Use this to override any of the lmfit parameter initial guesses or
 toggle whether the paramter varys. Example: <code class="docutils literal"><span class="pre">qi=1e6</span></code> is equivalent
 to calling <code class="docutils literal"><span class="pre">Resonator.params['qi'].value</span> <span class="pre">=</span> <span class="pre">1e6</span></code>. Example:
 <code class="docutils literal"><span class="pre">qi_vary=False</span></code> will set <code class="docutils literal"><span class="pre">Resonator.params['qi'].vary</span> <span class="pre">=</span> <span class="pre">False</span></code>.
@@ -355,11 +355,11 @@ each parameter given a model.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fitFn</strong> (<em>function</em>) &#8211; fitFn must have the signature ([A,B] means concatenate lists A and
+<li><strong>fitFn</strong> (<em>function</em>) – fitFn must have the signature ([A,B] means concatenate lists A and
 B): fitFn(params, [Idata, Qdata], [I error, Q error]) and must
 return a 1D list-like object of residuals with form [I residual, Q
 residual].</li>
-<li><strong>kwargs</strong> (<em>optional keyword arguments</em>) &#8211; These are passed through to the <code class="docutils literal"><span class="pre">lmfit.Minimizer.emcee</span></code> method.
+<li><strong>kwargs</strong> (<em>optional keyword arguments</em>) – These are passed through to the <code class="docutils literal"><span class="pre">lmfit.Minimizer.emcee</span></code> method.
 See the <code class="docutils literal"><span class="pre">lmfit</span></code> documentation for more information.</li>
 </ul>
 </td>
@@ -393,20 +393,20 @@ See the <code class="docutils literal"><span class="pre">lmfit</span></code> doc
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>fileName</strong> (<em>string</em>) &#8211; <p>Path to data. Actual name of the file should be in the format:
+<li><strong>fileName</strong> (<em>string</em>) – <p>Path to data. Actual name of the file should be in the format:
 <code class="docutils literal"><span class="pre">name</span> <span class="pre">+</span> <span class="pre">'_'</span> <span class="pre">+</span> <span class="pre">pwr</span> <span class="pre">+</span> <span class="pre">'_DBM_TEMP_'</span> <span class="pre">+</span> <span class="pre">temp</span> <span class="pre">+</span> <span class="pre">'.S2P'</span></code> where:</p>
 <ul>
-<li>name: Must be &#8216;RES-N&#8217; where N is any single character you like.</li>
-<li>pwr: The power the resonator sees in dBm, three characters Example: &#8216;-25&#8217;</li>
-<li>temp: The temperature of the resonator in K, five characters Example: &#8216;0.150&#8217;</li>
+<li>name: Must be ‘RES-N’ where N is any single character you like.</li>
+<li>pwr: The power the resonator sees in dBm, three characters Example: ‘-25’</li>
+<li>temp: The temperature of the resonator in K, five characters Example: ‘0.150’</li>
 </ul>
 </li>
-<li><strong>rows_to_skip</strong> (<em>int</em>) &#8211; Number of rows to skip at start of file. Default is 1.</li>
+<li><strong>rows_to_skip</strong> (<em>int</em>) – Number of rows to skip at start of file. Default is 1.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dataDict</strong> &#8211; Dictionary contains the following keys: &#8216;name&#8217;, &#8216;temp&#8217;, &#8216;pwr&#8217;, &#8216;freq&#8217;,
-&#8216;I&#8217;, &#8216;Q&#8217;. If fileName does not exist, then returns <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dataDict</strong> – Dictionary contains the following keys: ‘name’, ‘temp’, ‘pwr’, ‘freq’,
+‘I’, ‘Q’. If fileName does not exist, then returns <code class="docutils literal"><span class="pre">None</span></code>.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict or <code class="docutils literal"><span class="pre">None</span></code></p>
@@ -433,18 +433,18 @@ See the <code class="docutils literal"><span class="pre">lmfit</span></code> doc
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dataDict</strong> (<em>dict</em>) &#8211; Must have the following keys: &#8216;I&#8217;, &#8216;Q&#8217;, &#8216;temp&#8217;, &#8216;pwr&#8217;, &#8216;freq&#8217;, &#8216;name&#8217;.
-Optional keys are: &#8216;sigmaI&#8217;, &#8216;sigmaQ&#8217;</li>
-<li><strong>paramsFn</strong> (<em>function (optional)</em>) &#8211; A function that initializes and returns an lmfit parameters object for
+<li><strong>dataDict</strong> (<em>dict</em>) – Must have the following keys: ‘I’, ‘Q’, ‘temp’, ‘pwr’, ‘freq’, ‘name’.
+Optional keys are: ‘sigmaI’, ‘sigmaQ’</li>
+<li><strong>paramsFn</strong> (<em>function</em><em> (</em><em>optional</em><em>)</em>) – A function that initializes and returns an lmfit parameters object for
 passing to fitFn.</li>
-<li><strong>fitFn</strong> (<em>function (optional)</em>) &#8211; If a fit function is passed, an lmfit minimization will be done
+<li><strong>fitFn</strong> (<em>function</em><em> (</em><em>optional</em><em>)</em>) – If a fit function is passed, an lmfit minimization will be done
 automatically.</li>
-<li><strong>fitFn_kwargs</strong> (<em>dict (optional)</em>) &#8211; A dict of keyword arguments passed to fitFn.</li>
-<li><strong>paramsFn_kwargs</strong> (<em>dict (optional)</em>) &#8211; A dict of keyword arguments passed to paramsFn.</li>
+<li><strong>fitFn_kwargs</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – A dict of keyword arguments passed to fitFn.</li>
+<li><strong>paramsFn_kwargs</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – A dict of keyword arguments passed to paramsFn.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>res</strong> &#8211; A Resonator object or <code class="docutils literal"><span class="pre">None</span></code> if there is an error loading the data.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>res</strong> – A Resonator object or <code class="docutils literal"><span class="pre">None</span></code> if there is an error loading the data.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">Resonator</span></code> object or <code class="docutils literal"><span class="pre">None</span></code></p>
@@ -466,13 +466,13 @@ automatically.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fileFunc</strong> (<em>function</em>) &#8211; A function that converts a single data file into a dictionary. The
-resulting dictionary must have the following keys: &#8216;I&#8217;, &#8216;Q&#8217;, &#8216;temp&#8217;,
-&#8216;pwr&#8217;, &#8216;freq&#8217;, &#8216;name&#8217;, and may have the following ptional keys:
-&#8216;sigmaI&#8217;, &#8216;sigmaQ&#8217;</li>
-<li><strong>dataPath</strong> (<em>string</em>) &#8211; Path to the directory containing the data files that will be processed
+<li><strong>fileFunc</strong> (<em>function</em>) – A function that converts a single data file into a dictionary. The
+resulting dictionary must have the following keys: ‘I’, ‘Q’, ‘temp’,
+‘pwr’, ‘freq’, ‘name’, and may have the following ptional keys:
+‘sigmaI’, ‘sigmaQ’</li>
+<li><strong>dataPath</strong> (<em>string</em>) – Path to the directory containing the data files that will be processed
 by fileFunc.</li>
-<li><strong>resName</strong> (<em>string</em>) &#8211; The name of your resonator. This can be anything, but it is useful to
+<li><strong>resName</strong> (<em>string</em>) – The name of your resonator. This can be anything, but it is useful to
 use the same name for every data file that comes from the same physical
 resonator.</li>
 </ul>
@@ -487,25 +487,26 @@ resonator.</li>
 <h4>indexResList()<a class="headerlink" href="#indexreslist" title="Permalink to this headline">¶</a></h4>
 <dl class="function">
 <dt id="scraps.indexResList">
-<code class="descclassname">scraps.</code><code class="descname">indexResList</code><span class="sig-paren">(</span><em>resList</em>, <em>temp</em>, <em>pwr</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.indexResList" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">scraps.</code><code class="descname">indexResList</code><span class="sig-paren">(</span><em>resList</em>, <em>temp=None</em>, <em>pwr=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.indexResList" title="Permalink to this definition">¶</a></dt>
 <dd><p>Index resList by temp and pwr.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>resList</strong> (<em>list-like</em>) &#8211; resList is a list of <code class="docutils literal"><span class="pre">scraps.Resonator</span></code> objects</li>
-<li><strong>temp</strong> (<em>numeric</em>) &#8211; The temperature of a single Resonator object.</li>
-<li><strong>pwr</strong> (<em>int</em>) &#8211; The power of a single Resonator object</li>
-<li><strong>itemp</strong> (<em>boolean (optional)</em>) &#8211; Switch to determine whether lookup uses temp or itemp (rounded value of
+<li><strong>resList</strong> (<em>list-like</em>) – resList is a list of <code class="docutils literal"><span class="pre">scraps.Resonator</span></code> objects</li>
+<li><strong>temp</strong> (<em>numeric</em>) – The temperature of a single Resonator object.</li>
+<li><strong>pwr</strong> (<em>int</em>) – The power of a single Resonator object</li>
+<li><strong>itemp</strong> (<em>boolean</em><em> (</em><em>optional</em><em>)</em>) – Switch to determine whether lookup uses temp or itemp (rounded value of
 temp). Default is <code class="docutils literal"><span class="pre">False</span></code>.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>index</strong> &#8211; Index is the index of the Resonator in resList</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>index</strong> – Index is the index of the Resonator in resList or a list of indices of
+all matches if only pwr or only temp is specified.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int or list</p>
 </td>
 </tr>
 </tbody>
@@ -519,7 +520,7 @@ temp). Default is <code class="docutils literal"><span class="pre">False</span><
 </div>
 <div class="section" id="resonatorsweep-class">
 <h2>ResonatorSweep class<a class="headerlink" href="#resonatorsweep-class" title="Permalink to this headline">¶</a></h2>
-<p>The ResonatorSweep class inherits python&#8217;s <code class="docutils literal"><span class="pre">dict</span></code> class. Each key of the dict
+<p>The ResonatorSweep class inherits python’s <code class="docutils literal"><span class="pre">dict</span></code> class. Each key of the dict
 corresponds to a <code class="docutils literal"><span class="pre">pandas.DataFrame</span></code> of data. Because of this, you can add your
 own custom derived data sets by simply assigning them to a dict entry. As an
 example:</p>
@@ -550,14 +551,14 @@ example:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>resList</strong> (<em>list-like</em>) &#8211; A list of <code class="docutils literal"><span class="pre">scraps.Resonator</span></code> objects. Each object must have the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>resList</strong> (<em>list-like</em>) – A list of <code class="docutils literal"><span class="pre">scraps.Resonator</span></code> objects. Each object must have the
 attribute <code class="docutils literal"><span class="pre">hasFit</span> <span class="pre">==</span> <span class="pre">True</span></code>.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li><strong>index</strong> (<em>string{&#8216;raw&#8217;, &#8216;round&#8217;, &#8216;block&#8217;} (optional)</em>) &#8211; Selects which method to use for indexing.</li>
-<li><strong>roundto</strong> (<em>int (optional)</em>) &#8211; Number to round temperature index to in mK. Default is 5.</li>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> (<em>string{'raw'</em><em>, </em><em>'round'</em><em>, </em><em>'block'}</em><em> (</em><em>optional</em><em>)</em>) – Selects which method to use for indexing.</li>
+<li><strong>roundto</strong> (<em>int</em><em> (</em><em>optional</em><em>)</em>) – Number to round temperature index to in mK. Default is 5.</li>
 </ul>
 </td>
 </tr>
@@ -566,21 +567,21 @@ attribute <code class="docutils literal"><span class="pre">hasFit</span> <span c
 <dl class="attribute">
 <dt id="ResonatorSweep.tvec">
 <code class="descname">tvec</code><a class="headerlink" href="#ResonatorSweep.tvec" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nUniqeTemps]</em> &#8211; Index of temperature values, one for each unique temperature.</p>
+<dd><p><em>array-like[nUniqeTemps]</em> – Index of temperature values, one for each unique temperature.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ResonatorSweep.pvec">
 <code class="descname">pvec</code><a class="headerlink" href="#ResonatorSweep.pvec" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>array-like[nUniqePowers]</em> &#8211; Index of powers values, one for each unique power.</p>
+<dd><p><em>array-like[nUniqePowers]</em> – Index of powers values, one for each unique power.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ResonatorSweep.smartindex">
 <code class="descname">smartindex</code><a class="headerlink" href="#ResonatorSweep.smartindex" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>string</em> &#8211; Indicates the method of formatting temperature values in tvec. &#8216;raw&#8217;
-means to take temperature values as they are, &#8216;round&#8217; means to round to
-the neareast <cite>X</cite> mK, where <cite>X</cite> is set by <cite>roundTo</cite>, &#8216;block&#8217; means to
+<dd><p><em>string</em> – Indicates the method of formatting temperature values in tvec. ‘raw’
+means to take temperature values as they are, ‘round’ means to round to
+the neareast <cite>X</cite> mK, where <cite>X</cite> is set by <cite>roundTo</cite>, ‘block’ means to
 figure out which temperature values are nominally the same and set each
 block of those temperatures to the same value.</p>
 </dd></dl>
@@ -588,13 +589,13 @@ block of those temperatures to the same value.</p>
 <dl class="attribute">
 <dt id="ResonatorSweep.rountTo">
 <code class="descname">rountTo</code><a class="headerlink" href="#ResonatorSweep.rountTo" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The number of mK to round to when <code class="docutils literal"><span class="pre">smartIndex</span> <span class="pre">==</span> <span class="pre">'round'</span></code>.</p>
+<dd><p><em>float</em> – The number of mK to round to when <code class="docutils literal"><span class="pre">smartIndex</span> <span class="pre">==</span> <span class="pre">'round'</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ResonatorSweep.lmfit_results">
 <code class="descname">lmfit_results</code><a class="headerlink" href="#ResonatorSweep.lmfit_results" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>dict</em> &#8211; A dictionary containing the fit results for different data by key.
+<dd><p><em>dict</em> – A dictionary containing the fit results for different data by key.
 Initially empty, results are added by calling
 <code class="docutils literal"><span class="pre">ResonatorSweep.do_lmfit</span></code>.</p>
 </dd></dl>
@@ -602,7 +603,7 @@ Initially empty, results are added by calling
 <dl class="attribute">
 <dt id="ResonatorSweep.emcee_results">
 <code class="descname">emcee_results</code><a class="headerlink" href="#ResonatorSweep.emcee_results" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>dict</em> &#8211; A dictionary containing the MCMC results for different data by key.
+<dd><p><em>dict</em> – A dictionary containing the MCMC results for different data by key.
 Initially empty, results are added by calling
 <code class="docutils literal"><span class="pre">ResonatorSweep.do_emcee</span></code>.</p>
 </dd></dl>
@@ -610,41 +611,61 @@ Initially empty, results are added by calling
 <dl class="attribute">
 <dt id="ResonatorSweep.lmfit_joint_results">
 <code class="descname">lmfit_joint_results</code><a class="headerlink" href="#ResonatorSweep.lmfit_joint_results" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>dict</em> &#8211; If multiple data sets are fit simultaneously via
+<dd><p><em>dict</em> – If multiple data sets are fit simultaneously via
 <code class="docutils literal"><span class="pre">ResonatorSweep.do_lmfit</span></code>, the results will appear in this attribute
-by key, where <a href="#id1"><span class="problematic" id="id2">``</span></a>key = &#8216;key1+key2&#8217; == &#8216;key2+key1&#8217;.</p>
+by key, where <a href="#id1"><span class="problematic" id="id2">``</span></a>key = ‘key1+key2’ == ‘key2+key1’.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ResonatorSweep.emcee_joint_results">
 <code class="descname">emcee_joint_results</code><a class="headerlink" href="#ResonatorSweep.emcee_joint_results" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>dict</em> &#8211; If multiple data sets are fit simultaneously via
+<dd><p><em>dict</em> – If multiple data sets are fit simultaneously via
 <code class="docutils literal"><span class="pre">ResonatorSweep.do_emcee</span></code>, the results will appear in this attribute
-by key, where <a href="#id3"><span class="problematic" id="id4">``</span></a>key = &#8216;key1+key2&#8217;.</p>
+by key, where <a href="#id3"><span class="problematic" id="id4">``</span></a>key = ‘key1+key2’.</p>
 </dd></dl>
 
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>The following keys are added to the self dict:</p>
-<dl class="last docutils">
-<dt>&#8216;temps&#8217;</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The temperature of each resonator in the sweep.</dd>
-<dt>&#8216;fmin&#8217;</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The minimum value of the magnitude vs frequency curve after subtraction
+<dl class="docutils">
+<dt>‘temps’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The temperature of each resonator in the sweep.</dd>
+<dt>‘fmin’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The minimum value of the magnitude vs frequency curve after subtraction
 of the best-guess baseline.</dd>
-<dt>&#8216;chisq&#8217;</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The Chi-squared value of each fit in the sweep.</dd>
-<dt>&#8216;redchi&#8217;</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The reduced Chi-squared value of each fit in the sweep.</dd>
-<dt>&#8216;feval&#8217;</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The number of function evaluations for each fit in the sweep.</dd>
-<dt>&#8216;listIndex&#8217;</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>The sweep objects are built from a list of <code class="docutils literal"><span class="pre">pyres.Resonator</span></code>
+<dt>‘listIndex’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The sweep objects are built from a list of <code class="docutils literal"><span class="pre">pyres.Resonator</span></code>
 objects; this is the index of the original list for
 each data value in the sweep.</dd>
-<dt>paramValues</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span><dd>There is a key for each parameter value in the <code class="docutils literal"><span class="pre">Resonator.params</span></code>
+</dl>
+<p>If the <code class="docutils literal"><span class="pre">do_lmfit</span></code> method has been run, these keys are also added:</p>
+<dl class="docutils">
+<dt>‘chisq’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The Chi-squared value of each fit in the sweep.</dd>
+<dt>‘redchi’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The reduced Chi-squared value of each fit in the sweep.</dd>
+<dt>‘feval’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The number of function evaluations for each fit in the sweep.</dd>
+<dt>paramNames <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>There is a key for each parameter value in the <code class="docutils literal"><span class="pre">Resonator.params</span></code>
 attribute.</dd>
+<dt>paramNames + ‘_sigma’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>There is a key for the uncertainty on each paramter value returned by
+the fit. Key name is paramName + ‘_sigma’</dd>
+</dl>
+<p>If the <code class="docutils literal"><span class="pre">do_emcee</span></code> method has been run, these keys are also added:</p>
+<dl class="last docutils">
+<dt>paramNames + ‘_mle’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The maximum-liklihood estimate from the MCMC sampling.</dd>
+<dt>paramNames + ‘_mc’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The 50th percentile value of the posterior distribution from MCMC
+sampling.</dd>
+<dt>paramNames + ‘_sigma_plus_mc’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The plus errorbar on the MCMC data. Calculated as the difference between
+the 84th percentile value and the 50th percentile value.</dd>
+<dt>paramNames + ‘_sigma_minus_mc’ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">pandas.DataFrame</span></code></span></dt>
+<dd>The minus errorbar on the MCMC data. Calculated as the difference between
+the 50th percentile value and the 16th percentile value.</dd>
 </dl>
 </div>
 </dd></dl>
@@ -664,11 +685,11 @@ keys are passed to <cite>fit_keys</cite>.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fit_keys</strong> (<em>list-like</em>) &#8211; A list of keys that correspond to existing data. Any combination of
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fit_keys</strong> (<em>list-like</em>) – A list of keys that correspond to existing data. Any combination of
 keys from <cite>self.keys()`</cite> is acceptable, but duplicates are not
 permitted.</li>
-<li><strong>models_list</strong> (<em>list-like</em>) &#8211; A list of fit functions, one per key in <cite>fit_keys</cite>. Function must
+<li><strong>models_list</strong> (<em>list-like</em>) – A list of fit functions, one per key in <cite>fit_keys</cite>. Function must
 return a residual of the form: <code class="docutils literal"><span class="pre">residual</span> <span class="pre">=</span> <span class="pre">(model-data)/sigma</span></code>
 where <code class="docutils literal"><span class="pre">residual</span></code>, <code class="docutils literal"><span class="pre">model</span></code>, and <code class="docutils literal"><span class="pre">data</span></code> are all <code class="docutils literal"><span class="pre">numpy</span></code>
 arrays. Function signature is <code class="docutils literal"><span class="pre">model_func(params,</span> <span class="pre">temps,</span> <span class="pre">powers,</span>
@@ -676,21 +697,36 @@ arrays. Function signature is <code class="docutils literal"><span class="pre">m
 return the model calculated at <code class="docutils literal"><span class="pre">temps</span></code> and <code class="docutils literal"><span class="pre">powers</span></code>. The model
 functions should also gracefully handle <code class="docutils literal"><span class="pre">np.NaN</span></code> or <code class="docutils literal"><span class="pre">None</span></code>
 values.</li>
-<li><strong>params_list</strong> (<em>list-like</em>) &#8211; A list of <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> objects, one for each key in
+<li><strong>params_list</strong> (<em>list-like</em>) – A list of <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> objects, one for each key in
 <cite>fit_keys</cite>. Parameters sharing the same name will be merged so that
 the fit is truly joint. Alternately, a list of functions that return
 <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> objects may be passed. In this case, one should
 use <cite>param_kwargs</cite> to pass any needed options to the functions.</li>
-<li><strong>model_kwargs</strong> (<em>list-like (optional)</em>) &#8211; A list of <code class="docutils literal"><span class="pre">dict</span></code> objects to pass to the individual model functions
+<li><strong>model_kwargs</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of <code class="docutils literal"><span class="pre">dict</span></code> objects to pass to the individual model functions
 as kwargs. <code class="docutils literal"><span class="pre">None</span></code> is also an acceptable entry  if there are no
 kwargs to pass to a model function. Default is <code class="docutils literal"><span class="pre">None.</span></code></li>
-<li><strong>param_kwargs</strong> (<em>list-like (optional)</em>) &#8211; A list of <code class="docutils literal"><span class="pre">dict</span></code> objects to pass to the individual params
+<li><strong>param_kwargs</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of <code class="docutils literal"><span class="pre">dict</span></code> objects to pass to the individual params
 functions as kwargs. <code class="docutils literal"><span class="pre">None</span></code> is also an acceptable entry  if
 there are no kwargs to pass to a model function. Default is
 <code class="docutils literal"><span class="pre">None.</span></code></li>
-<li><strong>lmfit_kwargs</strong> (<em>dict (optional)</em>) &#8211; Keyword arguments to pass options to the fitter</li>
-<li><strong>kwargs</strong> (<em>dict (optional)</em>) &#8211; Supported keyword arugments are &#8216;min_temp&#8217;, &#8216;max_temp&#8217;, &#8216;min_pwr&#8217;,
-and &#8216;max_pwr&#8217;. These set limits on which data to fit.</li>
+<li><strong>lmfit_kwargs</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – Keyword arguments to pass options to the fitter</li>
+<li><strong>kwargs</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – Supported keyword arugments are ‘min_temp’, ‘max_temp’, ‘min_pwr’,
+and ‘max_pwr’. These set limits on which data to fit.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>min_temp</strong> (<em>numeric</em>) – Lower limit of temperature to fit. Default is 0.</li>
+<li><strong>max_temp</strong> (<em>numeric</em>) – Upper limit of temerature to fit. Default is infinity.</li>
+<li><strong>min_pwr</strong> (<em>numeric</em>) – Lower limit of temperature to fit. Default is -infinity.</li>
+<li><strong>max_pwr</strong> (<em>numeric</em>) – Upper limit of temperature to fit. Default is infinity.</li>
+<li><strong>raw_data</strong> (<em>string {'lmfit'</em><em>, </em><em>'emcee'</em><em>, </em><em>'mle'}</em>) – Whether to use the values returned by lmfit, or the values returned
+by the emcee fitter (either the 50th percentile or the maximum
+liklihood). This also chooses which set of errorbars to use: either
+those from the lmfit covariance matrix, or those from the 16th and
+84th percentiles of the posterior probablility distribution. Default
+is ‘lmfit’.</li>
 </ul>
 </td>
 </tr>
@@ -717,7 +753,7 @@ surface) will be added to the self dict in the form of a
 <h4>.do_emcee()<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
 <dl class="method">
 <dt id="scraps.ResonatorSweep.do_emcee">
-<code class="descclassname">ResonatorSweep.</code><code class="descname">do_emcee</code><span class="sig-paren">(</span><em>fit_keys</em>, <em>models_list</em>, <em>params_list=None</em>, <em>model_kwargs=None</em>, <em>param_kwargs=None</em>, <em>emcee_kwargs={}</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.ResonatorSweep.do_emcee" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ResonatorSweep.</code><code class="descname">do_emcee</code><span class="sig-paren">(</span><em>fit_keys</em>, <em>models_list</em>, <em>params_list=None</em>, <em>model_kwargs=None</em>, <em>param_kwargs=None</em>, <em>emcee_kwargs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.ResonatorSweep.do_emcee" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run simulatneous MCMC sampling on the temp/pwr data for several
 parameters. Results are stored in either the <code class="docutils literal"><span class="pre">emcee_results</span></code> or
 <code class="docutils literal"><span class="pre">emcee_joint_results</span></code> attribute depending on whether one or multiple
@@ -727,10 +763,10 @@ keys are passed to <cite>fit_keys</cite>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>fit_keys</strong> (<em>list-like</em>) &#8211; A list of keys that correspond to existing data. Any combination of
+<li><strong>fit_keys</strong> (<em>list-like</em>) – A list of keys that correspond to existing data. Any combination of
 keys from <cite>self.keys()`</cite> is acceptable, but duplicates are not
 permitted.</li>
-<li><strong>models_list</strong> (<em>list-like</em>) &#8211; A list of fit functions, one per key in <cite>fit_keys</cite>. Function must
+<li><strong>models_list</strong> (<em>list-like</em>) – A list of fit functions, one per key in <cite>fit_keys</cite>. Function must
 return a residual of the form: <code class="docutils literal"><span class="pre">residual</span> <span class="pre">=</span> <span class="pre">(model-data)/sigma</span></code>
 where <code class="docutils literal"><span class="pre">residual</span></code>, <code class="docutils literal"><span class="pre">model</span></code>, and <code class="docutils literal"><span class="pre">data</span></code> are all <code class="docutils literal"><span class="pre">numpy</span></code>
 arrays. Function signature is <code class="docutils literal"><span class="pre">model_func(params,</span> <span class="pre">temps,</span> <span class="pre">powers,</span>
@@ -738,33 +774,39 @@ arrays. Function signature is <code class="docutils literal"><span class="pre">m
 return the model calculated at <code class="docutils literal"><span class="pre">temps</span></code> and <code class="docutils literal"><span class="pre">powers</span></code>. The model
 functions should also gracefully handle <code class="docutils literal"><span class="pre">np.NaN</span></code> or <code class="docutils literal"><span class="pre">None</span></code>
 values.</li>
-<li><strong>params_list</strong> (<em>list-like</em>) &#8211; A list of <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> objects, one for each key in
+<li><strong>params_list</strong> (<em>list-like</em>) – A list of <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> objects, one for each key in
 <cite>fit_keys</cite>. Parameters sharing the same name will be merged so that
 the fit is truly joint. Alternately, a list of functions that return
 <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> objects may be passed. In this case, one should
 use <cite>param_kwargs</cite> to pass any needed options to the functions.
 Default is <code class="docutils literal"><span class="pre">None</span></code> and is equivalent to setting <code class="docutils literal"><span class="pre">use_lmfit_params</span> <span class="pre">=</span>
 <span class="pre">True</span></code>.</li>
-<li><strong>model_kwargs</strong> (<em>list-like (optional)</em>) &#8211; A list of <code class="docutils literal"><span class="pre">dict</span></code> objects to pass to the individual model functions
+<li><strong>model_kwargs</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of <code class="docutils literal"><span class="pre">dict</span></code> objects to pass to the individual model functions
 as kwargs. <code class="docutils literal"><span class="pre">None</span></code> is also an acceptable entry  if there are no
 kwargs to pass to a model function. Default is <code class="docutils literal"><span class="pre">None.</span></code></li>
-<li><strong>param_kwargs</strong> (<em>list-like (optional)</em>) &#8211; A list of <code class="docutils literal"><span class="pre">dict</span></code> objects to pass to the individual params
+<li><strong>param_kwargs</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of <code class="docutils literal"><span class="pre">dict</span></code> objects to pass to the individual params
 functions as kwargs. <code class="docutils literal"><span class="pre">None</span></code> is also an acceptable entry  if
 there are no kwargs to pass to a model function. Default is
 <code class="docutils literal"><span class="pre">None.</span></code></li>
-<li><strong>emcee_kwargs</strong> (<em>dict (optional)</em>) &#8211; Keyword arguments to pass options to the fitter</li>
+<li><strong>emcee_kwargs</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – Keyword arguments to pass options to the fitter</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li><strong>min_temp</strong> (<em>numeric</em>) &#8211; Lower limit of temperature to fit. Default is 0.</li>
-<li><strong>max_temp</strong> (<em>numeric</em>) &#8211; Upper limit of temerature to fit. Default is infinity.</li>
-<li><strong>min_pwr</strong> (<em>numeric</em>) &#8211; Lower limit of temperature to fit. Default is -infinity.</li>
-<li><strong>max_pwr</strong> (<em>numeric</em>) &#8211; Upper limit of temperature to fit. Default is infinity.</li>
-<li><strong>use_lmfit_params</strong> (<em>bool</em>) &#8211; Whether or not to use the resulting best-fit <code class="docutils literal"><span class="pre">lmfit.Paramters</span></code>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>min_temp</strong> (<em>numeric</em>) – Lower limit of temperature to fit. Default is 0.</li>
+<li><strong>max_temp</strong> (<em>numeric</em>) – Upper limit of temerature to fit. Default is infinity.</li>
+<li><strong>min_pwr</strong> (<em>numeric</em>) – Lower limit of temperature to fit. Default is -infinity.</li>
+<li><strong>max_pwr</strong> (<em>numeric</em>) – Upper limit of temperature to fit. Default is infinity.</li>
+<li><strong>use_lmfit_params</strong> (<em>bool</em>) – Whether or not to use the resulting best-fit <code class="docutils literal"><span class="pre">lmfit.Paramters</span></code>
 object that resulted from calling <code class="docutils literal"><span class="pre">ResonatorSweep.do_lmfit()</span></code> as
 the starting value for the MCMC sampler. Default is True.</li>
+<li><strong>raw_data</strong> (<em>string {'lmfit'</em><em>, </em><em>'emcee'</em><em>, </em><em>'mle'}</em>) – Whether to use the values returned by lmfit, or the values returned
+by the emcee fitter (either the 50th percentile or the maximum
+liklihood). This also chooses which set of errorbars to use: either
+those from the lmfit covariance matrix, or those from the 16th and
+84th percentiles of the posterior probablility distribution. Default
+is ‘lmfit’.</li>
 </ul>
 </td>
 </tr>
@@ -802,18 +844,18 @@ surface) will be added to the self dict in the form of a
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>resList</strong> (<em>list-like</em>) &#8211; A list of <code class="docutils literal"><span class="pre">pyres.Resonator</span></code> objects. A single <code class="docutils literal"><span class="pre">Resonator</span></code> object can
+<li><strong>resList</strong> (<em>list-like</em>) – A list of <code class="docutils literal"><span class="pre">pyres.Resonator</span></code> objects. A single <code class="docutils literal"><span class="pre">Resonator</span></code> object can
 be passed, as long as it is in a list.</li>
-<li><strong>plot_types</strong> (<em>list, optional</em>) &#8211; <p>A list of plots to create, each one specified by a string. Possible plot
+<li><strong>plot_types</strong> (<em>list</em><em>, </em><em>optional</em>) – <p>A list of plots to create, each one specified by a string. Possible plot
 types are:</p>
 <ul>
 <li><dl class="first docutils">
-<dt>&#8216;IQ&#8217;: Plots the real part of the transmission (<cite>I</cite>) vs the imaginary</dt>
+<dt>’IQ’: Plots the real part of the transmission (<cite>I</cite>) vs the imaginary</dt>
 <dd>part (<cite>Q</cite>). This is the default plot.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt>&#8216;rIQ&#8217;: Plots the residual of <cite>I</cite> vs the residual of <cite>Q</cite>. This plot is</dt>
+<dt>’rIQ’: Plots the residual of <cite>I</cite> vs the residual of <cite>Q</cite>. This plot is</dt>
 <dd>only available if the <code class="docutils literal"><span class="pre">do_lmfit</span></code> method of each <code class="docutils literal"><span class="pre">Resonator</span></code>
 object has been called. The <cite>I</cite> and <cite>Q</cite> residuals are normalized by
 the uncertainty of the <cite>I</cite> and <cite>Q</cite> data respectively. If this is not
@@ -822,53 +864,53 @@ deviation of the first 10 data points.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt>&#8216;LinMag&#8217;: Plots the magnitude of the tranmission in Volts vs</dt>
+<dt>’LinMag’: Plots the magnitude of the tranmission in Volts vs</dt>
 <dd>frequency.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt>&#8216;LogMag&#8217;: Plots the magnitude of the transmission in dB vs frequency.</dt>
-<dd><code class="docutils literal"><span class="pre">LogMag</span> <span class="pre">=</span> <span class="pre">20*np.log(LinMag)</span></code>.</dd>
+<dt>’LogMag’: Plots the magnitude of the transmission in dB vs frequency.</dt>
+<dd><code class="docutils literal"><span class="pre">LogMag</span> <span class="pre">=</span> <span class="pre">20*np.log10(LinMag)</span></code>.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt>&#8216;rMag&#8217;: Plots the difference of <cite>LinMag</cite> and the best-fit magnitude vs</dt>
+<dt>’rMag’: Plots the difference of <cite>LinMag</cite> and the best-fit magnitude vs</dt>
 <dd>frequency. This plot is only available if the <code class="docutils literal"><span class="pre">do_lmfit</span></code> method of
 each <code class="docutils literal"><span class="pre">Resonator</span></code> object has been called.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt>&#8216;Phase&#8217;: Plots the phase of the transmision vs frequency.</dt>
+<dt>’Phase’: Plots the phase of the transmision vs frequency.</dt>
 <dd><code class="docutils literal"><span class="pre">Phase</span> <span class="pre">=</span> <span class="pre">np.arctan2(Q,</span> <span class="pre">I)</span></code>.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt>&#8216;rPhase&#8217;: Plots the difference of <cite>Phase</cite> and the best-fit phase vs</dt>
+<dt>’rPhase’: Plots the difference of <cite>Phase</cite> and the best-fit phase vs</dt>
 <dd>frequency. This plot is only available if the <code class="docutils literal"><span class="pre">do_lmfit</span></code> method of
 each <code class="docutils literal"><span class="pre">Resonator</span></code> object has been called.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt>&#8216;uPhase&#8217;: Plots the unwrapped phase vs frequency.</dt>
+<dt>’uPhase’: Plots the unwrapped phase vs frequency.</dt>
 <dd><code class="docutils literal"><span class="pre">uPhase</span> <span class="pre">=</span> <span class="pre">np.unwrap(Phase)</span></code>.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt>&#8216;ruPhase&#8217;: Plots the difference of <cite>uPhase</cite> and the unwrapped best-fit</dt>
+<dt>’ruPhase’: Plots the difference of <cite>uPhase</cite> and the unwrapped best-fit</dt>
 <dd>phase vs frequency. This plot is only available if the <code class="docutils literal"><span class="pre">do_lmfit</span></code>
 method of each <code class="docutils literal"><span class="pre">Resonator</span></code> object has been called.</dd>
 </dl>
 </li>
-<li>&#8216;I&#8217;: Plots the real part of the transmission vs frequency.</li>
+<li>’I’: Plots the real part of the transmission vs frequency.</li>
 <li><dl class="first docutils">
-<dt>&#8216;rI&#8217;: Plots the residual of <cite>I</cite> vs frequency. The residual is weighted</dt>
+<dt>’rI’: Plots the residual of <cite>I</cite> vs frequency. The residual is weighted</dt>
 <dd>by the uncertainty in <cite>I</cite>. This plot is only available if the
 <code class="docutils literal"><span class="pre">do_lmfit</span></code> method of each <code class="docutils literal"><span class="pre">Resonator</span></code> object has been called.</dd>
 </dl>
 </li>
-<li>&#8216;Q&#8217;: Plots the imaginary part of the transmission vs frequency.</li>
+<li>’Q’: Plots the imaginary part of the transmission vs frequency.</li>
 <li><dl class="first docutils">
-<dt>&#8216;rQ&#8217;: Plots the residual of <cite>Q</cite> vs frequency. The residual is weighted</dt>
+<dt>’rQ’: Plots the residual of <cite>Q</cite> vs frequency. The residual is weighted</dt>
 <dd>by the uncertainty in <cite>Q</cite>. This plot is only available if the
 <code class="docutils literal"><span class="pre">do_lmfit</span></code> method of each <code class="docutils literal"><span class="pre">Resonator</span></code> object has been called.</dd>
 </dl>
@@ -879,42 +921,52 @@ method of each <code class="docutils literal"><span class="pre">Resonator</span>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
-<li><strong>plot_fits</strong> (<em>list-like, optional</em>) &#8211; A list of boolean flags, one for each plot type specified. Determines
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>plot_fits</strong> (<em>list-like</em><em>, </em><em>optional</em>) – A list of boolean flags, one for each plot type specified. Determines
 whether or not to overplot the best fit on the data. This is only
 effective if the <code class="docutils literal"><span class="pre">do_lmfit</span></code> method of each <code class="docutils literal"><span class="pre">Resonator</span></code> object has
 been called. Default is all False.</li>
-<li><strong>powers</strong> (<em>list-like, optional</em>) &#8211; A list of power values to plot. Default is to plot all of the unique
+<li><strong>powers</strong> (<em>list-like</em><em>, </em><em>optional</em>) – A list of power values to plot. Default is to plot all of the unique
 powers that exist in the list of <code class="docutils literal"><span class="pre">Resonator</span></code> objects.</li>
-<li><strong>temps</strong> (<em>list-like, optional</em>) &#8211; A list of temperature values to plot. Default os to plot all of the
+<li><strong>max_pwr</strong> (<em>float</em>) – An upper bound on the powers to plot. Applies to values passed to
+powers also.</li>
+<li><strong>min_pwr</strong> (<em>float</em>) – A lower bound on the powers to plot. Applies to values passed to
+powers also.</li>
+<li><strong>temps</strong> (<em>list-like</em><em>, </em><em>optional</em>) – A list of temperature values to plot. Default is to plot all of the
 unique temperatures that exist in the list of <code class="docutils literal"><span class="pre">Resonator</span></code> obejcts.</li>
-<li><strong>use_itemps</strong> (<em>{False, True}, optional</em>) &#8211; If a <code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object has been generated from the resList it
+<li><strong>max_temp</strong> (<em>float</em>) – An upper bound on the temperatures to plot. Applies to values passed to
+temps also.</li>
+<li><strong>min_temp</strong> (<em>float</em>) – A lower bound on the temperatures to plot. Applies to values passed to
+temps also.</li>
+<li><strong>use_itemps</strong> (<em>{False</em><em>, </em><em>True}</em><em>, </em><em>optional</em>) – If a <code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object has been generated from the resList it
 may have added the <code class="docutils literal"><span class="pre">itemp</span></code> attrubute to each <code class="docutils literal"><span class="pre">ResonatorObject</span></code> in
 the list. Specifying <code class="docutils literal"><span class="pre">use_itemps</span> <span class="pre">=</span> <span class="pre">True</span></code> will force the plotting
 routine to use those tempeartures.</li>
-<li><strong>freq_units</strong> (<em>{&#8216;GHz&#8217;, &#8216;Hz&#8217;, &#8216;kHz&#8217;, &#8216;MHz&#8217;, &#8216;THz&#8217;}, optional</em>) &#8211; The units for the frequency axis, if it exists. Defaul is &#8216;GHz&#8217;.</li>
-<li><strong>detrend_phase</strong> (<em>{False, True}, optional</em>) &#8211; Whether or not to remove a linear trend from the <cite>Phase</cite> data. A typical
+<li><strong>freq_units</strong> (<em>{'GHz'</em><em>, </em><em>'Hz'</em><em>, </em><em>'kHz'</em><em>, </em><em>'MHz'</em><em>, </em><em>'THz'}</em><em>, </em><em>optional</em>) – The units for the frequency axis, if it exists. Defaul is ‘GHz’.</li>
+<li><strong>detrend_phase</strong> (<em>{False</em><em>, </em><em>True}</em><em>, </em><em>optional</em>) – Whether or not to remove a linear trend from the <cite>Phase</cite> data. A typical
 reason for a steep linear offset in the phase is an uncorrected
 electrical delay due to long transmission lines.</li>
-<li><strong>num_cols</strong> (<em>int, optional</em>) &#8211; The number of columns to include in the grid of subplots. Default is 1.</li>
-<li><strong>fig_size</strong> (<em>int, optional</em>) &#8211; The size of an individual subplot in inches. Default is 3.</li>
-<li><strong>force_square</strong> (<em>{False, True}, optional</em>) &#8211; Whether or not to force each subplot axis to be perfectly square.</li>
-<li><strong>show_colorbar</strong> (<em>{True, False}, optional</em>) &#8211; Whether or not to add a colorbar to the right edge of the figure. The
+<li><strong>num_cols</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of columns to include in the grid of subplots. Default is 1.</li>
+<li><strong>fig_size</strong> (<em>int</em><em>, </em><em>optional</em>) – The size of an individual subplot in inches. Default is 3.</li>
+<li><strong>force_square</strong> (<em>{False</em><em>, </em><em>True}</em><em>, </em><em>optional</em>) – Whether or not to force each subplot axis to be perfectly square.</li>
+<li><strong>show_colorbar</strong> (<em>{True</em><em>, </em><em>False}</em><em>, </em><em>optional</em>) – Whether or not to add a colorbar to the right edge of the figure. The
 colorbar will correspond to the limits of the colored data. Default is
 True.</li>
-<li><strong>color_by</strong> (<em>{&#8216;temps&#8217;, &#8216;pwrs&#8217;}, optional</em>) &#8211; If multiple temperatures and multiple powers are passed, this selects
-which variable will set the color of the plots. Default is &#8216;temps&#8217;.</li>
-<li><strong>color_map</strong> (<em>str, optional</em>) &#8211; The name of any colormap returned by calling
+<li><strong>color_by</strong> (<em>{'temps'</em><em>, </em><em>'pwrs'}</em><em>, </em><em>optional</em>) – If multiple temperatures and multiple powers are passed, this selects
+which variable will set the color of the plots. Default is ‘temps’.</li>
+<li><strong>color_map</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of any colormap returned by calling
 <code class="docutils literal"><span class="pre">matplotlib.pyplot.colormaps()</span></code> is a valid option. Default is
-&#8216;coolwarm&#8217;.</li>
-<li><strong>plot_kwargs</strong> (<em>dict, optional</em>) &#8211; A dict of keyword arguments to pass through to the individual plots.
-Attempting to set &#8216;color&#8217; will result in an error.</li>
-<li><strong>fit_kwargs</strong> (<em>dict, optional</em>) &#8211; A dict of keyword arguments to pass through to the fit plots. Default is
+‘coolwarm’.</li>
+<li><strong>waterfall</strong> (<em>numeric</em><em>, </em><em>optional</em>) – The value used to space out LogMag vs frequency plots. Currently only
+available for LogMag. Default is 0.</li>
+<li><strong>plot_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dict of keyword arguments to pass through to the individual plots.
+Attempting to set ‘color’ will result in an error.</li>
+<li><strong>fit_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dict of keyword arguments to pass through to the fit plots. Default is
 a dashed black line.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>figS</strong> &#8211; A <code class="docutils literal"><span class="pre">matplotlib.pyplot</span></code> figure object.</p>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>figS</strong> – A <code class="docutils literal"><span class="pre">matplotlib.pyplot</span></code> figure object.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">matplotlib.pyplot.figure</span></code></p>
@@ -936,13 +988,13 @@ a dashed black line.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>resSweep</strong> (<code class="docutils literal"><span class="pre">scraps.ResonatorSweep</span></code> object) &#8211; The object containing the data you want to look at.</li>
-<li><strong>plot_keys</strong> (<em>list-like (optional)</em>) &#8211; A list of strings corresponding to avaiable plot data. The available
+<li><strong>resSweep</strong> (<code class="docutils literal"><span class="pre">scraps.ResonatorSweep</span></code> object) – The object containing the data you want to look at.</li>
+<li><strong>plot_keys</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of strings corresponding to avaiable plot data. The available
 keys depend on your parameter definitions and may be found by executing
-<code class="docutils literal"><span class="pre">print</span> <span class="pre">resSweep.keys()</span></code>. Some keys may point to empty (NaN) objects.
+<code class="docutils literal"><span class="pre">print(resSweep.keys())</span></code>. Some keys may point to empty (NaN) objects.
 Default is to plot all of the keys that exist. If you pass plot_keys
 you may not pass ignore_ignore keys.</li>
-<li><strong>ignore_keys</strong> (<em>list-like (optional)</em>) &#8211; A list of strings corresponding to plots that should not be made. This
+<li><strong>ignore_keys</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of strings corresponding to plots that should not be made. This
 is useful if you want to plot most of the avaialble data, but ignore one
 or two sets of data. Default is <code class="docutils literal"><span class="pre">None</span></code>. If you pass ignore_keys you
 may not pass plot_keys.</li>
@@ -950,25 +1002,35 @@ may not pass plot_keys.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li><strong>plot_labels</strong> (<em>list-like</em>) &#8211; A list of strings to use to label the y-axes of the plots. There must be
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>plot_labels</strong> (<em>list-like</em>) – A list of strings to use to label the y-axes of the plots. There must be
 one for each plot requested. <code class="docutils literal"><span class="pre">None</span></code> is acceptable for any position in
 the list and will default to using the key as the label. Default is to
 use the key as the label.</li>
-<li><strong>unit_multipliers</strong> (<em>list-like</em>) &#8211; A list of numbers to multiply against the y-axis data. There must be one
+<li><strong>unit_multipliers</strong> (<em>list-like</em>) – A list of numbers to multiply against the y-axes data. There must be one
 for each plot requested. <code class="docutils literal"><span class="pre">None</span></code> is acceptable for any position in the
 list and will default to 1. Default is 1.</li>
-<li><strong>fitter</strong> (<em>string {&#8216;lmfit&#8217;, &#8216;emcee&#8217;}</em>) &#8211; Which fit data to use when overlaying best fits. Default is &#8216;lmfit&#8217;.</li>
-<li><strong>num_cols</strong> (<em>int</em>) &#8211; The number of columns to create in the plot grid. Default is 1. The
+<li><strong>fitter</strong> (<em>string {'lmfit'</em><em>, </em><em>'emcee'}</em>) – Which fit data to use when overlaying best fits. Default is ‘lmfit’.</li>
+<li><strong>num_cols</strong> (<em>int</em>) – The number of columns to create in the plot grid. Default is 1. The
 number of rows will be calculated based on num_cols and the number of
 requested plots.</li>
-<li><strong>powers</strong> (<em>list</em>) &#8211; List of powers to plot. Default is to plot all available.</li>
-<li><strong>max_temp</strong> (<em>numeric</em>) &#8211; Don&#8217;t plot any temperatures above this value. Default is infinity.</li>
-<li><strong>min_temp</strong> (<em>numeric</em>) &#8211; Don&#8217;t plot any temperatures below this value. Default is 0.</li>
-<li><strong>fig_size</strong> (<em>numeric</em>) &#8211; Size in inches for each plot in the figure.</li>
-<li><strong>color_map</strong> (<em>string</em>) &#8211; Specifies the colormap to use. Any value in <code class="docutils literal"><span class="pre">matplotlib.pyplot.colormaps()</span></code>
+<li><strong>powers</strong> (<em>list</em>) – List of powers to plot. Default is to plot all available.</li>
+<li><strong>max_temp</strong> (<em>numeric</em>) – Don’t plot any temperatures above this value. Default is infinity.</li>
+<li><strong>min_temp</strong> (<em>numeric</em>) – Don’t plot any temperatures below this value. Default is 0.</li>
+<li><strong>errorbars</strong> (<em>{None</em><em>, </em><em>'lmfit'</em><em>, </em><em>'emcee'}</em>) – Add error bars to the data. Pulls from either the least-squares or the
+MCMC fits. Default is None.</li>
+<li><strong>fig_size</strong> (<em>numeric</em>) – Size in inches for each plot in the figure.</li>
+<li><strong>color_map</strong> (<em>string</em>) – Specifies the colormap to use. Any value in <code class="docutils literal"><span class="pre">matplotlib.pyplot.colormaps()</span></code>
 is a valid option.</li>
-<li><strong>force_square</strong> (<em>bool</em>) &#8211; Whether or not to force each subplot to have perfectly square axes.</li>
+<li><strong>show_colorbar</strong> (<em>{True</em><em>, </em><em>False}</em><em>, </em><em>optional</em>) – Whether or not to add a colorbar to the right edge of the figure. The
+colorbar will correspond to the limits of the colored data. Default is
+True.</li>
+<li><strong>force_square</strong> (<em>bool</em>) – Whether or not to force each subplot to have perfectly square axes.</li>
+<li><strong>plot_kwargs</strong> (<em>dict</em>) – Dict of keyword args to pass through to the plotting function. Default
+is {‘linestyle’:’–’, label=’Power X dB’}. If errorbars is not None,
+then default linestyle is {‘linestyle’:’o’}. Attempting to set ‘color’
+or ‘yerr’ will result in an exception. Use the color_map and errorbars
+keywords to set those.</li>
 </ul>
 </td>
 </tr>
@@ -988,13 +1050,13 @@ is a valid option.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>resSweep</strong> (<code class="docutils literal"><span class="pre">scraps.ResonatorSweep</span></code> object) &#8211; The object containing the data you want to look at.</li>
-<li><strong>plot_keys</strong> (<em>list-like (optional)</em>) &#8211; A list of strings corresponding to avaiable plot data. The available
+<li><strong>resSweep</strong> (<code class="docutils literal"><span class="pre">scraps.ResonatorSweep</span></code> object) – The object containing the data you want to look at.</li>
+<li><strong>plot_keys</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of strings corresponding to avaiable plot data. The available
 keys depend on your parameter definitions and may be found by executing
-<code class="docutils literal"><span class="pre">print</span> <span class="pre">resSweep.keys()</span></code>. Some keys may point to empty (NaN) objects.
+<code class="docutils literal"><span class="pre">print(resSweep.keys())</span></code>. Some keys may point to empty (NaN) objects.
 Default is to plot all of the keys that exist. If you pass plot_keys
 you may not pass ignore_ignore keys.</li>
-<li><strong>ignore_keys</strong> (<em>list-like (optional)</em>) &#8211; A list of strings corresponding to plots that should not be made. This
+<li><strong>ignore_keys</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of strings corresponding to plots that should not be made. This
 is useful if you want to plot most of the avaialble data, but ignore one
 or two sets of data. Default is <code class="docutils literal"><span class="pre">None</span></code>. If you pass ignore_keys you
 may not pass plot_keys.</li>
@@ -1002,25 +1064,25 @@ may not pass plot_keys.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li><strong>plot_labels</strong> (<em>list-like</em>) &#8211; A list of strings to use to label the y-axes of the plots. There must be
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>plot_labels</strong> (<em>list-like</em>) – A list of strings to use to label the y-axes of the plots. There must be
 one for each plot requested. <code class="docutils literal"><span class="pre">None</span></code> is acceptable for any position in
 the list and will default to using the key as the label. Default is to
 use the key as the label.</li>
-<li><strong>unit_multipliers</strong> (<em>list-like</em>) &#8211; A list of numbers to multiply against the y-axis data. There must be one
+<li><strong>unit_multipliers</strong> (<em>list-like</em>) – A list of numbers to multiply against the y-axis data. There must be one
 for each plot requested. <code class="docutils literal"><span class="pre">None</span></code> is acceptable for any position in the
 list and will default to 1. Default is 1.</li>
-<li><strong>fitter</strong> (<em>string {&#8216;lmfit&#8217;, &#8216;emcee&#8217;}</em>) &#8211; Which fit data to use when overlaying best fits. Default is &#8216;lmfit&#8217;.</li>
-<li><strong>num_cols</strong> (<em>int</em>) &#8211; The number of columns to create in the plot grid. Default is 1. The
+<li><strong>fitter</strong> (<em>string {'lmfit'</em><em>, </em><em>'emcee'}</em>) – Which fit data to use when overlaying best fits. Default is ‘lmfit’.</li>
+<li><strong>num_cols</strong> (<em>int</em>) – The number of columns to create in the plot grid. Default is 1. The
 number of rows will be calculated based on num_cols and the number of
 requested plots.</li>
-<li><strong>temps</strong> (<em>list</em>) &#8211; List of temperatures to plot. Default is to plot all available.</li>
-<li><strong>max_power</strong> (<em>numeric</em>) &#8211; Don&#8217;t plot any powers above this value. Default is infinity.</li>
-<li><strong>min_power</strong> (<em>numeric</em>) &#8211; Don&#8217;t plot any powers below this value. Default is -infinity.</li>
-<li><strong>fig_size</strong> (<em>numeric</em>) &#8211; Size in inches for each plot in the figure.</li>
-<li><strong>color_map</strong> (<em>string</em>) &#8211; Specifies the colormap to use. Any value in <code class="docutils literal"><span class="pre">matplotlib.pyplot.colormaps()</span></code>
+<li><strong>temps</strong> (<em>list</em>) – List of temperatures to plot. Default is to plot all available.</li>
+<li><strong>max_power</strong> (<em>numeric</em>) – Don’t plot any powers above this value. Default is infinity.</li>
+<li><strong>min_power</strong> (<em>numeric</em>) – Don’t plot any powers below this value. Default is -infinity.</li>
+<li><strong>fig_size</strong> (<em>numeric</em>) – Size in inches for each plot in the figure.</li>
+<li><strong>color_map</strong> (<em>string</em>) – Specifies the colormap to use. Any value in <code class="docutils literal"><span class="pre">matplotlib.pyplot.colormaps()</span></code>
 is a valid option.</li>
-<li><strong>force_square</strong> (<em>bool</em>) &#8211; Whether or not to force each subplot to have perfectly square axes.</li>
+<li><strong>force_square</strong> (<em>bool</em>) – Whether or not to force each subplot to have perfectly square axes.</li>
 </ul>
 </td>
 </tr>
@@ -1041,28 +1103,34 @@ of temperature and power.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>resSweep</strong> (<code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object) &#8211; A <code class="docutils literal"><span class="pre">pyres.ResonatorSweep</span></code> object containing all of the data to be
+<li><strong>resSweep</strong> (<code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object) – A <code class="docutils literal"><span class="pre">pyres.ResonatorSweep</span></code> object containing all of the data to be
 plotted.</li>
-<li><strong>plot_keys</strong> (<em>list-like</em>) &#8211; List of strings where each string is a key corresponding to a plot that
+<li><strong>plot_keys</strong> (<em>list-like</em>) – List of strings where each string is a key corresponding to a plot that
 should be made. For a list of acccetable keys, run <code class="docutils literal"><span class="pre">print</span>
 <span class="pre">resSweep.keys()</span></code>.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
-<li><strong>min_temp</strong> (<em>numeric (optional)</em>) &#8211; The minimum temperature to plot. Defaults to <code class="docutils literal"><span class="pre">min(temperatures)</span></code>.</li>
-<li><strong>max_temp</strong> (<em>numeric (optional)</em>) &#8211; The maximum temperature to plot. Defaults to <code class="docutils literal"><span class="pre">max(temperatres)</span></code>.</li>
-<li><strong>min_pwr</strong> (<em>numeric (optional)</em>) &#8211; The minimum power to plot. Defaults to <code class="docutils literal"><span class="pre">min(powers)</span></code>.</li>
-<li><strong>max_pwr</strong> (<em>numeric (optional)</em>) &#8211; The maximum power to plot. Defauts to <code class="docutils literal"><span class="pre">max(powers)</span></code>.</li>
-<li><strong>unit_multipliers</strong> (<em>list (optional)</em>) &#8211; Values to scale the z-axis by. Default is 1.
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>min_temp</strong> (<em>numeric</em><em> (</em><em>optional</em><em>)</em>) – The minimum temperature to plot. Defaults to <code class="docutils literal"><span class="pre">min(temperatures)</span></code>.</li>
+<li><strong>max_temp</strong> (<em>numeric</em><em> (</em><em>optional</em><em>)</em>) – The maximum temperature to plot. Defaults to <code class="docutils literal"><span class="pre">max(temperatres)</span></code>.</li>
+<li><strong>min_pwr</strong> (<em>numeric</em><em> (</em><em>optional</em><em>)</em>) – The minimum power to plot. Defaults to <code class="docutils literal"><span class="pre">min(powers)</span></code>.</li>
+<li><strong>max_pwr</strong> (<em>numeric</em><em> (</em><em>optional</em><em>)</em>) – The maximum power to plot. Defauts to <code class="docutils literal"><span class="pre">max(powers)</span></code>.</li>
+<li><strong>unit_multipliers</strong> (<em>list</em><em> (</em><em>optional</em><em>)</em>) – Values to scale the z-axis by. Default is 1.
 <code class="docutils literal"><span class="pre">len(unit_multipliers)</span> <span class="pre">==</span> <span class="pre">len(plot_keys)</span></code>.</li>
-<li><strong>plot_labels</strong> (<em>list (optional)</em>) &#8211; Labels for the z-axis. Default is the plot key.
+<li><strong>plot_labels</strong> (<em>list</em><em> (</em><em>optional</em><em>)</em>) – Labels for the z-axis. Default is the plot key.
 <code class="docutils literal"><span class="pre">len(plot_labels)</span> <span class="pre">==</span> <span class="pre">len(plot_keys)</span></code>.</li>
-<li><strong>num_cols</strong> (<em>int (optional)</em>) &#8211; The number of columns in the resulting plot grid. Default is 1.</li>
-<li><strong>fig_size</strong> (<em>numeric (optional)</em>) &#8211; The size of an individual subplot in inches. Default is 3.</li>
-<li><strong>plot_lmfits</strong> (<em>bool (optional)</em>) &#8211; Whether or not to show a fit. The fit must exist! Default is False.</li>
-<li><strong>plot_kwargs</strong> (<em>dict (optional)</em>) &#8211; A dictionary of keyword arguments to pass the plotting function.
+<li><strong>num_cols</strong> (<em>int</em><em> (</em><em>optional</em><em>)</em>) – The number of columns in the resulting plot grid. Default is 1.</li>
+<li><strong>fig_size</strong> (<em>numeric</em><em> (</em><em>optional</em><em>)</em>) – The size of an individual subplot in inches. Default is 3.</li>
+<li><strong>plot_lmfits</strong> (<em>bool</em><em> (</em><em>optional</em><em>)</em>) – Whether or not to show a fit. The fit must exist! Default is False.
+Deprecated! Use plot_fits.</li>
+<li><strong>plot_fits</strong> (<em>list</em><em> (</em><em>optional</em><em>)</em>) – A list of fit keys to plot. Fits must exist for all parameters specified
+in plot_keys. Example: <cite>plot_fits = [‘lmfit’, ‘lmfit_joint_f0+qi’]</cite>
+will plot the <cite>lmfit</cite> results for each key in plot_keys, and the joint
+fit results from the ‘f0+qi’ fit for each key in plot_keys. If only one
+fit result is desired, a single string may be passed instead of a list.</li>
+<li><strong>plot_kwargs</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – A dictionary of keyword arguments to pass the plotting function.
 Default is <code class="docutils literal"><span class="pre">None</span></code>.</li>
 </ul>
 </td>
@@ -1071,7 +1139,7 @@ Default is <code class="docutils literal"><span class="pre">None</span></code>.<
 </table>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>This function is currently a little buggy, because I can&#8217;t figure out how
+<p>This function is currently a little buggy, because I can’t figure out how
 to intelligently adjust the label positions, sizes, etc to deal with large
 numbers in the ticks. The current workaround is to pick a large fig_size
 (so far anything larger than 5 seems ok) and then scale the plot as needed
@@ -1106,17 +1174,19 @@ parameters, and one that applies those guesses to the data and calculates the re
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>res</strong> (<code class="docutils literal"><span class="pre">scraps.Resonator</span></code> object) &#8211; The object you want to calculate parameter guesses for.</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>res</strong> (<code class="docutils literal"><span class="pre">scraps.Resonator</span></code> object) – The object you want to calculate parameter guesses for.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
-<li><strong>hardware</strong> (<em>string {&#8216;VNA&#8217;, &#8216;mixer&#8217;}</em>) &#8211; This determines whether or not the Ioffset and Qoffset parameters are
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>fit_quadratic_phase</strong> (<em>bool</em>) – This determines whether the phase baseline is fit by a line or a
+quadratic function. Default is False for fitting only a line.</li>
+<li><strong>hardware</strong> (<em>string {'VNA'</em><em>, </em><em>'mixer'}</em>) – This determines whether or not the Ioffset and Qoffset parameters are
 allowed to vary by default.</li>
-<li><strong>use_filter</strong> (<em>bool</em>) &#8211; Whether or not to use a smoothing filter on the data before calculating
+<li><strong>use_filter</strong> (<em>bool</em>) – Whether or not to use a smoothing filter on the data before calculating
 parameter guesses. This is especially useful for very noisy data where
 the noise spikes might be lower than the resonance minimum.</li>
-<li><strong>filter_win_length</strong> (<em>int</em>) &#8211; The length of the window used in the Savitsky-Golay filter that smoothes
+<li><strong>filter_win_length</strong> (<em>int</em>) – The length of the window used in the Savitsky-Golay filter that smoothes
 the data when <code class="docutils literal"><span class="pre">use_filter</span> <span class="pre">==</span> <span class="pre">True</span></code>. Default is <code class="docutils literal"><span class="pre">0.1</span> <span class="pre">*</span> <span class="pre">len(data)</span></code> or
 3, whichever is larger.</li>
 </ul>
@@ -1144,17 +1214,17 @@ the data when <code class="docutils literal"><span class="pre">use_filter</span>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>params</strong> (<em>list-like</em>) &#8211; A an <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain1, pgain2)</li>
-<li><strong>freqs</strong> (<em>list-like</em>) &#8211; A list of frequency points at which the model is calculated</li>
-<li><strong>data</strong> (<em>list-like (optional)</em>) &#8211; A list of complex data in the form I + Q where I and Q are both lists of data and
+<li><strong>params</strong> (<em>list-like</em>) – A an <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain0, pgain1, pgain2)</li>
+<li><strong>freqs</strong> (<em>list-like</em>) – A list of frequency points at which the model is calculated</li>
+<li><strong>data</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of complex data in the form I + Q where I and Q are both lists of data and
 <code class="docutils literal"><span class="pre">len(I)</span> <span class="pre">==</span> <span class="pre">len(Q)</span> <span class="pre">==</span> <span class="pre">len(freqs)</span></code>. If data is not passed, then the return value is the model
 calculated at each frequency point.</li>
-<li><strong>eps</strong> (<em>list-like (optional)</em>) &#8211; A list of errors, one for each point in data.</li>
-<li><strong>kwargs</strong> (<em>dict (optional)</em>) &#8211; Currently no keyword arguments are accepted.</li>
+<li><strong>eps</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of errors, one for each point in data.</li>
+<li><strong>kwargs</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – Currently no keyword arguments are accepted.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>model or (model-data)</strong> &#8211; If data is specified, the return is the residuals. If not, the return is the model
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>model or (model-data)</strong> – If data is specified, the return is the residuals. If not, the return is the model
 values calculated at the frequency points. The returned array is in the form
 <code class="docutils literal"><span class="pre">I</span> <span class="pre">+</span> <span class="pre">Q</span></code> or <code class="docutils literal"><span class="pre">residualI</span> <span class="pre">+</span> <span class="pre">residualQ</span></code>.</p>
 </td>
@@ -1187,17 +1257,17 @@ useful as an example.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>params</strong> (<code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object) &#8211; Parameters must include <code class="docutils literal"><span class="pre">['Fd',</span> <span class="pre">'q0',</span> <span class="pre">'f0',</span> <span class="pre">'alpha',</span> <span class="pre">'delta0']</span></code>.</li>
-<li><strong>temps</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) &#8211; Array of temperature values to evaluate model at. May be 2D.</li>
-<li><strong>powers</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) &#8211; Array of power values to evaluate model at. May be 2D.</li>
-<li><strong>data</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) &#8211; Data values to compare to model. May also be <code class="docutils literal"><span class="pre">None</span></code>, in which case
+<li><strong>params</strong> (<code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object) – Parameters must include <code class="docutils literal"><span class="pre">['Fd',</span> <span class="pre">'q0',</span> <span class="pre">'f0',</span> <span class="pre">'alpha',</span> <span class="pre">'delta0']</span></code>.</li>
+<li><strong>temps</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) – Array of temperature values to evaluate model at. May be 2D.</li>
+<li><strong>powers</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) – Array of power values to evaluate model at. May be 2D.</li>
+<li><strong>data</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) – Data values to compare to model. May also be <code class="docutils literal"><span class="pre">None</span></code>, in which case
 function returns model.</li>
-<li><strong>eps</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) &#8211; Uncertianties with which to weight residual. May also be <code class="docutils literal"><span class="pre">None</span></code>, in
+<li><strong>eps</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) – Uncertianties with which to weight residual. May also be <code class="docutils literal"><span class="pre">None</span></code>, in
 which case residual is unwieghted.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>residual</strong> &#8211; The weighted or unweighted vector of residuals if <code class="docutils literal"><span class="pre">data</span></code> is passed.
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>residual</strong> – The weighted or unweighted vector of residuals if <code class="docutils literal"><span class="pre">data</span></code> is passed.
 Otherwise, it returns the model.</p>
 </td>
 </tr>
@@ -1217,7 +1287,7 @@ assumptions it makes are highly constraining and ignore several material
 parameters. It is included here more as an example for how to write a model
 than anything else, and it does at least qualitatively describe the behavior
 of most superconducting resonators.</p>
-<p>This model is taken from J. Gao&#8217;s Caltech dissertation (2008) and the below
+<p>This model is taken from J. Gao’s Caltech dissertation (2008) and the below
 equations are from that work.</p>
 <p>(2.54) gives for MBD: <code class="docutils literal"><span class="pre">1/Q(T)-1/Q(0)</span> <span class="pre">=</span> <span class="pre">alpha</span> <span class="pre">*</span> <span class="pre">R(T)/X(0)</span></code></p>
 <p>(5.72) and (5.65) give for TLS: <code class="docutils literal"><span class="pre">1/Q(T)-1/Q(0)</span> <span class="pre">=</span> <span class="pre">Fd*tanh(hf/2kT)/sqrt(1+P/P0)</span></code></p>
@@ -1238,17 +1308,17 @@ function in this module for returning gap as a function of temperature.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>params</strong> (<code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object) &#8211; Parameters must include <code class="docutils literal"><span class="pre">['Fd',</span> <span class="pre">'df',</span> <span class="pre">'fRef',</span> <span class="pre">'alpha',</span> <span class="pre">'delta0']</span></code>.</li>
-<li><strong>temps</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) &#8211; Array of temperature values to evaluate model at. May be 2D.</li>
-<li><strong>powers</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) &#8211; Array of power values to evaluate model at. May be 2D.</li>
-<li><strong>data</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) &#8211; Data values to compare to model. May also be <code class="docutils literal"><span class="pre">None</span></code>, in which case
+<li><strong>params</strong> (<code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object) – Parameters must include <code class="docutils literal"><span class="pre">['Fd',</span> <span class="pre">'df',</span> <span class="pre">'fRef',</span> <span class="pre">'alpha',</span> <span class="pre">'delta0']</span></code>.</li>
+<li><strong>temps</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) – Array of temperature values to evaluate model at. May be 2D.</li>
+<li><strong>powers</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) – Array of power values to evaluate model at. May be 2D.</li>
+<li><strong>data</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) – Data values to compare to model. May also be <code class="docutils literal"><span class="pre">None</span></code>, in which case
 function returns model.</li>
-<li><strong>eps</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) &#8211; Uncertianties with which to weight residual. May also be <code class="docutils literal"><span class="pre">None</span></code>, in
+<li><strong>eps</strong> (<code class="docutils literal"><span class="pre">numpy.Array</span></code>) – Uncertianties with which to weight residual. May also be <code class="docutils literal"><span class="pre">None</span></code>, in
 which case residual is unwieghted.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>residual</strong> &#8211; The weighted or unweighted vector of residuals if <code class="docutils literal"><span class="pre">data</span></code> is passed.
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>residual</strong> – The weighted or unweighted vector of residuals if <code class="docutils literal"><span class="pre">data</span></code> is passed.
 Otherwise, it returns the model.</p>
 </td>
 </tr>
@@ -1268,10 +1338,10 @@ assumptions it makes are highly constraining and ignore several material
 parameters. It is included here more as an example for how to write a model
 than anything else, and it does at least qualitatively describe the behavior
 of most superconducting resonators.</p>
-<p>This model is taken from J. Gao&#8217;s Caltech dissertation (2008) and the below
+<p>This model is taken from J. Gao’s Caltech dissertation (2008) and the below
 equations are from that work.</p>
 <p>(2.54) gives for MBD (f(T)-f(0))/f(0) = -alpha*0.5*(X(T)-X(0))/X(0)</p>
-<p>(5.71) gives for TLS &#8220;&#8221; = Fd/pi * (usual TLS expression from Phillips)</p>
+<p>(5.71) gives for TLS “” = Fd/pi * (usual TLS expression from Phillips)</p>
 <p class="last">(X(T)-X(0))/X(0) calculated from (2.80), (2.89), and (2.90), using the <code class="docutils literal"><span class="pre">deltaBCS</span></code>
 function in this module for returning gap as a function of temperature.</p>
 </div>
@@ -1352,8 +1422,8 @@ function in this module for returning gap as a function of temperature.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -1367,11 +1437,11 @@ function in this module for returning gap as a function of temperature.</p>
       &copy;2016, Faustin W. Carter.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="_sources/api.txt"
+      <a href="_sources/api.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

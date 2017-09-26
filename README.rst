@@ -29,6 +29,14 @@ Installation is as simple as::
 
   pip install scraps
 
+or if you want to get the may-not-be-stable developer version::
+
+  git clone http://github.com/FaustinCarter/scraps
+  pip install -e /dir/where/you/cloned/scraps
+  cd /dir/where/you/cloned/scraps
+  git checkout develop
+
+
 For complete API documentation, more in depth installation instructions and some
 example tutorials, see the official documentation at: http://scraps.readthedocs.io
 

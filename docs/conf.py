@@ -55,7 +55,8 @@ autoclass_content = 'class'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'IPython.sphinxext.ipython_console_highlighting',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -107,7 +108,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -149,7 +150,7 @@ html_theme = 'alabaster'
 html_theme_options = {
     'logo_name': 'true',
     'github_button':'true',
-    'github_user': 'faustin315',
+    'github_user': 'FaustinCarter',
     'github_repo': 'scraps',
 }
 
