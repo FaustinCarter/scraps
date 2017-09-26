@@ -460,8 +460,9 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
 
     Parameters
     ----------
-    resSweep : ``scraps.ResonatorSweep`` object
-        The object containing the data you want to look at.
+    resSweep : ``scraps.ResonatorSweep`` object or list of objects
+        The object containing the data you want to look at. It is also possible
+        to pass a list of these objects and it will combine them into one plot.
 
     plot_keys : list-like (optional)
         A list of strings corresponding to avaiable plot data. The available
@@ -525,18 +526,24 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     force_square : bool
         Whether or not to force each subplot to have perfectly square axes.
 
-    plot_kwargs : dict
+    plot_kwargs : dict or list of dicts
         Dict of keyword args to pass through to the plotting function. Default
         is {'linestyle':'--', label='Power X dB'}. If errorbars is not None,
         then default linestyle is {'linestyle':'o'}. Attempting to set 'color'
         or 'yerr' will result in an exception. Use the color_map and errorbars
-        keywords to set those.
+        keywords to set those. If you passed in a list of objects to resSweep,
+        then you can also pass a list of plot_kwargs, one for each sweep object.
 
     """
 
-    #This will really only work for sure if block is sucessful
-    assert resSweep.smartindex == 'block', "index must be 'block' for plotting to work."
-    #TODO: fix for other smartindex types
+    if type(resSweep) is not list:
+        resSweep = [resSweep]
+
+    for rS in resSweep:
+
+        #This will really only work for sure if block is sucessful
+        assert rS.smartindex == 'block', "index must be 'block' for plotting to work."
+        #TODO: fix for other smartindex types
 
     #set defaults
     plot_labels = kwargs.pop('plot_labels', None)
@@ -550,14 +557,31 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     num_cols = int(kwargs.pop('num_cols', 4))
 
     #Powers to plot
-    powers = list(kwargs.pop('powers', resSweep.pvec))
-    assert all(p in resSweep.pvec for p in powers), "Can't plot a power that doesn't exist!"
+    powers = list(kwargs.pop('powers', []))
+
+    #Just use all the powers that exist period!
+    if len(powers) == 0:
+        for rS in resSweep:
+            powers.extend(rS.pvec)
+        powers = list(set(powers))
+    else:
+        for rS in resSweep:
+            assert any(p in rS.pvec for p in powers), "No data exists at any requested power."
 
     #Set up the temperature axis mask
-    max_temp = kwargs.pop('max_temp', np.max(resSweep.tvec))
-    min_temp = kwargs.pop('min_temp', np.min(resSweep.tvec))
+    max_temp = kwargs.pop('max_temp', None)
+    min_temp = kwargs.pop('min_temp', 0)
 
-    tempMask = (resSweep.tvec >= min_temp) * (resSweep.tvec <= max_temp)
+    #Just use the biggest temperature in any set if max isn't passed
+    if max_temp is None:
+        max_temp = 0
+        for rS in resSweep:
+            if np.max(rS.tvec) > max_temp:
+                max_temp = np.max(rS.tvec)
+
+    tempMask = []
+    for rS in resSweep:
+        tempMask.append((rS.tvec >= min_temp) * (rS.tvec <= max_temp))
 
     #Very early errobar code. Still in beta.
     errorbars = kwargs.pop('errorbars', None)
@@ -569,14 +593,18 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
                         'temps']
     else:
         assert plot_keys is None, "Either pass plot_keys or ignore_keys, not both."
-        assert all(key in resSweep.keys() for key in ignore_keys), "Unknown key"
+        for rS in resSweep:
+            assert all(key in rS.keys() for key in ignore_keys), "Unknown key in ignore_keys"
         ignore_keys.append('listIndex')
         ignore_keys.append('temps')
 
     if plot_keys is None:
-        plot_keys = set(resSweep.keys())-set(ignore_keys)
+        plot_keys = []
+        for rS in resSweep:
+            plot_keys = set(plot_keys.extend(set(rS.keys())-set(ignore_keys)))
     else:
-        assert all(key in resSweep.keys() for key in plot_keys), "Unknown key"
+        for rS in resSweep:
+            assert any(key in rS.keys() for key in plot_keys), "No data corresponding to any plot_key"
 
     #Some general defaults
     fig_size = kwargs.pop('fig_size', 3)
@@ -592,7 +620,7 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     show_colorbar = kwargs.pop('show_colorbar', True)
 
     #Defaults for this are set later
-    plot_kwargs = kwargs.pop('plot_kwargs', {})
+    plot_kwargs = kwargs.pop('plot_kwargs', [{}]*len(resSweep))
 
     #Unknown kwargs are discouraged
     if kwargs:
@@ -647,30 +675,31 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
             else:
                 plt_color = color_gen(0)
 
-            x_data = resSweep.tvec[tempMask]
-            plt_data = mult*resSweep[key].loc[tempMask, pwr].values
+            for ix, rS in enumerate(resSweep):
+                x_data = rS.tvec[tempMask]
+                plt_data = mult*rS[key].loc[tempMask[ix], pwr].values
 
-            if 'label' not in plot_kwargs.keys():
-                plot_kwargs['label'] = 'Power: '+str(pwr)
+                if 'label' not in plot_kwargs[ix].keys():
+                    plot_kwargs[ix]['label'] = 'Power: '+str(pwr)
 
-            if 'linestyle' not in plot_kwargs.keys():
-                if errorbars is not None:
-                    plot_kwargs['marker'] = 'o'
-                else:
-                    plot_kwargs['linestyle'] = '--'
+                if 'linestyle' not in plot_kwargs[ix].keys():
+                    if errorbars is not None:
+                        plot_kwargs[ix]['marker'] = 'o'
+                    else:
+                        plot_kwargs[ix]['linestyle'] = '--'
 
-            if errorbars is None:
-                axs.plot(x_data ,plt_data, color=plt_color, **plot_kwargs)
-            elif errorbars == 'lmfit':
-                #lmfit uncertainty was stored in the _sigma key, so just grab it back out
-                plt_err = mult*resSweep[key + '_sigma'].loc[tempMask, pwr].values
-                axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs)
-            elif errorbars == 'emcee':
-                #emcee uncertainty was placed in the _sigma_plus_mc and _sigma_minus_mc keys
-                plt_err_plus = mult*resSweep[key + '_sigma_plus_mc'].loc[tempMask, pwr].values
-                plt_err_minus = mult*resSweep[key + '_sigma_minus_mc'].loc[tempMask, pwr].values
-                plt_err = [plt_err_plus, plt_err_minus]
-                axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs)
+                if errorbars is None:
+                    axs.plot(x_data ,plt_data, color=plt_color, **plot_kwargs[ix])
+                elif errorbars == 'lmfit':
+                    #lmfit uncertainty was stored in the _sigma key, so just grab it back out
+                    plt_err = mult*rS[key + '_sigma'].loc[tempMask[ix], pwr].values
+                    axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[ix])
+                elif errorbars == 'emcee':
+                    #emcee uncertainty was placed in the _sigma_plus_mc and _sigma_minus_mc keys
+                    plt_err_plus = mult*rS[key + '_sigma_plus_mc'].loc[tempMask[ix], pwr].values
+                    plt_err_minus = mult*rS[key + '_sigma_minus_mc'].loc[tempMask[ix], pwr].values
+                    plt_err = [plt_err_plus, plt_err_minus]
+                    axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[ix])
 
 
         axs.set_xlabel('Temperature (mK)')
