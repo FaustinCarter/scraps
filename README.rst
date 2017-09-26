@@ -59,6 +59,8 @@ Short description of files that aren't code:
 - ExampleData.zip: A ton of actual superconducting resonator data from a Nb
   microstrip resonator made at ANL.
 
+- convert_notebooks.sh: A handy little bash script to turn the Example# notebooks into rst files in the docs folder properly.
+
 Support
 ------
 Please post any bugs or feature requests here on GitHub. Bugs will be squashed ASAP.
