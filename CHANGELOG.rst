@@ -1,6 +1,6 @@
 Version Next:
 
-* Compatible with Python 2 and 3 (still very beta)
+* Compatible with Python 2 and 3
 * Default colormap is now 'viridis'
 * Can omit colorbar if desired
 * Added errorbars to plotting
