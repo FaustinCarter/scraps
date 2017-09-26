@@ -189,7 +189,7 @@ def cmplxIQ_params(res, **kwargs):
     #Detrend the mag and phase using first and last 5% of data
     findex_5pc = int(len(res.freq)*0.05)
 
-    findex_center = np.round(findex_end/2)
+    findex_center = int(np.round(findex_end/2))
     f_midpoint = res.freq[findex_center]
 
     #Set up a unitless, reduced, mipoint frequency for baselines
