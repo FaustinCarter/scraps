@@ -1,4 +1,4 @@
-Version Next:
+Version Next (these are things that work now in the develop branch):
 
 * Compatible with Python 2 and 3
 * Default colormap is now 'viridis'
