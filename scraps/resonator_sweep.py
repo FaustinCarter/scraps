@@ -139,7 +139,7 @@ class ResonatorSweep(dict):
         #Start with the list of fit parameters, want to save all of them
         #Can just use the first resonator's list, as they are all the same.
         #params is NOT an lmfit object.
-        params = resList[0].params.keys()
+        params = list(resList[0].params.keys())
 
         #Add a few more
         #TODO: Right now, only fit information from the most recent fit is stored
