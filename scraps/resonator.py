@@ -249,7 +249,7 @@ class Resonator(object):
 
         #Update any of the default Parameter guesses
         if kwargs is not None:
-            for key, val in kwargs.iteritems():
+            for key, val in kwargs.items():
                 #Allow for turning on and off parameter variation
                 if '_vary' in key:
                     key = key.split('_')[0]
@@ -300,8 +300,8 @@ class Resonator(object):
         self.resultPhase = resultPhase
 
         #It's useful to have a list of the best fits for the varying parameters
-        self.lmfit_vals = np.asarray([val.value for key, val in lmfit_result.params.iteritems() if val.vary is True])
-        self.lmfit_labels = [key for key, val in lmfit_result.params.iteritems() if val.vary is True]
+        self.lmfit_vals = np.asarray([val.value for key, val in lmfit_result.params.items() if val.vary is True])
+        self.lmfit_labels = [key for key, val in lmfit_result.params.items() if val.vary is True]
 
     def torch_lmfit(self):
         r"""Reset all the lmfit attributes to ``None`` and set ``hasFit = False``.
