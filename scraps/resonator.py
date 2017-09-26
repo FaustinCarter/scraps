@@ -589,9 +589,9 @@ def print_resList(resList):
 
     block = zip(*tlists)
 
-    print repr(list(pwrs)).replace(',', ',\t')
+    print(repr(list(pwrs)).replace(',', ',\t'))
     for b in block:
-        print repr(b).replace(',', ',\t')
+        print(repr(b).replace(',', ',\t'))
 
 
 
@@ -614,9 +614,9 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
     shortest = min(lens)
 
     if all(el == shortest for el in lens) and verbose:
-        print 'All lists have same length.'
+        print('All lists have same length.')
     else:
-        print 'Lengths for each set of powers: ',zip(pwrs,lens)
+        print('Lengths for each set of powers: ',zip(pwrs,lens))
 
     #Zip the lists into tuples and take the standard deviation
     #of each tuple. All the elements in each tuple should be
@@ -632,18 +632,18 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
             bad_ix = -1
 
     if verbose:
-        print "Bad index: ", bad_ix
+        print("Bad index: ", bad_ix)
 
     if bad_ix >= 0:
 
         if verbose:
             for i in np.arange(-2,3):
                 if (bad_ix+i < len(block)) and (bad_ix+i >= 0):
-                    print repr(block[bad_ix+i]).replace(',', ',\t')
+                    print(repr(block[bad_ix+i]).replace(',', ',\t'))
                     block_ixs = []
                     for block_ix, block_temp in enumerate(block[bad_ix+i]):
                         block_ixs.append(scr.indexResList(resList, block_temp, pwrs[block_ix]))
-                    print repr(block_ixs).replace(',', ',\t')
+                    print(repr(block_ixs).replace(',', ',\t'))
 
 
             #The longer list is where the extra file is most likely
@@ -657,6 +657,6 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
                     p = pwrs[i]
                     res_ix = scr.indexResList(resList, t, p)
                     if verbose:
-                        print 'T=',t, 'P=',p, 'Res index=',res_ix
+                        print('T=',t, 'P=',p, 'Res index=',res_ix)
                     if prune:
                         resList.pop(res_ix)
