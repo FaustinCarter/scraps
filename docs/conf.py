@@ -12,11 +12,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import pkg_resources
 import sys
 import os
-
-print(sys.executable)
 
 import mock
 
