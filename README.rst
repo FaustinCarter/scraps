@@ -61,6 +61,8 @@ Short description of files that aren't code:
 
 - convert_notebooks.sh: A handy little bash script to turn the Example# notebooks into rst files in the docs folder properly.
 
+- readthedocs.yml and environment.yml: These are needed to properly build the documentation hosted at RTD.
+
 Support
 ------
 Please post any bugs or feature requests here on GitHub. Bugs will be squashed ASAP.
