@@ -21,6 +21,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Example 2: Analysis of a resonator from W63" href="Example2_LotsOfData.html" />
@@ -49,9 +50,32 @@ and fit curves in a nice way.</p>
 <p>Once you’ve understood this example, you should be able to replicate it
 with your own data simply be writing a custom <code class="docutils literal"><span class="pre">process_file</span></code> function
 and updating the code that finds the datafile.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Set up the notebook for inline plotting</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1">#For high-res figures. You can comment this out if you don&#39;t have a retina screen</span>
+<span class="o">%</span><span class="n">config</span> <span class="n">InlineBackend</span><span class="o">.</span><span class="n">figure_format</span> <span class="o">=</span> <span class="s1">&#39;retina&#39;</span>
+
+<span class="c1">#For pretty printing of dicts</span>
+<span class="kn">import</span> <span class="nn">pprint</span> <span class="k">as</span> <span class="nn">pp</span>
+
+<span class="c1">#Because you should always import numpy!</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
 <div class="section" id="load-up-the-scraps-modules">
 <h2>Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules<a class="headerlink" href="#load-up-the-scraps-modules" title="Permalink to this headline">¶</a></h2>
 <p>You’ll need to change the path to reflect wherever you stored the code</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1">#Add the scraps folder to the path. You can skip this if you pip installed it.</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;scraps/&#39;</span><span class="p">)</span>
+
+<span class="c1">#Load up the resonator code!</span>
+<span class="kn">import</span> <span class="nn">scraps</span> <span class="k">as</span> <span class="nn">scr</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="load-a-file-and-process-the-data">
 <h2>Load a file and process the data<a class="headerlink" href="#load-a-file-and-process-the-data" title="Permalink to this headline">¶</a></h2>
@@ -67,6 +91,16 @@ them the same name.</li>
 <li><strong>pwr, temp</strong>: floats that describe the power in dB and the
 temperature in K that the measurement was taken at.</li>
 </ul>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Load in a file</span>
+<span class="n">dataFile</span> <span class="o">=</span> <span class="s1">&#39;./ExampleData/RES-1_-10_DBM_TEMP_0.113.S2P&#39;</span>
+
+<span class="c1">#Use the process_file routine to read the file and create a dict of resonator data</span>
+<span class="n">fileDataDict</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">(</span><span class="n">dataFile</span><span class="p">)</span>
+
+<span class="c1">#Look at the contents of the dict:</span>
+<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">fileDataDict</span><span class="p">)</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;I&#39;</span><span class="p">:</span> <span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.022739</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.022687</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.02265</span> <span class="p">,</span> <span class="o">...</span><span class="p">,</span>  <span class="mf">0.063827</span><span class="p">,</span>  <span class="mf">0.063836</span><span class="p">,</span>
         <span class="mf">0.063869</span><span class="p">]),</span>
  <span class="s1">&#39;Q&#39;</span><span class="p">:</span> <span class="n">array</span><span class="p">([</span> <span class="mf">0.062457</span><span class="p">,</span>  <span class="mf">0.062449</span><span class="p">,</span>  <span class="mf">0.062447</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span>  <span class="mf">0.02939</span> <span class="p">,</span>  <span class="mf">0.029329</span><span class="p">,</span>  <span class="mf">0.02928</span> <span class="p">]),</span>
@@ -97,6 +131,39 @@ baseline) of the phase, as well as starting values for frequency and
 quality factor. The <code class="docutils literal"><span class="pre">cmplxIQ_fit</span></code> function is model function that uses
 the parameters defined in <code class="docutils literal"><span class="pre">cmplxIQ_params</span></code> that is passed to the
 <code class="docutils literal"><span class="pre">do_lmfit</span></code> or <code class="docutils literal"><span class="pre">do_emcee</span></code> methods of the <code class="docutils literal"><span class="pre">Resonator</span></code> object.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Create a resonator object using the helper tool</span>
+<span class="n">resObj1</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">makeResFromData</span><span class="p">(</span><span class="n">fileDataDict</span><span class="p">)</span>
+
+<span class="c1">#Create a resonator object using the helper tool and also fit the data</span>
+<span class="c1">#To do this, we pass a function that initializes the parameters for the fit, and also the fit function</span>
+<span class="n">resObj2</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">makeResFromData</span><span class="p">(</span><span class="n">fileDataDict</span><span class="p">,</span> <span class="n">paramsFn</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_params</span><span class="p">,</span> <span class="n">fitFn</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_fit</span><span class="p">)</span>
+
+<span class="c1">#Check the temperature and power</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Temperature = &#39;</span><span class="p">,</span> <span class="n">resObj1</span><span class="o">.</span><span class="n">temp</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Power = &#39;</span><span class="p">,</span> <span class="n">resObj1</span><span class="o">.</span><span class="n">pwr</span><span class="p">)</span>
+
+<span class="c1">#Check to see whether a results object exists</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Do fit results exist for the first object? &#39;</span><span class="p">,</span> <span class="n">resObj1</span><span class="o">.</span><span class="n">hasFit</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Do fit results exist for the second object? &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">hasFit</span><span class="p">)</span>
+
+
+<span class="c1">#Explicitly call the fitter on the first object.</span>
+<span class="c1">#Here we will call it, and also override the guess for coupling Q with our own quess</span>
+<span class="n">resObj1</span><span class="o">.</span><span class="n">load_params</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_params</span><span class="p">)</span>
+<span class="n">resObj1</span><span class="o">.</span><span class="n">do_lmfit</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_fit</span><span class="p">,</span> <span class="n">qc</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+
+<span class="c1">#Check to see whether a results object exists again, now they are both True</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Do fit results exist for the first object? &#39;</span><span class="p">,</span> <span class="n">resObj1</span><span class="o">.</span><span class="n">hasFit</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Do fit results exist for the second object? &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">hasFit</span><span class="p">)</span>
+
+<span class="c1">#Compare the best guess for the resonant frequency (minimum of the curve) to the actual fit</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Guess = &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">fmin</span><span class="p">,</span> <span class="s1">&#39; Hz&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best fit = &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">lmfit_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39; Hz&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best fit with different qc guess = &#39;</span><span class="p">,</span> <span class="n">resObj1</span><span class="o">.</span><span class="n">lmfit_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39; Hz&#39;</span><span class="p">)</span>
+
+<span class="c1">#You can see the fit is not terribly sensitive to the guess for qc.</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>Temperature =  0.113
 Power =  -10.0
 Do fit results exist for the first object?  False
@@ -112,6 +179,18 @@ Best fit with different qc guess =  8174865670.34  Hz
 <div class="section" id="make-a-pretty-plot">
 <h2>Make a pretty plot<a class="headerlink" href="#make-a-pretty-plot" title="Permalink to this headline">¶</a></h2>
 <p>Fits aren’t worth anything if you don’t plot the results!!</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#When using inline plotting, you have to assign the output of the plotting functions to a figure, or it will plot twice</span>
+
+<span class="c1">#This function takes a list of resonators. It can handle a single one, just need to pass it as a list:</span>
+<span class="n">figA</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResListData</span><span class="p">([</span><span class="n">resObj1</span><span class="p">],</span>
+                          <span class="n">plot_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LogMag&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">],</span> <span class="c1">#Make two plots</span>
+                          <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="c1">#Number of columns</span>
+                          <span class="n">fig_size</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="c1">#Size in inches of each subplot</span>
+                          <span class="n">show_colorbar</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="c1">#Don&#39;t need a colorbar with just one trace</span>
+                          <span class="n">force_square</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="c1">#If you love square plots, this is for you!</span>
+                          <span class="n">plot_fits</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span> <span class="c1">#Overlay the best fit, need to specify for each of the plot_types</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_9_0.png"><img alt="_images/Example1_LoadAndPlot_9_0.png" src="_images/Example1_LoadAndPlot_9_0.png" style="width: 605px; height: 278px;" /></a>
 </div>
 <div class="section" id="find-the-maximum-liklhood-estimate-of-the-fit-params-using-emcee">
@@ -119,6 +198,29 @@ Best fit with different qc guess =  8174865670.34  Hz
 <p>Let’s use the built-in <code class="docutils literal"><span class="pre">emcee</span></code> hooks to compare the results of the
 <code class="docutils literal"><span class="pre">lmfit</span></code> values with the maximum liklihood values for the fit
 parameters.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Call the emcee hook and pass it the fit function that calculates your residual.</span>
+<span class="c1">#Since we already ran a fit, emcee will use that fit for its starting guesses.</span>
+<span class="n">resObj2</span><span class="o">.</span><span class="n">do_emcee</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_fit</span><span class="p">,</span> <span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span> <span class="n">steps</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">burn</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Check to see that a emcee result exists</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Does an emcee chain exist? &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">hasChain</span><span class="p">)</span>
+
+<span class="c1">#Look at the first few rows of the output chain:</span>
+<span class="n">chains</span> <span class="o">=</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">emcee_result</span><span class="o">.</span><span class="n">flatchain</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Head of chains:&#39;</span><span class="p">)</span>
+<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">chains</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1">#Compare withe the mle values (percent difference):</span>
+<span class="c1">#Maximum liklihood estimates (MLE) are stored in Resonator.mle_vals</span>
+<span class="c1">#lmfit best fit values for varied parameters are in Resonator.lmfit_vals</span>
+<span class="n">diffs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">resObj2</span><span class="o">.</span><span class="n">mle_labels</span><span class="p">,</span> <span class="p">(</span><span class="n">resObj2</span><span class="o">.</span><span class="n">mle_vals</span> <span class="o">-</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">lmfit_vals</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="n">resObj2</span><span class="o">.</span><span class="n">lmfit_vals</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Perecent difference:&#39;</span><span class="p">)</span>
+<span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">diffs</span><span class="p">)</span>
+</pre></div>
+</div>
 <pre class="literal-block">
 Does an emcee chain exist?  True
 
@@ -152,6 +254,14 @@ Perecent difference:
 <h2>Make a sweet giant triangle confusogram of your <code class="docutils literal"><span class="pre">emcee</span></code> results.<a class="headerlink" href="#make-a-sweet-giant-triangle-confusogram-of-your-emcee-results" title="Permalink to this headline">¶</a></h2>
 <p>If you don’t have <code class="docutils literal"><span class="pre">pygtc</span></code> installed, open a terminal and type
 <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pygtc</span></code>. Go ahead, I’ll wait…</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pygtc</span>
+</pre></div>
+</div>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Plot the triangle plot, and overlay the best fit values with dashed black lines (default)</span>
+<span class="c1">#You can see that the least-squares fitter did a very nice job of getting the values right</span>
+<span class="n">figGTC</span> <span class="o">=</span> <span class="n">pygtc</span><span class="o">.</span><span class="n">plotGTC</span><span class="p">(</span><span class="n">chains</span><span class="p">,</span> <span class="n">truths</span> <span class="o">=</span> <span class="p">[</span><span class="n">resObj2</span><span class="o">.</span><span class="n">lmfit_vals</span><span class="p">])</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_15_0.png"><img alt="_images/Example1_LoadAndPlot_15_0.png" src="_images/Example1_LoadAndPlot_15_0.png" style="width: 549px; height: 535px;" /></a>
 </div>
 </div>

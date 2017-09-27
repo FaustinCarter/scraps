@@ -12,8 +12,11 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import pkg_resources
 import sys
 import os
+
+print(sys.executable)
 
 import mock
 
@@ -56,6 +59,7 @@ autoclass_content = 'class'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
+    'sphinx.ext.mathjax',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Example 2: Analysis of a resonator from W63 &#8212; scraps 0.2.3 documentation</title>
+    <title>Example 2: Analysis of a resonator fabricated at Argonne National Laboratory &#8212; scraps 0.2.3 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -21,6 +21,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Figure generation for a manuscript (using NbN CPW resonator data)" href="Example3_FiguresForManuscript.html" />
@@ -40,8 +41,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="example-2-analysis-of-a-resonator-from-w63">
-<h1>Example 2: Analysis of a resonator from W63<a class="headerlink" href="#example-2-analysis-of-a-resonator-from-w63" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="example-2-analysis-of-a-resonator-fabricated-at-argonne-national-laboratory">
+<h1>Example 2: Analysis of a resonator fabricated at Argonne National Laboratory<a class="headerlink" href="#example-2-analysis-of-a-resonator-fabricated-at-argonne-national-laboratory" title="Permalink to this headline">¶</a></h1>
 <p><strong>By: Faustin Carter, 2016, updated 2017</strong></p>
 <p>This notebook imports the data from the Agilent files, creates resonator
 objects from each datafile, packs those objects into a list, runs a
@@ -54,17 +55,63 @@ and updating the code that finds the datafiles.</p>
 <p>Note: Before starting this example, you’ll want to read up on list
 comprehensions and Python’s built-in <code class="docutils literal"><span class="pre">map</span></code> method if you aren’t
 already familiar with them.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Set up the notebook for inline plotting</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1">#For high-res figures. You can comment this out if you don&#39;t have a retina screen</span>
+<span class="o">%</span><span class="n">config</span> <span class="n">InlineBackend</span><span class="o">.</span><span class="n">figure_format</span> <span class="o">=</span> <span class="s1">&#39;retina&#39;</span>
+
+<span class="c1">#Because you should always import numpy!</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
 <div class="section" id="load-up-the-scraps-modules">
 <h2>Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules<a class="headerlink" href="#load-up-the-scraps-modules" title="Permalink to this headline">¶</a></h2>
 <p>You’ll need to change the path to reflect wherever you stored the code</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1">#Add the scraps folder to the path. You can skip this if you used pip to install scraps.</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;scraps/&#39;</span><span class="p">)</span>
+
+<span class="c1">#Load up the resonator code!</span>
+<span class="kn">import</span> <span class="nn">scraps</span> <span class="k">as</span> <span class="nn">scr</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="make-a-list-of-resonator-objects">
 <h2>Make a list of Resonator objects<a class="headerlink" href="#make-a-list-of-resonator-objects" title="Permalink to this headline">¶</a></h2>
-<p>Lists are a great way to organize things. <code class="docutils literal"><span class="pre">pyRes</span></code> includes a tool for
+<p>Lists are a great way to organize things. <code class="docutils literal"><span class="pre">scraps</span></code> includes a tool for
 easily indexing lists of Resonator objects by temperature and power.
 Each object has a value called <code class="docutils literal"><span class="pre">itemp</span></code> that is just the experiment
 temperature rounded to the nearest 5 mK. This helps a lot with
 organizing data taken at the ‘same’ temperature that has fluctuations.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Path to data (you should look and see what it looks like)</span>
+<span class="n">dataPath</span> <span class="o">=</span> <span class="s1">&#39;./ExampleData/&#39;</span>
+
+<span class="c1">#Define a resonator name. The data folder has data for RES-1, RES-2, RES-3, RES-4 so any of those will work.</span>
+<span class="c1">#Try changing the name to one of the others and rerun the notebook.</span>
+<span class="n">resName</span> <span class="o">=</span> <span class="s1">&#39;RES-1&#39;</span>
+
+<span class="c1">#We pass the process file and the path to the data, and the built-in routine spits out a list of Resonator objects!</span>
+<span class="n">resList</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">makeResList</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">,</span> <span class="n">dataPath</span><span class="p">,</span> <span class="n">resName</span><span class="p">)</span>
+
+<span class="c1">#Create index vectors for all temps and pwrs in the experiment</span>
+
+<span class="c1">#itemp = temp rounded to the nearest 5 mK</span>
+<span class="n">tempsList</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">([</span><span class="n">res</span><span class="o">.</span><span class="n">temp</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">resList</span><span class="p">])</span>
+<span class="n">pwrsList</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">([</span><span class="n">res</span><span class="o">.</span><span class="n">pwr</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">resList</span><span class="p">])</span>
+
+<span class="c1">#Let&#39;s look at all the temperatures and powers in the experiment</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;number of resonators in list = &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">resList</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;temps = &#39;</span><span class="p">,</span> <span class="n">tempsList</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;powers = &#39;</span><span class="p">,</span> <span class="n">pwrsList</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;temps x powers = &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tempsList</span><span class="p">)</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">pwrsList</span><span class="p">))</span>
+
+<span class="c1">#Can you figure out why the number of resonators in resList is different from temps*powers?</span>
+<span class="c1">#Hint: look in the data folder at the names of the data files and compare temperatures.</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">number</span> <span class="n">of</span> <span class="n">resonators</span> <span class="ow">in</span> <span class="nb">list</span> <span class="o">=</span>  <span class="mi">255</span>
 <span class="n">temps</span> <span class="o">=</span>  <span class="p">[</span> <span class="mf">0.089</span>  <span class="mf">0.095</span>  <span class="mf">0.098</span>  <span class="mf">0.1</span>    <span class="mf">0.111</span>  <span class="mf">0.112</span>  <span class="mf">0.113</span>  <span class="mf">0.125</span>  <span class="mf">0.126</span>  <span class="mf">0.127</span>
   <span class="mf">0.141</span>  <span class="mf">0.142</span>  <span class="mf">0.143</span>  <span class="mf">0.158</span>  <span class="mf">0.159</span>  <span class="mf">0.16</span>   <span class="mf">0.161</span>  <span class="mf">0.175</span>  <span class="mf">0.176</span>  <span class="mf">0.177</span>
@@ -90,10 +137,31 @@ organizing data taken at the ‘same’ temperature that has fluctuations.</p>
 <h2>Fit I and Q data to a model<a class="headerlink" href="#fit-i-and-q-data-to-a-model" title="Permalink to this headline">¶</a></h2>
 <p>This fits I and Q data simultaneously using the built in <code class="docutils literal"><span class="pre">cmplxIQ</span></code>
 routine.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">resList</span><span class="p">:</span>
+    <span class="c1">#Load in the params</span>
+    <span class="n">res</span><span class="o">.</span><span class="n">load_params</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_params</span><span class="p">)</span>
+
+    <span class="c1">#Do the fit</span>
+    <span class="n">res</span><span class="o">.</span><span class="n">do_lmfit</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_fit</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="make-a-pretty-plot">
 <h2>Make a pretty plot<a class="headerlink" href="#make-a-pretty-plot" title="Permalink to this headline">¶</a></h2>
 <p>Fits aren’t worth anything if you don’t plot the results!!</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">figA</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResListData</span><span class="p">(</span><span class="n">resList</span><span class="p">,</span>
+                            <span class="n">plot_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;IQ&#39;</span><span class="p">,</span> <span class="c1">#Real vs Imaginary part of S21</span>
+                                        <span class="s1">&#39;rIQ&#39;</span><span class="p">,</span> <span class="c1">#residual of fits in IQ plane</span>
+                                        <span class="s1">&#39;LogMag&#39;</span><span class="p">,</span> <span class="c1">#Magnitude of S21 vs frequency</span>
+                                        <span class="s1">&#39;Phase&#39;</span><span class="p">],</span> <span class="c1">#Phase of S21 vs frequency</span>
+                            <span class="n">color_by</span><span class="o">=</span><span class="s1">&#39;temps&#39;</span><span class="p">,</span>
+                            <span class="n">fig_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                            <span class="n">powers</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">20</span><span class="p">],</span>
+                            <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+                            <span class="n">force_square</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                            <span class="n">plot_fits</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span> <span class="c1">#&lt;-- need to specify a boolean for each plot type</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example2_LotsOfData_9_0.png"><img alt="_images/Example2_LotsOfData_9_0.png" src="_images/Example2_LotsOfData_9_0.png" style="width: 704px; height: 566px;" /></a>
 </div>
 <div class="section" id="use-the-resonatorsweep-object-to-look-at-fit-parameters">
@@ -101,6 +169,17 @@ routine.</p>
 <p>Usually what we are really interested in is the fit parameters as
 functions of temperature at different powers. There is a nice object we
 can use to look at this easily.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Pack all of the fit data into resSweep, and use the &#39;block&#39; index method</span>
+<span class="c1">#to figure out which temperatures are nominally the same</span>
+<span class="n">resSweep</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">ResonatorSweep</span><span class="p">(</span><span class="n">resList</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;block&#39;</span><span class="p">)</span>
+
+<span class="c1">#Look at the first few frequencies:</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">f0</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">resSweep</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1">#and the first few reduced-chi-squared values</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">redchi</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">resSweep</span><span class="p">[</span><span class="s1">&#39;redchi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">f0</span>
                <span class="o">-</span><span class="mf">50.0</span>         <span class="o">-</span><span class="mf">40.0</span>         <span class="o">-</span><span class="mf">30.0</span>         <span class="o">-</span><span class="mf">20.0</span>         <span class="o">-</span><span class="mf">10.0</span>
 <span class="mf">96.0</span>   <span class="mf">8.174975e+09</span>  <span class="mf">8.174912e+09</span>  <span class="mf">8.174903e+09</span>  <span class="mf">8.174897e+09</span>  <span class="mf">8.174890e+09</span>
@@ -118,8 +197,25 @@ can use to look at this easily.</p>
 <span class="mf">160.0</span>  <span class="mf">1.862983</span>  <span class="mf">59.830557</span>  <span class="mf">35.014426</span>  <span class="mf">53.491934</span>   <span class="mf">38.018223</span>
 </pre></div>
 </div>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Now let&#39;s make a plot of some of the parameters!</span>
+
+<span class="n">figS</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweepParamsVsTemp</span><span class="p">(</span><span class="n">resSweep</span><span class="p">,</span>
+                                   <span class="n">plot_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gain0&#39;</span><span class="p">,</span> <span class="s1">&#39;f0&#39;</span><span class="p">,</span> <span class="s1">&#39;qi&#39;</span><span class="p">,</span> <span class="s1">&#39;qc&#39;</span><span class="p">,</span> <span class="s1">&#39;df&#39;</span><span class="p">,</span> <span class="s1">&#39;redchi&#39;</span><span class="p">],</span>
+                                   <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example2_LotsOfData_12_0.png"><img alt="_images/Example2_LotsOfData_12_0.png" src="_images/Example2_LotsOfData_12_0.png" style="width: 795px; height: 423px;" /></a>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Or maybe you just want to look at how Q varies with power at different temperatures:</span>
+<span class="n">figS2</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweepParamsVsPwr</span><span class="p">(</span><span class="n">resSweep</span><span class="p">,</span>
+                                   <span class="n">plot_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qc&#39;</span><span class="p">,</span> <span class="s1">&#39;qi&#39;</span><span class="p">],</span>
+                                   <span class="n">fig_size</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example2_LotsOfData_13_0.png"><img alt="_images/Example2_LotsOfData_13_0.png" src="_images/Example2_LotsOfData_13_0.png" style="width: 899px; height: 351px;" /></a>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Now you should try running the emcee fitter on all the traces and compare the plots.</span>
+<span class="c1">#You can get the mc output by asking to plot &#39;f0_mc&#39; instead of &#39;f0&#39;, for instance.</span>
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -131,7 +227,7 @@ can use to look at this easily.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Example 2: Analysis of a resonator from W63</a><ul>
+<li><a class="reference internal" href="#">Example 2: Analysis of a resonator fabricated at Argonne National Laboratory</a><ul>
 <li><a class="reference internal" href="#load-up-the-scraps-modules">Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules</a></li>
 <li><a class="reference internal" href="#make-a-list-of-resonator-objects">Make a list of Resonator objects</a></li>
 <li><a class="reference internal" href="#fit-i-and-q-data-to-a-model">Fit I and Q data to a model</a></li>

@@ -21,6 +21,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="API" href="api.html" />
@@ -54,6 +55,27 @@ between 40-50 dB amplification on the way back up. In other words, the
 power axis is very much uncalibrated.</p>
 <div class="section" id="import-some-stuff">
 <h2>Import some stuff<a class="headerlink" href="#import-some-stuff" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Plot options for inline-notebook figures</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1">#this is for retina screens like a MacBook pro</span>
+<span class="o">%</span><span class="n">config</span> <span class="n">InlineBackend</span><span class="o">.</span><span class="n">figure_format</span> <span class="o">=</span> <span class="s1">&#39;retina&#39;</span>
+
+<span class="c1">#Useful for saving resonator fit data</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">cPickle</span>
+
+<span class="c1">#This is optional, comment out if</span>
+<span class="c1">#you don&#39;t care about covariance plots.</span>
+<span class="kn">import</span> <span class="nn">pygtc</span>
+
+<span class="c1">#import the resonator analysis software</span>
+<span class="kn">import</span> <span class="nn">scraps</span> <span class="k">as</span> <span class="nn">scr</span>
+
+<span class="c1">#Define some resonator names</span>
+<span class="n">resNames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">,</span> <span class="s1">&#39;RES-2&#39;</span><span class="p">,</span> <span class="s1">&#39;RES-3&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="load-the-data-using-the-makereslist-tool-from-scraps">
 <h2>Load the data using the makeResList tool from <code class="docutils literal"><span class="pre">scraps</span></code><a class="headerlink" href="#load-the-data-using-the-makereslist-tool-from-scraps" title="Permalink to this headline">¶</a></h2>
@@ -62,7 +84,41 @@ power axis is very much uncalibrated.</p>
 <h2><em>If you have cached data, skip a few cells down to “Load up previously cached data”</em><a class="headerlink" href="#if-you-have-cached-data-skip-a-few-cells-down-to-load-up-previously-cached-data" title="Permalink to this headline">¶</a></h2>
 <p>The output is going to be a <code class="docutils literal"><span class="pre">dict</span></code>, keyword-indexed by the strings in
 resNames</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Define the path to the data directory</span>
+<span class="n">dataPath</span> <span class="o">=</span> <span class="s1">&#39;./08222016Res/&#39;</span>
+
+<span class="c1">#Make a dict of lists of resonators, one for each name</span>
+<span class="n">resLists</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">resName</span> <span class="ow">in</span> <span class="n">resNames</span><span class="p">:</span>
+    <span class="n">resLists</span><span class="p">[</span><span class="n">resName</span><span class="p">]</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">makeResList</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">,</span>
+                                        <span class="n">dataPath</span><span class="p">,</span>
+                                        <span class="n">resName</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Now run fits on the resonator objects</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Loop through the dict, and then through each list and</span>
+<span class="c1">#run lmfit on each S21 transmission data trace</span>
+<span class="k">for</span> <span class="n">resName</span> <span class="ow">in</span> <span class="n">resNames</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">resLists</span><span class="p">[</span><span class="n">resName</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">pwr</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">60</span><span class="p">:</span>
+            <span class="c1">#Apply a filter to the data before</span>
+            <span class="c1">#guessing parameters for low-power measuremnts</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">load_params</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_params</span><span class="p">,</span>
+                            <span class="n">use_filter</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">load_params</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_params</span><span class="p">,</span>
+                            <span class="n">use_filter</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">res</span><span class="o">.</span><span class="n">do_lmfit</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_fit</span><span class="p">)</span>
+        <span class="c1">#You can uncomment this line to run the</span>
+        <span class="c1">#MCMC sampler on each resonator.</span>
+        <span class="c1">#This will probably take several hours.</span>
+<span class="c1">#         res.do_emcee(scr.cmplxIQ_fit,</span>
+<span class="c1">#                      nwalkers = 30,</span>
+<span class="c1">#                      steps = 1000,</span>
+<span class="c1">#                      burn=200)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="cache-fit-results-for-future-analysis">
 <h2>Cache fit results for future analysis<a class="headerlink" href="#cache-fit-results-for-future-analysis" title="Permalink to this headline">¶</a></h2>
@@ -70,25 +126,112 @@ resNames</p>
 good idea to cache that data. To do that, run the next cell down. Then,
 the next time you come back, instead of reloading and refitting all the
 data, you can just load the cached object back into memory.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Save resLists to a pickle file for easy loading later.</span>
+<span class="c1">#This is useful for caching data after you have run fits</span>
+<span class="c1">#that take a long time.</span>
+<span class="n">fName</span> <span class="o">=</span> <span class="s1">&#39;CPW6_&#39;</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+                                             <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">_%H_%M&#39;</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;./&#39;</span><span class="o">+</span><span class="n">fName</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+<span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">resListsAu</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="nb">print</span> <span class="s1">&#39;last saved file was: &#39;</span><span class="o">+</span><span class="n">fName</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="load-up-previously-cached-data">
 <h2>Load up previously cached data<a class="headerlink" href="#load-up-previously-cached-data" title="Permalink to this headline">¶</a></h2>
 <p>If you have a .pickle file from a previous run, you can load it up with
 this cell, and skip everything above except for the first cell that
 imports modules.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Load resLists from a pickle file</span>
+<span class="n">fName</span> <span class="o">=</span> <span class="s1">&#39;./saved_data.pickle&#39;</span>
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+<span class="n">resLists</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="now-we-can-make-a-plot-of-the-traces">
 <h1>Now we can make a plot of the traces.<a class="headerlink" href="#now-we-can-make-a-plot-of-the-traces" title="Permalink to this headline">¶</a></h1>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">fig1a</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResListData</span><span class="p">(</span><span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+                            <span class="n">plot_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;IQ&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMag&#39;</span><span class="p">,</span> <span class="s1">&#39;uPhase&#39;</span><span class="p">],</span>
+                            <span class="n">detrend_phase</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                            <span class="n">plot_fits</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+                            <span class="n">color_by</span><span class="o">=</span><span class="s1">&#39;temps&#39;</span><span class="p">,</span>
+                            <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+                            <span class="n">fig_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                            <span class="n">powers</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">55</span><span class="p">])</span>
+
+<span class="c1">#Uncomment to save the figure</span>
+<span class="c1">#fig1a.savefig(&#39;fig1a.pdf&#39;)</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_12_0.png"><img alt="_images/Example3_FiguresForManuscript_12_0.png" src="_images/Example3_FiguresForManuscript_12_0.png" style="width: 796px; height: 209px;" /></a>
 </div>
 <div class="section" id="use-the-mcmc-sampler-to-calculate-covariances-for-one-of-the-fits">
 <h1>Use the MCMC sampler to calculate covariances for one of the fits<a class="headerlink" href="#use-the-mcmc-sampler-to-calculate-covariances-for-one-of-the-fits" title="Permalink to this headline">¶</a></h1>
 <p>Running this next cell will take a few minutes (5 or 10, maybe)</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Get the index of the resonator at the hottest temperature and</span>
+<span class="c1">#the lowest power</span>
+<span class="n">t_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">res</span><span class="o">.</span><span class="n">temp</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">pwr</span> <span class="o">==</span> <span class="o">-</span><span class="mi">65</span><span class="p">])</span>
+
+<span class="c1">#rix just stands for resonator index</span>
+<span class="n">rix</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">indexResList</span><span class="p">(</span><span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span> <span class="n">t_max</span><span class="p">,</span> <span class="o">-</span><span class="mi">65</span><span class="p">)</span>
+
+<span class="c1">#Run the MCMC sampler and use the best-fit values from the</span>
+<span class="c1">#least-squares routine as starting positions</span>
+<span class="c1">#The first 300 samples from each chain are</span>
+<span class="c1">#discarded to allow for burn-in</span>
+<span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">][</span><span class="n">rix</span><span class="p">]</span><span class="o">.</span><span class="n">do_emcee</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_fit</span><span class="p">,</span>
+                                <span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+                                <span class="n">steps</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+                                <span class="n">burn</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</div>
 <div class="section" id="use-pygtc-to-plot-the-parameter-covariances">
 <h2>Use <code class="docutils literal"><span class="pre">pygtc</span></code> to plot the parameter covariances<a class="headerlink" href="#use-pygtc-to-plot-the-parameter-covariances" title="Permalink to this headline">¶</a></h2>
 <p>From here on out, you’ll need the <code class="docutils literal"><span class="pre">pygtc</span></code> package, or a similar
 package like <code class="docutils literal"><span class="pre">corner</span></code> to view the covariances.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Make a copy of the MCMC chain so that we</span>
+<span class="c1">#can modify the units before plotting</span>
+<span class="n">mcmc_chain</span> <span class="o">=</span> <span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">][</span><span class="n">rix</span><span class="p">]</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1">#Change the frequency units from Hz to GHz</span>
+<span class="n">mcmc_chain</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/=</span><span class="mf">1e9</span>
+
+<span class="c1">#pygtc will automatically get labels from</span>
+<span class="c1">#parameter names, but it is nicer to define them</span>
+<span class="c1">#because we can use LaTex to make them pretty</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$\delta f (Hz)$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$f_0 (GHz)$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$Q_\mathrm</span><span class="si">{c}</span><span class="s1">$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$Q_\mathrm</span><span class="si">{i}</span><span class="s1">$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$g_0 (W)$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$g_1 (W)$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$g_2 (W)$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$\phi_0$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$\phi_1$&#39;</span><span class="p">]</span>
+
+<span class="c1">#Copy the best-fit values from the least-squares</span>
+<span class="c1">#routine so we can modify the units</span>
+<span class="n">least_squares_fit_vals</span> <span class="o">=</span> <span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">][</span><span class="n">rix</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_vals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1">#Change the frequency units from Hz to GHz</span>
+<span class="n">least_squares_fit_vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/=</span><span class="mf">1e9</span>
+
+<span class="c1">#Call pygtc to make the figure</span>
+<span class="n">fig1b</span> <span class="o">=</span> <span class="n">pygtc</span><span class="o">.</span><span class="n">plotGTC</span><span class="p">(</span><span class="n">mcmc_chain</span><span class="p">,</span>
+                       <span class="n">truths</span><span class="o">=</span><span class="n">least_squares_fit_vals</span><span class="p">,</span>
+                       <span class="n">paramNames</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
+                       <span class="n">GaussianConfLevels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">nConfidenceLevels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                       <span class="n">figureSize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+<span class="c1">#Uncomment to save the figure</span>
+<span class="c1">#fig1b.savefig(&#39;fig1b.pdf&#39;)</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_16_0.png"><img alt="_images/Example3_FiguresForManuscript_16_0.png" src="_images/Example3_FiguresForManuscript_16_0.png" style="width: 501px; height: 502px;" /></a>
 </div>
 </div>
@@ -97,6 +240,20 @@ package like <code class="docutils literal"><span class="pre">corner</span></cod
 <p>Now, in order to look at the fit parameters as a function of power
 and/or temperature, we first have to load all the fit parameters into a
 custom dict of <code class="docutils literal"><span class="pre">pandas</span></code> DataFrames called a <code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Define a dict that will hold all the ResonatorSweep objects</span>
+<span class="c1">#(one for each name).</span>
+
+<span class="c1">#Each of these objects will be a dict of pandas DataFrames</span>
+
+<span class="n">resSweeps</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">resName</span><span class="p">,</span> <span class="n">resList</span> <span class="ow">in</span> <span class="n">resLists</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+    <span class="n">resSweeps</span><span class="p">[</span><span class="n">resName</span><span class="p">]</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">ResonatorSweep</span><span class="p">(</span><span class="n">resList</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;block&#39;</span><span class="p">)</span>
+
+<span class="c1">#Look at the uncertainties on the best-fit frequencie</span>
+<span class="c1">#for the first few files of &#39;RES-1&#39;</span>
+<span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">][</span><span class="s1">&#39;f0_sigma&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
 <div>
 <table border="1" class="dataframe">
   <thead>
@@ -160,6 +317,19 @@ custom dict of <code class="docutils literal"><span class="pre">pandas</span></c
 </table>
 </div><div class="section" id="now-we-can-look-at-the-fit-parameters-from-the-previous-step-vs-temperature-or-power">
 <h2>Now we can look at the fit parameters from the previous step vs Temperature or Power<a class="headerlink" href="#now-we-can-look-at-the-fit-parameters-from-the-previous-step-vs-temperature-or-power" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">fig1c</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweepParamsVsTemp</span><span class="p">(</span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+                                    <span class="n">fig_size</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+                                    <span class="n">plot_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">,</span> <span class="s1">&#39;qi&#39;</span><span class="p">],</span>
+                                    <span class="n">plot_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$f_0$ (GHz)&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;$Q_\mathrm</span><span class="si">{i}</span><span class="s1">$&#39;</span><span class="p">],</span>
+                                    <span class="n">unit_multipliers</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e-9</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                                    <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                                    <span class="n">powers</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="o">-</span><span class="mi">35</span><span class="p">,</span> <span class="o">-</span><span class="mi">45</span><span class="p">,</span> <span class="o">-</span><span class="mi">55</span><span class="p">,</span> <span class="o">-</span><span class="mi">65</span><span class="p">],</span>
+                                    <span class="n">force_square</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1">#Uncomment to save the figure</span>
+<span class="c1">#fig1c.savefig(&#39;fig1c.pdf&#39;)</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_20_0.png"><img alt="_images/Example3_FiguresForManuscript_20_0.png" src="_images/Example3_FiguresForManuscript_20_0.png" style="width: 284px; height: 425px;" /></a>
 </div>
 </div>
@@ -173,6 +343,53 @@ for that fit.</p>
 <p>Since <code class="docutils literal"><span class="pre">scraps</span></code> doesn’t have any models for secondary parameter fitting
 built in (except for a very simple toy model, which we will use) we need
 to specify some parameters and starting guesses.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lmfit</span> <span class="k">as</span> <span class="nn">lf</span>
+
+<span class="n">f0_params</span> <span class="o">=</span> <span class="n">lf</span><span class="o">.</span><span class="n">Parameters</span><span class="p">()</span>
+
+<span class="c1">#Resonant frequency at zero temperature and zero power</span>
+<span class="n">f0_guess</span> <span class="o">=</span> <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">][</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">f0_params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;f0&#39;</span><span class="p">,</span>
+              <span class="n">value</span> <span class="o">=</span> <span class="n">f0_guess</span><span class="p">,</span>
+              <span class="nb">min</span> <span class="o">=</span> <span class="n">f0_guess</span><span class="o">*</span><span class="mf">0.95</span><span class="p">,</span>
+              <span class="nb">max</span> <span class="o">=</span> <span class="n">f0_guess</span><span class="o">*</span><span class="mf">1.05</span><span class="p">)</span>
+
+<span class="c1">#The loss roughly equivalent to tan delta</span>
+<span class="n">f0_params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;Fd&#39;</span><span class="p">,</span>
+              <span class="n">value</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
+              <span class="nb">min</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">)</span>
+
+<span class="c1">#The kinetic inductance fraction</span>
+<span class="n">f0_params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span>
+              <span class="n">value</span> <span class="o">=</span> <span class="mf">0.005</span><span class="p">,</span>
+              <span class="nb">min</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+              <span class="nb">max</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1">#The BCS energy gap at zero temperature</span>
+<span class="n">f0_params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;delta0&#39;</span><span class="p">,</span>
+              <span class="n">value</span> <span class="o">=</span> <span class="mf">5e-4</span><span class="p">,</span>
+              <span class="nb">min</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span>
+              <span class="nb">max</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,)</span>
+
+<span class="c1">#Qi needs all of the above parameters, plus a few more</span>
+<span class="n">qi_params</span> <span class="o">=</span> <span class="n">f0_params</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1">#Q at zero power and zero temperature</span>
+<span class="n">qi_params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;q0&#39;</span><span class="p">,</span>
+              <span class="n">value</span> <span class="o">=</span> <span class="mf">4e5</span><span class="p">,</span>
+              <span class="nb">min</span> <span class="o">=</span> <span class="mf">1e4</span><span class="p">,</span>
+              <span class="nb">max</span> <span class="o">=</span> <span class="mf">1e6</span><span class="p">)</span>
+
+<span class="c1">#Critical power in W (modulo some calibration)</span>
+<span class="n">qi_params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;Pc&#39;</span><span class="p">,</span>
+              <span class="n">value</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+              <span class="nb">min</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+              <span class="nb">max</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1">#Set the max temperature to fit to</span>
+<span class="n">max_fit_temp</span> <span class="o">=</span> <span class="mi">800</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="run-the-fit-with-the-toy-model">
 <h2>Run the fit with the toy model<a class="headerlink" href="#run-the-fit-with-the-toy-model" title="Permalink to this headline">¶</a></h2>
@@ -181,19 +398,81 @@ to specify some parameters and starting guesses.</p>
 (except for maybe aluminum), and low weight should be placed on the
 value of the fit parameters generated. However, it captures the overall
 character of the data, and so it is useful as an example.</p>
-<p>First we run an individual fit on two of the surfaces:  and
-.</p>
+<p>First we run an individual fit on two of the surfaces: <span class="math">\(f_0\)</span> and
+<span class="math">\(Q_\mathrm{i}\)</span>.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">do_lmfit</span><span class="p">([</span><span class="s1">&#39;qi&#39;</span><span class="p">],</span>
+                            <span class="p">[</span><span class="n">scr</span><span class="o">.</span><span class="n">fitsSweep</span><span class="o">.</span><span class="n">qi_tlsAndMBT</span><span class="p">],</span> <span class="c1">#The model</span>
+                            <span class="p">[</span><span class="n">qi_params</span><span class="p">],</span> <span class="c1">#The paramters</span>
+                            <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span> <span class="c1">#S21 fits below -70 were bad</span>
+                            <span class="n">max_temp</span><span class="o">=</span><span class="n">max_fit_temp</span><span class="p">)</span>
+
+<span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">do_lmfit</span><span class="p">([</span><span class="s1">&#39;f0&#39;</span><span class="p">],</span>
+                            <span class="p">[</span><span class="n">scr</span><span class="o">.</span><span class="n">fitsSweep</span><span class="o">.</span><span class="n">f0_tlsAndMBT</span><span class="p">],</span> <span class="c1">#The model</span>
+                            <span class="p">[</span><span class="n">f0_params</span><span class="p">],</span> <span class="c1">#The paramters</span>
+                            <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span> <span class="c1">#S21 fits below -70 were bad</span>
+                            <span class="n">max_temp</span><span class="o">=</span><span class="n">max_fit_temp</span><span class="p">)</span>
+
+<span class="c1">#Uncomment to look at the results of the fit</span>
+<span class="c1">#lf.report_fit(resSweeps[&#39;RES-1&#39;].lmfit_results[&#39;qi&#39;])</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="plot-the-results-as-a-surface">
 <h2>Plot the results as a surface<a class="headerlink" href="#plot-the-results-as-a-surface" title="Permalink to this headline">¶</a></h2>
 <p>We use the 3D plotting functionality to look at the fit (black-dashed
 mesh) overplotted on the semi-transparent surface that is the data.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">fig2a</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweep3D</span><span class="p">(</span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+                           <span class="n">plot_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">],</span>
+                           <span class="n">max_temp</span><span class="o">=</span><span class="mi">775</span><span class="p">,</span>
+                           <span class="n">unit_multipliers</span><span class="o">=</span><span class="p">[</span><span class="mf">1e-9</span><span class="p">],</span>
+                           <span class="n">plot_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$f_0$ (GHz)&#39;</span><span class="p">],</span>
+                           <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span>
+                           <span class="n">fig_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                           <span class="n">plot_lmfits</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">fig2b</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweep3D</span><span class="p">(</span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+                           <span class="n">plot_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qi&#39;</span><span class="p">],</span>
+                           <span class="n">max_temp</span><span class="o">=</span><span class="mi">775</span><span class="p">,</span>
+                           <span class="n">unit_multipliers</span><span class="o">=</span><span class="p">[</span><span class="mf">1e-6</span><span class="p">],</span>
+                           <span class="n">plot_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$Q_\mathrm</span><span class="si">{i}</span><span class="se">\\</span><span class="s1">times10^{-6}$&#39;</span><span class="p">],</span>
+                           <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span>
+                           <span class="n">fig_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                           <span class="n">plot_lmfits</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1">#When the tick labels are really long, it&#39;s nice to push them out a little</span>
+<span class="c1">#So they don&#39;t overlap with the label. This will be automatically handled</span>
+<span class="c1">#in the next version.</span>
+<span class="n">fig2a</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">fig2a</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">labelpad</span> <span class="o">=</span> <span class="mi">13</span>
+
+<span class="c1">#Save figures</span>
+<span class="c1">#fig2a.savefig(&#39;fig2a.pdf&#39;)</span>
+<span class="c1">#fig2b.savefig(&#39;fig2b.pdf&#39;)</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_26_0.png"><img alt="_images/Example3_FiguresForManuscript_26_0.png" src="_images/Example3_FiguresForManuscript_26_0.png" style="width: 532px; height: 352px;" /></a>
 <a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_26_1.png"><img alt="_images/Example3_FiguresForManuscript_26_1.png" src="_images/Example3_FiguresForManuscript_26_1.png" style="width: 532px; height: 352px;" /></a>
 </div>
 <div class="section" id="use-mcmc-to-look-at-the-fit-parameter-covariances">
 <h2>Use MCMC to look at the fit parameter covariances<a class="headerlink" href="#use-mcmc-to-look-at-the-fit-parameter-covariances" title="Permalink to this headline">¶</a></h2>
 <p>Running this next cell will take a few minutes.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">do_emcee</span><span class="p">([</span><span class="s1">&#39;f0&#39;</span><span class="p">],</span>
+                            <span class="p">[</span><span class="n">scr</span><span class="o">.</span><span class="n">fitsSweep</span><span class="o">.</span><span class="n">f0_tlsAndMBT</span><span class="p">],</span>
+                            <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span>
+                            <span class="n">max_temp</span><span class="o">=</span><span class="n">max_fit_temp</span><span class="p">,</span>
+                            <span class="n">emcee_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nwalkers&#39;</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span>
+                                            <span class="s1">&#39;steps&#39;</span><span class="p">:</span><span class="mi">1000</span><span class="p">,</span>
+                                            <span class="s1">&#39;burn&#39;</span><span class="p">:</span><span class="mi">300</span><span class="p">})</span>
+
+<span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">do_emcee</span><span class="p">([</span><span class="s1">&#39;qi&#39;</span><span class="p">],</span>
+                            <span class="p">[</span><span class="n">scr</span><span class="o">.</span><span class="n">fitsSweep</span><span class="o">.</span><span class="n">qi_tlsAndMBT</span><span class="p">],</span>
+                            <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span>
+                            <span class="n">max_temp</span><span class="o">=</span><span class="n">max_fit_temp</span><span class="p">,</span>
+                            <span class="n">emcee_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nwalkers&#39;</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span>
+                                            <span class="s1">&#39;steps&#39;</span><span class="p">:</span><span class="mi">1000</span><span class="p">,</span>
+                                            <span class="s1">&#39;burn&#39;</span><span class="p">:</span><span class="mi">300</span><span class="p">})</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="id1">
 <h2>Use <code class="docutils literal"><span class="pre">pygtc</span></code> to plot the parameter covariances<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
@@ -201,20 +480,130 @@ mesh) overplotted on the semi-transparent surface that is the data.</p>
 black dashed lines are the best-fit values from the least-squares
 routine. It is nice to scale the numerical values before plotting, so as
 before, we will do that.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Get the resulting MCMC chain for the &#39;f0&#39; fit</span>
+<span class="n">f0_mcmc_chain</span> <span class="o">=</span> <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">emcee_results</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatchain</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1">#Grab the best-fit values from the least-squares run</span>
+<span class="n">f0_lmfit_truths</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span>
+    <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_results</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">valuesdict</span><span class="p">()</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()]</span>
+
+<span class="c1">#Scale the parameters for nicer viewing</span>
+<span class="n">mults</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e9</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mults</span><span class="p">):</span>
+    <span class="n">f0_mcmc_chain</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span><span class="o">/=</span><span class="n">m</span>
+    <span class="n">f0_lmfit_truths</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span><span class="o">/=</span><span class="n">m</span>
+
+<span class="c1">#Make some nicer labels than just the parameter keys</span>
+<span class="n">f0_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$f_0 (GHz)$&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">tan \delta</span><span class="se">\\</span><span class="s1">times10^</span><span class="si">{6}</span><span class="s1">$&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">alpha</span><span class="se">\\</span><span class="s1">times10^</span><span class="si">{3}</span><span class="s1">$&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;$\Delta_0$ (meV)&#39;</span><span class="p">]</span>
+
+<span class="c1">#Call pygtc to plot the figure</span>
+<span class="n">fig2c</span> <span class="o">=</span> <span class="n">pygtc</span><span class="o">.</span><span class="n">plotGTC</span><span class="p">(</span><span class="n">f0_mcmc_chain</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:],</span>
+                        <span class="n">truths</span> <span class="o">=</span> <span class="n">f0_lmfit_truths</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+                        <span class="n">paramNames</span><span class="o">=</span><span class="n">f0_labels</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+                        <span class="n">GaussianConfLevels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">nConfidenceLevels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                        <span class="n">figureSize</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+
+<span class="c1">#Save figure</span>
+<span class="c1">#fig2c.savefig(&#39;fig2c.pdf&#39;)</span>
+
+<span class="c1">#Get the resulting MCMC chain for the &#39;qi&#39; fit</span>
+<span class="n">qi_mcmc_chain</span> <span class="o">=</span> <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">emcee_results</span><span class="p">[</span><span class="s1">&#39;qi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatchain</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1">#Grab the best-fit values from the least-squares run</span>
+<span class="n">qi_lmfit_truths</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span>
+    <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_results</span><span class="p">[</span><span class="s1">&#39;qi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">valuesdict</span><span class="p">()</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()]</span>
+
+<span class="c1">#Scale the parameters for nicer viewing</span>
+<span class="n">mults</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e9</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mults</span><span class="p">):</span>
+    <span class="n">qi_mcmc_chain</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span><span class="o">/=</span><span class="n">m</span>
+    <span class="n">qi_lmfit_truths</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span><span class="o">/=</span><span class="n">m</span>
+
+<span class="c1">#Make some nicer labels than just the parameter keys</span>
+<span class="n">qi_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$f_0 (GHz)$&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">tan \delta</span><span class="se">\\</span><span class="s1">times10^</span><span class="si">{6}</span><span class="s1">$&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">alpha</span><span class="se">\\</span><span class="s1">times10^</span><span class="si">{3}</span><span class="s1">$&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;$\Delta_0$ (meV)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$Q_\mathrm</span><span class="si">{i}</span><span class="s1">(0)</span><span class="se">\\</span><span class="s1">times10^{-6}$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$P_\mathrm</span><span class="si">{c}</span><span class="s1">$ ($\mu$W)&#39;</span><span class="p">]</span>
+
+<span class="c1">#Call pygtc to plot the figure</span>
+<span class="n">fig2d</span> <span class="o">=</span> <span class="n">pygtc</span><span class="o">.</span><span class="n">plotGTC</span><span class="p">(</span><span class="n">qi_mcmc_chain</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span>
+                        <span class="n">truths</span> <span class="o">=</span> <span class="n">qi_lmfit_truths</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span>
+                        <span class="n">paramNames</span><span class="o">=</span><span class="n">qi_labels</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span>
+                        <span class="n">GaussianConfLevels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">nConfidenceLevels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                        <span class="n">figureSize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+                        <span class="n">colorsOrder</span> <span class="o">=</span> <span class="s1">&#39;greens&#39;</span><span class="p">)</span>
+
+
+<span class="c1">#Save figure</span>
+<span class="c1">#fig2d.savefig(&#39;fig2d.pdf&#39;)</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_30_0.png"><img alt="_images/Example3_FiguresForManuscript_30_0.png" src="_images/Example3_FiguresForManuscript_30_0.png" style="width: 382px; height: 383px;" /></a>
 <a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_30_1.png"><img alt="_images/Example3_FiguresForManuscript_30_1.png" src="_images/Example3_FiguresForManuscript_30_1.png" style="width: 379px; height: 380px;" /></a>
 </div>
-<div class="section" id="joint-fit-of-f-0-and-q-mathrm-i">
-<h2>Joint fit of  and .<a class="headerlink" href="#joint-fit-of-f-0-and-q-mathrm-i" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="joint-fit-of-and">
+<h2>Joint fit of <span class="math">\(f_0\)</span> and <span class="math">\(Q_\mathrm{i}\)</span>.<a class="headerlink" href="#joint-fit-of-and" title="Permalink to this headline">¶</a></h2>
 <p>It is possible to run a joint fit also. However, this will likely not
 add very much information given that the shared parameters disagree by
 amounts much larger than their variance between the two fits. In any
 case, here is a joint fit demonstrated for completeness.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Run the joint fit using the least-squares engine</span>
+<span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">do_lmfit</span><span class="p">([</span><span class="s1">&#39;f0&#39;</span><span class="p">,</span> <span class="s1">&#39;qi&#39;</span><span class="p">],</span>
+                            <span class="p">[</span><span class="n">scr</span><span class="o">.</span><span class="n">fitsSweep</span><span class="o">.</span><span class="n">f0_tlsAndMBT</span><span class="p">,</span> <span class="n">scr</span><span class="o">.</span><span class="n">fitsSweep</span><span class="o">.</span><span class="n">qi_tlsAndMBT</span><span class="p">],</span> <span class="c1">#The model</span>
+                            <span class="p">[</span><span class="n">f0_params</span><span class="p">,</span> <span class="n">qi_params</span><span class="p">],</span> <span class="c1">#The paramters</span>
+                            <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span> <span class="c1">#S21 fits below -70 were bad</span>
+                            <span class="n">max_temp</span><span class="o">=</span><span class="n">max_fit_temp</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Now calculate the parameter covariances with MCMC.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">do_emcee</span><span class="p">([</span><span class="s1">&#39;f0&#39;</span><span class="p">,</span> <span class="s1">&#39;qi&#39;</span><span class="p">],</span>
+                            <span class="p">[</span><span class="n">scr</span><span class="o">.</span><span class="n">fitsSweep</span><span class="o">.</span><span class="n">f0_tlsAndMBT</span><span class="p">,</span> <span class="n">scr</span><span class="o">.</span><span class="n">fitsSweep</span><span class="o">.</span><span class="n">qi_tlsAndMBT</span><span class="p">],</span>
+                            <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span>
+                            <span class="n">max_temp</span><span class="o">=</span><span class="n">max_fit_temp</span><span class="p">,</span>
+                            <span class="n">emcee_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nwalkers&#39;</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span>
+                                            <span class="s1">&#39;steps&#39;</span><span class="p">:</span><span class="mi">1000</span><span class="p">,</span>
+                                            <span class="s1">&#39;burn&#39;</span><span class="p">:</span><span class="mi">300</span><span class="p">})</span>
+</pre></div>
+</div>
 <p>And look at the result with <code class="docutils literal"><span class="pre">pygtc</span></code>. It’s pretty clear that the ‘qi’
 part of the fit is dominating the results for whatever reason. Probably
 this has to do with not scaling the uncertainties correctly or
 something.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Get the resulting MCMC chain for the &#39;qi&#39; fit</span>
+<span class="n">f0qi_mcmc_chain</span> <span class="o">=</span> <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">emcee_joint_results</span><span class="p">[</span><span class="s1">&#39;f0+qi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatchain</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1">#Scale the parameters for nicer viewing</span>
+<span class="n">mults</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e9</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mults</span><span class="p">):</span>
+    <span class="n">f0qi_mcmc_chain</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span><span class="o">/=</span><span class="n">m</span>
+    <span class="n">f0qi_lmfit_truths</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span><span class="o">/=</span><span class="n">m</span>
+
+<span class="c1">#Make some nicer labels than just the parameter keys</span>
+<span class="n">f0qi_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$f_0 (GHz)$&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">tan \delta</span><span class="se">\\</span><span class="s1">times10^</span><span class="si">{6}</span><span class="s1">$&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">alpha</span><span class="se">\\</span><span class="s1">times10^</span><span class="si">{3}</span><span class="s1">$&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;$\Delta_0$ (meV)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$Q_\mathrm</span><span class="si">{i}</span><span class="s1">(0)</span><span class="se">\\</span><span class="s1">times10^{-6}$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;$P_\mathrm</span><span class="si">{c}</span><span class="s1">$ ($\mu$W)&#39;</span><span class="p">]</span>
+
+<span class="c1">#Call pygtc to plot the figure</span>
+<span class="n">fig2d</span> <span class="o">=</span> <span class="n">pygtc</span><span class="o">.</span><span class="n">plotGTC</span><span class="p">(</span><span class="n">f0qi_mcmc_chain</span><span class="p">,</span>
+                        <span class="n">paramNames</span><span class="o">=</span><span class="n">f0qi_labels</span><span class="p">,</span>
+                        <span class="n">GaussianConfLevels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">nConfidenceLevels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                        <span class="n">figureSize</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+</pre></div>
+</div>
 <a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_36_0.png"><img alt="_images/Example3_FiguresForManuscript_36_0.png" src="_images/Example3_FiguresForManuscript_36_0.png" style="width: 384px; height: 385px;" /></a>
 </div>
 </div>
@@ -250,7 +639,7 @@ something.</p>
 <li><a class="reference internal" href="#plot-the-results-as-a-surface">Plot the results as a surface</a></li>
 <li><a class="reference internal" href="#use-mcmc-to-look-at-the-fit-parameter-covariances">Use MCMC to look at the fit parameter covariances</a></li>
 <li><a class="reference internal" href="#id1">Use <code class="docutils literal"><span class="pre">pygtc</span></code> to plot the parameter covariances</a></li>
-<li><a class="reference internal" href="#joint-fit-of-f-0-and-q-mathrm-i">Joint fit of  and .</a></li>
+<li><a class="reference internal" href="#joint-fit-of-and">Joint fit of <span class="math">\(f_0\)</span> and <span class="math">\(Q_\mathrm{i}\)</span>.</a></li>
 </ul>
 </li>
 </ul>

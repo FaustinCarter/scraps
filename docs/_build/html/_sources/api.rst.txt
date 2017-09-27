@@ -23,7 +23,7 @@ Resonator methods
 ^^^^^^^^^^^^^^^^^
 
 .load_params()
------------
+--------------
 .. automethod :: scraps.Resonator.load_params
 
 .torch_params()

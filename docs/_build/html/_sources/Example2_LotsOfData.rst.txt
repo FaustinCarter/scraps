@@ -1,6 +1,6 @@
 
-Example 2: Analysis of a resonator from W63
-===========================================
+Example 2: Analysis of a resonator fabricated at Argonne National Laboratory
+============================================================================
 
 **By: Faustin Carter, 2016, updated 2017**
 
@@ -38,7 +38,7 @@ You'll need to change the path to reflect wherever you stored the code
 
     import os
     
-    #Add the pyres folder to the path. You can skip this if you used pip to install scraps.
+    #Add the scraps folder to the path. You can skip this if you used pip to install scraps.
     import sys
     sys.path.append(os.getcwd()+'scraps/')
     
@@ -48,7 +48,7 @@ You'll need to change the path to reflect wherever you stored the code
 Make a list of Resonator objects
 --------------------------------
 
-Lists are a great way to organize things. ``pyRes`` includes a tool for
+Lists are a great way to organize things. ``scraps`` includes a tool for
 easily indexing lists of Resonator objects by temperature and power.
 Each object has a value called ``itemp`` that is just the experiment
 temperature rounded to the nearest 5 mK. This helps a lot with
