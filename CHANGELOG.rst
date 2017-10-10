@@ -1,5 +1,6 @@
 Version Next (these are things that work now in the develop branch):
 
+* Huge plotting update! Now can plot data from multiple ResonatorSweep objects on the same axis
 * Compatible with Python 2 and 3
 * Default colormap is now 'viridis'
 * Can omit colorbar if desired
