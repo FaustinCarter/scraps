@@ -1,3 +1,4 @@
+import warnings
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
 import matplotlib as mpl
@@ -453,6 +454,394 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
 
     return figS
 
+def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='temperature', **kwargs):
+    r"""Plot parameter data vs temperature from a ResonatorSweep object.
+
+    Parameters
+    ----------
+    resSweep : ``scraps.ResonatorSweep`` object or list of objects
+        The object containing the data you want to look at. It is also possible
+        to pass a list of these objects and it will combine them into one plot.
+
+    plot_keys : list-like (optional)
+        A list of strings corresponding to avaiable plot data. The available
+        keys depend on your parameter definitions and may be found by executing
+        ``print(resSweep.keys())``. Some keys may point to empty (NaN) objects.
+        Default is to plot all of the keys that exist. If you pass plot_keys
+        you may not pass ignore_ignore keys.
+
+    ignore_keys : list-like (optional)
+        A list of strings corresponding to plots that should not be made. This
+        is useful if you want to plot most of the avaialble data, but ignore one
+        or two sets of data. Default is ``None``. If you pass ignore_keys you
+        may not pass plot_keys.
+
+    xvals : string
+        What axis you want to plot by. Deafult is 'temperature'. Could also be
+        'power'. Future releases may include other options.
+
+    color_by : string
+        Set this to 'index' if you pass multiple res sweeps and want to color them by index.
+
+    Keyword Arguments
+    -----------------
+    plot_labels : list-like
+        A list of strings to use to label the y-axes of the plots. There must be
+        one for each plot requested. ``None`` is acceptable for any position in
+        the list and will default to using the key as the label. Default is to
+        use the key as the label.
+
+    unit_multipliers : list-like
+        A list of numbers to multiply against the y-axes data. There must be one
+        for each plot requested. ``None`` is acceptable for any position in the
+        list and will default to 1. Default is 1.
+
+    fitter : string {'lmfit', 'emcee'}
+        Which fit data to use when overlaying best fits. Default is 'lmfit'.
+
+    num_cols : int
+        The number of columns to create in the plot grid. Default is 1. The
+        number of rows will be calculated based on num_cols and the number of
+        requested plots.
+
+    powers : list
+        List of powers to plot. Default is to plot all available. If xvals is
+        'power' this kwarg is ignored.
+
+    temperatures : list
+        List of temperatures to plot. Default is to plot all available. If xvals
+        is 'temperature' this kwarg is ignored.
+
+    xmax : numeric
+        Don't plot any xvals above this value. Default is infinity.
+
+    xmin : numeric
+        Don't plot any xvals below this value. Default is 0 for temperature and
+        -infinity for power.
+
+    errorbars: {None, 'lmfit', 'emcee'}
+        Add error bars to the data. Pulls from either the least-squares or the
+        MCMC fits. Default is None.
+
+    fig_size : numeric
+        Size in inches for each plot in the figure.
+
+    color_map : string
+        Specifies the colormap to use. Any value in ``matplotlib.pyplot.colormaps()``
+        is a valid option.
+
+    show_colorbar : {True, False}, optional
+        Whether or not to add a colorbar to the right edge of the figure. The
+        colorbar will correspond to the limits of the colored data. Default is
+        True.
+
+    force_square : bool
+        Whether or not to force each subplot to have perfectly square axes.
+
+    plot_kwargs : dict or list of dicts
+        Dict of keyword args to pass through to the plotting function. Default
+        is {'linestyle':'--', label='Power X dB'}. If errorbars is not None,
+        then default linestyle is {'linestyle':'o'}. Attempting to set 'color'
+        or 'yerr' will result in an exception. Use the color_map and errorbars
+        keywords to set those. If you passed in a list of objects to resSweep,
+        then you can also pass a list of plot_kwargs, one for each sweep object.
+
+    """
+
+    if type(resSweep) is not list:
+        resSweep = [resSweep]
+
+    for rS in resSweep:
+
+        #This will really only work for sure if block is sucessful
+        assert rS.smartindex == 'block', "index must be 'block' for plotting to work."
+        #TODO: fix for other smartindex types
+
+    #set defaults
+    plot_labels = kwargs.pop('plot_labels', None)
+
+    unit_multipliers = kwargs.pop('unit_multipliers', None)
+
+    #Which fit data should be plot? lmfit or emcee?
+    fitter = kwargs.pop('fitter', 'lmfit')
+
+    #Number of columns
+    num_cols = int(kwargs.pop('num_cols', 4))
+
+    #Powers to plot
+    powers = list(kwargs.pop('powers', []))
+
+    #Temperatures to plot
+    temps = list(kwargs.pop('temps', []))
+
+    if xvals == 'temperature':
+        #Just use all the powers that exist period!
+        if len(powers) == 0:
+            for rS in resSweep:
+                powers.extend(rS.pvec)
+            powers = list(set(powers))
+        else:
+            for rS in resSweep:
+                assert any(p in rS.pvec for p in powers), "No data exists at any requested power."
+
+    if xvals == 'power':
+        #Just use all the temperatures that exist period!
+        if len(temps) == 0:
+            for rS in resSweep:
+                temps.extend(rS.tvec)
+            temps = list(set(temps))
+        else:
+            for rS in resSweep:
+                assert any(t in rS.tvec for t in temps), "No data exists at any requested temperature."
+
+    #Set up the x-axis mask
+    xmax = kwargs.pop('xmax', None)
+    xmin = kwargs.pop('xmin', None)
+
+    if xmin is None:
+        if xvals == 'temperature':
+            xmin = 0
+        elif xvals == 'power':
+            xmin = -np.inf
+
+    #Just use the biggest temperature in any set if max isn't passed
+    if xmax is None:
+        xmax = np.inf
+
+    xMask = []
+    for rS in resSweep:
+        if xvals == 'temperature':
+            xvec = rS.tvec
+        elif xvals == 'power':
+            xvec = rS.pvec
+        xMask.append((xvec >= xmin) * (xvec <= xmax))
+
+    color_by = kwargs.pop('color_by', None)
+
+    if color_by is None:
+        if xvals == 'temperature':
+            color_by = 'power'
+        elif xvals == 'power':
+            color_by = 'temperature'
+
+    #Very early errobar code. Still in beta.
+    errorbars = kwargs.pop('errorbars', None)
+    assert errorbars in [None, 'lmfit', 'emcee'], "Invalid option for errorbars. Try None, 'lmfit', or 'emcee'."
+
+    #Figure out which parameters to plot
+    if ignore_keys is None:
+        ignore_keys = ['listIndex',
+                        'temps']
+    else:
+        assert plot_keys is None, "Either pass plot_keys or ignore_keys, not both."
+        for rS in resSweep:
+            assert all(key in rS.keys() for key in ignore_keys), "Unknown key in ignore_keys"
+        ignore_keys.append('listIndex')
+        ignore_keys.append('temps')
+
+    if plot_keys is None:
+        plot_keys = []
+        for rS in resSweep:
+            plot_keys = set(plot_keys.extend(set(rS.keys())-set(ignore_keys)))
+    else:
+        for rS in resSweep:
+            assert any(key in rS.keys() for key in plot_keys), "No data corresponding to any plot_key"
+
+    #Some general defaults
+    fig_size = kwargs.pop('fig_size', 3)
+
+    force_square = kwargs.pop('force_square', False)
+
+    #Set the colormap: Default to viridis
+    color_map = kwargs.pop('color_map', None)
+    if color_map is None:
+        if color_by == 'index':
+            color_map = 'Vega10'
+        elif xvals == 'temperature':
+            color_map = 'viridis'
+        elif xvals == 'power':
+            color_map = 'coolwarm'
+
+    assert color_map in plt.colormaps(), "Unknown colormap provided"
+    color_gen = plt.get_cmap(color_map)
+
+    #Set whether to show the colorbar
+    show_colorbar = kwargs.pop('show_colorbar', True)
+
+    #Defaults for this are set later
+    plot_kwargs = kwargs.pop('plot_kwargs', [{}]*len(resSweep))
+
+    if type(plot_kwargs) == dict:
+        plot_kwargs = [plot_kwargs]*len(resSweep)
+
+    assert type(plot_kwargs) == list, "Must pass list of plot_kwargs of same length as list of resSweeps"
+
+    #Unknown kwargs are discouraged
+    if kwargs:
+        raise NameError("Unknown keyword argument: " + kwargs.keys()[0])
+
+    #Set up the figure
+    figS = plt.figure()
+
+    num_keys = len(plot_keys)
+
+    #Don't need more columns than plots
+    if num_keys < num_cols:
+        num_cols = num_keys
+
+    #Calculate rows for figure size
+    num_rows = int(np.ceil(num_keys/num_cols))
+
+    #Calculate rows for figure size
+    num_rows = int(np.ceil(1.0*num_keys/num_cols))
+
+    #Set figure size, including some extra spacing for the colorbar
+    #0.1 is the extra space for the colorbar.
+    #*1.2 is the extra padding for the axis labels
+    #15:1 is the ratio of axis width for regular axes to colorbar axis
+    if show_colorbar:
+        figS.set_size_inches(fig_size*(num_cols+0.1)*1.2, fig_size*num_rows)
+
+        #Initialize the grid for plotting
+        plt_grid = gs.GridSpec(num_rows, num_cols+1, width_ratios=[15]*num_cols+[1])
+    else:
+        figS.set_size_inches(fig_size*(num_cols)*1.2, fig_size*num_rows)
+
+        #Initialize the grid for plotting
+        plt_grid = gs.GridSpec(num_rows, num_cols)
+
+    #Loop through all the keys in the ResonatorSweep object and plot them
+    for ix, key in enumerate(plot_keys):
+
+        iRow = int(ix/num_cols)
+        iCol = ix%num_cols
+
+        axs = figS.add_subplot(plt_grid[iRow, iCol])
+
+        if unit_multipliers is not None:
+            mult = unit_multipliers[ix]
+        else:
+            mult = 1
+
+        if xvals == 'power':
+            iterator = temps
+        elif xvals == 'temperature':
+            iterator = powers
+
+        for itr in iterator:
+
+            if (xvals == 'temperature') and (color_by != 'index'):
+                if len(powers) > 1:
+                    plt_color = color_gen(1-((max(powers)-itr)*1.0/(max(powers)-min(powers))))
+                else:
+                    plt_color = color_gen(0)
+
+            elif (xvals == 'power') and (color_by != 'index'):
+                if len(temps) > 1:
+                    plt_color = color_gen(1-((max(temps)-itr)*1.0/(max(temps)-min(temps))))
+                else:
+                    plt_color = color_gen(0)
+
+            for rix, rS in enumerate(resSweep):
+
+                if color_by == 'index':
+                    plt_color = color_gen(rix)
+
+                if xvals == 'temperature':
+                    if itr in rS.pvec:
+                        x_data = rS.tvec[xMask[rix]]
+                        plt_data = mult*rS[key].loc[xMask[rix], itr].values
+                    else:
+                        plt_data = None
+
+                elif xvals == 'power':
+                    if itr in rS.tvec:
+                        x_data = rS.pvec[xMask[rix]]
+                        plt_data = mult*rS[key].loc[itr, xMask[rix]].values
+                    else:
+                        plt_data = None
+
+                if plt_data is not None:
+
+                    if 'label' not in plot_kwargs[rix].keys():
+                        if color_by == 'index':
+                            plot_kwargs[rix]['label'] = 'Index: '+str(rix)
+                        else:
+                            plot_kwargs[rix]['label'] = xvals+ ": "+str(itr)
+
+                    if 'linestyle' not in plot_kwargs[rix].keys():
+                        if errorbars is not None:
+                            plot_kwargs[rix]['marker'] = 'o'
+                        else:
+                            plot_kwargs[rix]['linestyle'] = '--'
+
+                    if errorbars is None:
+                        axs.plot(x_data ,plt_data, color=plt_color, **plot_kwargs[rix])
+                    elif errorbars == 'lmfit':
+                        #lmfit uncertainty was stored in the _sigma key, so just grab it back out
+                        if xvals == 'temperature':
+                            plt_err = mult*rS[key + '_sigma'].loc[xMask[rix], itr].values
+                        elif xvals == 'power':
+                            plt_err = mult*rS[key + '_sigma'].loc[itr, xMask[rix]].values
+
+                        axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[rix])
+                    elif errorbars == 'emcee':
+                        #emcee uncertainty was placed in the _sigma_plus_mc and _sigma_minus_mc keys
+                        if xvals == 'temperature':
+                            plt_err_plus = mult*rS[key + '_sigma_plus_mc'].loc[xMask[rix], itr].values
+                            plt_err_minus = mult*rS[key + '_sigma_minus_mc'].loc[xMask[rix], itr].values
+                        elif xvals == 'power':
+                            plt_err_plus = mult*rS[key + '_sigma_plus_mc'].loc[itr, xMask[rix]].values
+                            plt_err_minus = mult*rS[key + '_sigma_minus_mc'].loc[itr, xMask[rix]].values
+
+                        plt_err = [plt_err_plus, plt_err_minus]
+                        axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[rix])
+
+        if xvals == 'temperature':
+            axs.set_xlabel('Temperature (mK)')
+        elif xvals == 'power':
+            axs.set_xlabel('Power (dB)')
+
+        if plot_labels is not None:
+            axs.set_ylabel(plot_labels[ix])
+        else:
+            axs.set_ylabel(key)
+        axs.set_xticklabels(axs.get_xticks(),rotation=45)
+
+        if force_square:
+            #Make the plot a square
+            x1, x2 = axs.get_xlim()
+            y1, y2 = axs.get_ylim()
+
+            #Explicitly passing a float to avoid an warning in matplotlib
+            #when it gets a numpy.float64
+            axs.set_aspect(float((x2-x1)/(y2-y1)))
+
+        #Stick some legends where they won't crowd too much
+        # if key == 'f0' or key == 'fmin':
+        #     axs.legend(loc='best')
+    if show_colorbar:
+        if color_by == 'index':
+            cbar_norm = mpl.colors.BoundaryNorm(range(len(resSweep)+1), len(resSweep))
+            cbar_units = 'index'
+        else:
+            cbar_norm = mpl.colors.Normalize(vmin=min(iterator), vmax=max(iterator))
+
+            if xvals == 'temperature':
+                cbar_units = 'dB'
+            elif xvals == 'power':
+                cbar_units = 'mK'
+
+        #Make an axis that spans all rows
+        cax = figS.add_subplot(plt_grid[:, num_cols])
+
+        #Plot and label
+        cbar_plot = mpl.colorbar.ColorbarBase(cax, cmap=color_gen, norm=cbar_norm)
+        cbar_plot.set_label(cbar_units)
+
+    figS.tight_layout()
+    return figS
+
 
 
 def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwargs):
@@ -536,212 +925,28 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
 
     """
 
-    if type(resSweep) is not list:
-        resSweep = [resSweep]
+    warnings.warn("This function has been deprecated in favor of plotResSweepParamsVsX", DeprecationWarning)
 
-    for rS in resSweep:
+    xmin = kwargs.pop('min_temp', None)
+    xmax = kwargs.pop('max_temp', None)
 
-        #This will really only work for sure if block is sucessful
-        assert rS.smartindex == 'block', "index must be 'block' for plotting to work."
-        #TODO: fix for other smartindex types
+    if xmin is not None:
+        kwargs['xmin'] = xmin
 
-    #set defaults
-    plot_labels = kwargs.pop('plot_labels', None)
+    if xmax is not None:
+        kwargs['xmax'] = xmax
 
-    unit_multipliers = kwargs.pop('unit_multipliers', None)
-
-    #Which fit data should be plot? lmfit or emcee?
-    fitter = kwargs.pop('fitter', 'lmfit')
-
-    #Number of columns
-    num_cols = int(kwargs.pop('num_cols', 4))
-
-    #Powers to plot
-    powers = list(kwargs.pop('powers', []))
-
-    #Just use all the powers that exist period!
-    if len(powers) == 0:
-        for rS in resSweep:
-            powers.extend(rS.pvec)
-        powers = list(set(powers))
-    else:
-        for rS in resSweep:
-            assert any(p in rS.pvec for p in powers), "No data exists at any requested power."
-
-    #Set up the temperature axis mask
-    max_temp = kwargs.pop('max_temp', None)
-    min_temp = kwargs.pop('min_temp', 0)
-
-    #Just use the biggest temperature in any set if max isn't passed
-    if max_temp is None:
-        max_temp = 0
-        for rS in resSweep:
-            if np.max(rS.tvec) > max_temp:
-                max_temp = np.max(rS.tvec)
-
-    tempMask = []
-    for rS in resSweep:
-        tempMask.append((rS.tvec >= min_temp) * (rS.tvec <= max_temp))
-
-    #Very early errobar code. Still in beta.
-    errorbars = kwargs.pop('errorbars', None)
-    assert errorbars in [None, 'lmfit', 'emcee'], "Invalid option for errorbars. Try None, 'lmfit', or 'emcee'."
-
-    #Figure out which parameters to plot
-    if ignore_keys is None:
-        ignore_keys = ['listIndex',
-                        'temps']
-    else:
-        assert plot_keys is None, "Either pass plot_keys or ignore_keys, not both."
-        for rS in resSweep:
-            assert all(key in rS.keys() for key in ignore_keys), "Unknown key in ignore_keys"
-        ignore_keys.append('listIndex')
-        ignore_keys.append('temps')
-
-    if plot_keys is None:
-        plot_keys = []
-        for rS in resSweep:
-            plot_keys = set(plot_keys.extend(set(rS.keys())-set(ignore_keys)))
-    else:
-        for rS in resSweep:
-            assert any(key in rS.keys() for key in plot_keys), "No data corresponding to any plot_key"
-
-    #Some general defaults
-    fig_size = kwargs.pop('fig_size', 3)
-
-    force_square = kwargs.pop('force_square', False)
-
-    #Set the colormap: Default to viridis
-    color_map = kwargs.pop('color_map', 'viridis')
-    assert color_map in plt.colormaps(), "Unknown colormap provided"
-    color_gen = plt.get_cmap(color_map)
-
-    #Set whether to show the colorbar
-    show_colorbar = kwargs.pop('show_colorbar', True)
-
-    #Defaults for this are set later
-    plot_kwargs = kwargs.pop('plot_kwargs', [{}]*len(resSweep))
-
-    #Unknown kwargs are discouraged
-    if kwargs:
-        raise NameError("Unknown keyword argument: " + kwargs.keys()[0])
-
-    #Set up the figure
-    figS = plt.figure()
-
-    num_keys = len(plot_keys)
-
-    #Don't need more columns than plots
-    if num_keys < num_cols:
-        num_cols = num_keys
-
-    #Calculate rows for figure size
-    num_rows = int(np.ceil(num_keys/num_cols))
-
-    #Calculate rows for figure size
-    num_rows = int(np.ceil(1.0*num_keys/num_cols))
-
-    #Set figure size, including some extra spacing for the colorbar
-    #0.1 is the extra space for the colorbar.
-    #*1.2 is the extra padding for the axis labels
-    #15:1 is the ratio of axis width for regular axes to colorbar axis
-    if show_colorbar:
-        figS.set_size_inches(fig_size*(num_cols+0.1)*1.2, fig_size*num_rows)
-
-        #Initialize the grid for plotting
-        plt_grid = gs.GridSpec(num_rows, num_cols+1, width_ratios=[15]*num_cols+[1])
-    else:
-        figS.set_size_inches(fig_size*(num_cols)*1.2, fig_size*num_rows)
-
-        #Initialize the grid for plotting
-        plt_grid = gs.GridSpec(num_rows, num_cols)
-
-    #Loop through all the keys in the ResonatorSweep object and plot them
-    for ix, key in enumerate(plot_keys):
-
-        iRow = int(ix/num_cols)
-        iCol = ix%num_cols
-
-        axs = figS.add_subplot(plt_grid[iRow, iCol])
-
-        if unit_multipliers is not None:
-            mult = unit_multipliers[ix]
-        else:
-            mult = 1
-
-        for pwr in powers:
-            if len(powers) > 1:
-                plt_color = color_gen(1-((max(powers)-pwr)*1.0/(max(powers)-min(powers))))
-            else:
-                plt_color = color_gen(0)
-
-            for ix, rS in enumerate(resSweep):
-                x_data = rS.tvec[tempMask]
-                plt_data = mult*rS[key].loc[tempMask[ix], pwr].values
-
-                if 'label' not in plot_kwargs[ix].keys():
-                    plot_kwargs[ix]['label'] = 'Power: '+str(pwr)
-
-                if 'linestyle' not in plot_kwargs[ix].keys():
-                    if errorbars is not None:
-                        plot_kwargs[ix]['marker'] = 'o'
-                    else:
-                        plot_kwargs[ix]['linestyle'] = '--'
-
-                if errorbars is None:
-                    axs.plot(x_data ,plt_data, color=plt_color, **plot_kwargs[ix])
-                elif errorbars == 'lmfit':
-                    #lmfit uncertainty was stored in the _sigma key, so just grab it back out
-                    plt_err = mult*rS[key + '_sigma'].loc[tempMask[ix], pwr].values
-                    axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[ix])
-                elif errorbars == 'emcee':
-                    #emcee uncertainty was placed in the _sigma_plus_mc and _sigma_minus_mc keys
-                    plt_err_plus = mult*rS[key + '_sigma_plus_mc'].loc[tempMask[ix], pwr].values
-                    plt_err_minus = mult*rS[key + '_sigma_minus_mc'].loc[tempMask[ix], pwr].values
-                    plt_err = [plt_err_plus, plt_err_minus]
-                    axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[ix])
-
-
-        axs.set_xlabel('Temperature (mK)')
-        if plot_labels is not None:
-            axs.set_ylabel(plot_labels[ix])
-        else:
-            axs.set_ylabel(key)
-        axs.set_xticklabels(axs.get_xticks(),rotation=45)
-
-        if force_square:
-            #Make the plot a square
-            x1, x2 = axs.get_xlim()
-            y1, y2 = axs.get_ylim()
-
-            #Explicitly passing a float to avoid an warning in matplotlib
-            #when it gets a numpy.float64
-            axs.set_aspect(float((x2-x1)/(y2-y1)))
-
-        #Stick some legends where they won't crowd too much
-        # if key == 'f0' or key == 'fmin':
-        #     axs.legend(loc='best')
-    if show_colorbar:
-        cbar_norm = mpl.colors.Normalize(vmin=min(powers), vmax=max(powers))
-        cbar_units = 'dB'
-
-        #Make an axis that spans all rows
-        cax = figS.add_subplot(plt_grid[:, num_cols])
-
-        #Plot and label
-        cbar_plot = mpl.colorbar.ColorbarBase(cax, cmap=color_gen, norm=cbar_norm)
-        cbar_plot.set_label(cbar_units)
-
-    figS.tight_layout()
-    return figS
+    fig = plotResSweepParamsVsX(resSweep, plot_keys, ignore_keys, xvals='temperature', **kwargs)
+    return fig
 
 def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs):
     r"""Plot parameter data vs power from a ResonatorSweep object.
 
     Parameters
     ----------
-    resSweep : ``scraps.ResonatorSweep`` object
-        The object containing the data you want to look at.
+    resSweep : ``scraps.ResonatorSweep`` object or list of objects
+        The object containing the data you want to look at. It is also possible
+        to pass a list of these objects and it will combine them into one plot.
 
     plot_keys : list-like (optional)
         A list of strings corresponding to avaiable plot data. The available
@@ -765,7 +970,7 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
         use the key as the label.
 
     unit_multipliers : list-like
-        A list of numbers to multiply against the y-axis data. There must be one
+        A list of numbers to multiply against the y-axes data. There must be one
         for each plot requested. ``None`` is acceptable for any position in the
         list and will default to 1. Default is 1.
 
@@ -781,10 +986,14 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
         List of temperatures to plot. Default is to plot all available.
 
     max_power : numeric
-        Don't plot any powers above this value. Default is infinity.
+        Don't plot any temperatures above this value. Default is infinity.
 
     min_power : numeric
-        Don't plot any powers below this value. Default is -infinity.
+        Don't plot any temperatures below this value. Default is 0.
+
+    errorbars: {None, 'lmfit', 'emcee'}
+        Add error bars to the data. Pulls from either the least-squares or the
+        MCMC fits. Default is None.
 
     fig_size : numeric
         Size in inches for each plot in the figure.
@@ -793,130 +1002,39 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
         Specifies the colormap to use. Any value in ``matplotlib.pyplot.colormaps()``
         is a valid option.
 
+    show_colorbar : {True, False}, optional
+        Whether or not to add a colorbar to the right edge of the figure. The
+        colorbar will correspond to the limits of the colored data. Default is
+        True.
+
     force_square : bool
         Whether or not to force each subplot to have perfectly square axes.
 
+    plot_kwargs : dict or list of dicts
+        Dict of keyword args to pass through to the plotting function. Default
+        is {'linestyle':'--', label='temperature X mK'}. If errorbars is not None,
+        then default linestyle is {'linestyle':'o'}. Attempting to set 'color'
+        or 'yerr' will result in an exception. Use the color_map and errorbars
+        keywords to set those. If you passed in a list of objects to resSweep,
+        then you can also pass a list of plot_kwargs, one for each sweep object.
+
     """
 
-    #This will really only work for sure if block is sucessful
-    assert resSweep.smartindex == 'block', "index must be 'block' for plotting to work."
-    #TODO: fix for other smartindex types
+    warnings.warn("This function has been deprecated in favor of plotResSweepParamsVsX", DeprecationWarning)
 
-    #set defaults:
-    plot_labels = kwargs.pop('plot_labels', None)
-    unit_multipliers = kwargs.pop('unit_multipliers', None)
+    xmin = kwargs.pop('min_power', None)
+    xmax = kwargs.pop('max_power', None)
 
-    #Which fit data should be plot? lmfit or emcee?
-    fitter = kwargs.pop('fitter', 'lmfit')
+    if xmin is not None:
+        kwargs['xmin'] = xmin
 
-    #Number of columns
-    num_cols = int(kwargs.pop('num_cols', 4))
+    if xmax is not None:
+        kwargs['xmax'] = xmax
 
-    #Temperature values to plot
-    temps = list(kwargs.pop('temps', resSweep.tvec))
-    assert all(t in resSweep.tvec for t in temps), "Can't plot a temperature that doesn't exist!"
-
-    #Set up the power axis mask
-    max_power = kwargs.pop('max_power', np.max(resSweep.pvec))
-    min_power = kwargs.pop('min_power', np.min(resSweep.pvec))
-
-    pwrMask = (resSweep.pvec >= min_power) * (resSweep.pvec <= max_power)
-
-    fig_size = kwargs.pop('fig_size', 3)
-
-    force_square = kwargs.pop('force_square', False)
-
-    #Set the colormap: Default to a nice red/blue thing
-    color_map = kwargs.pop('color_map', 'coolwarm')
-    assert color_map in plt.colormaps(), "Unknown colormap provided"
-    color_gen = plt.get_cmap(color_map)
-
-    if ignore_keys is None:
-        ignore_keys = ['listIndex',
-                        'temps']
-    else:
-        assert plot_keys is None, "Either pass plot_keys or ignore_keys, not both."
-        assert all(key in resSweep.keys() for key in ignore_keys), "Unknown key"
-        ignore_keys.append('listIndex')
-        ignore_keys.append('temps')
+    fig = plotResSweepParamsVsX(resSweep, plot_keys, ignore_keys, xvals='power', **kwargs)
+    return fig
 
 
-    #Set up the figure
-    figS = plt.figure()
-
-    if plot_keys is None:
-        plot_keys = set(resSweep.keys())-set(ignore_keys)
-    else:
-        assert all(key in resSweep.keys() for key in plot_keys), "Unknown key"
-
-    num_keys = len(plot_keys)
-
-    #Don't need more columns than plots
-    if num_keys < num_cols:
-        num_cols = num_keys
-
-    #Calculate rows for figure size
-    num_rows = int(np.ceil(1.0*num_keys/num_cols))
-
-    #Set figure size, including some extra spacing for the colorbar
-    figS.set_size_inches(fig_size*(num_cols+0.1)*1.2, fig_size*num_rows)
-
-    #Initialize the grid for plotting
-    plt_grid = gs.GridSpec(num_rows, num_cols+1, width_ratios=[15]*num_cols+[1])
-
-    #Loop through all the keys in the ResonatorSweep object and plot them
-    for ix, key in enumerate(plot_keys):
-
-        iRow = int(ix/num_cols)
-        iCol = ix%num_cols
-
-        axs = figS.add_subplot(plt_grid[iRow, iCol])
-
-        if unit_multipliers is not None:
-            mult = unit_multipliers[ix]
-        else:
-            mult = 1
-
-        for tmp in temps:
-            if len(temps) > 1:
-                plt_color = color_gen(tmp*1.0/max(temps))
-            else:
-                plt_color = color_gen(0)
-
-            axs.plot(resSweep.pvec[pwrMask],resSweep[key].loc[tmp,pwrMask],'--', color=plt_color, label='Temperature: '+str(tmp))
-
-        axs.set_xlabel('Power (dB)')
-        if plot_labels is not None:
-            axs.set_ylabel(plot_labels[ix])
-        else:
-            axs.set_ylabel(key)
-        axs.set_xticklabels(axs.get_xticks(),rotation=45)
-
-        if force_square:
-            #Make the plot a square
-            x1, x2 = axs.get_xlim()
-            y1, y2 = axs.get_ylim()
-
-            #Explicitly passing a float to avoid an warning in matplotlib
-            #when it gets a numpy.float64
-            axs.set_aspect(float((x2-x1)/(y2-y1)))
-
-        #Stick some legends where they won't crowd too much
-        # if key == 'f0' or key == 'fmin':
-        #     axs.legend(loc='best')
-    #Make an axis that spans all rows
-    cax = figS.add_subplot(plt_grid[:, num_cols])
-
-    #Set colorbar limits
-    cbar_norm= mpl.colors.Normalize(vmin=0, vmax=max(temps))
-    cbar_units = 'mK'
-
-    #Plot and label
-    cbar_plot = mpl.colorbar.ColorbarBase(cax, cmap=color_gen, norm=cbar_norm)
-    cbar_plot.set_label(cbar_units)
-
-    figS.tight_layout()
-    return figS
 
 def plotResSweep3D(resSweep, plot_keys, **kwargs):
     r"""Make 3D surface or mesh plots of any key in the ``ResonatorSweep`` object as functions
