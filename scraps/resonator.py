@@ -471,7 +471,7 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
     #Return resonator object
     return res
 
-def makeResList(fileFunc, dataPath, resName):
+def makeResList(fileFunc, dataPath, resName, **fileFunc_kwargs):
     """Create a list of resonator objects from a directory of dataDict
 
     Parameters
@@ -491,12 +491,18 @@ def makeResList(fileFunc, dataPath, resName):
         use the same name for every data file that comes from the same physical
         resonator.
 
+    fileFunc_kwargs : dict
+        Keyword arguments to pass through to the fileFunc
+
     """
     #Find the files that match the resonator you care about
     fileList = glob.glob(dataPath + resName + '_*')
 
     #loop through files and process all the data
-    fileDataDicts = map(fileFunc, fileList)
+    fileDataDicts = []
+
+    for f in fileList:
+        fileDataDicts.append(fileFunc(f, **fileFunc_kwargs))
 
     #Create resonator objects from the data
     #makeResFromData returns a tuple of (res, temp, pwr),
