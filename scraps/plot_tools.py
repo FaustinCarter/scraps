@@ -275,7 +275,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     #Set up axes and make labels
     for ix, key in enumerate(plot_types):
 
-        iRow = int(ix/num_cols)
+        iRow = ix//num_cols
         iCol = ix%num_cols
 
         ax = figS.add_subplot(plt_grid[iRow, iCol])
