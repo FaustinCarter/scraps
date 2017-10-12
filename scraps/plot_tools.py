@@ -641,8 +641,10 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
 
     if plot_keys is None:
         plot_keys = []
+
         for rS in resSweep:
-            plot_keys = set(plot_keys.extend(set(rS.keys())-set(ignore_keys)))
+            plot_keys.extend(set(rS.keys()))
+            plot_keys = set(set(plot_keys)-set(ignore_keys))
     else:
         for rS in resSweep:
             assert any(key in rS.keys() for key in plot_keys), "No data corresponding to any plot_key"
