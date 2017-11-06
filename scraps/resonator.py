@@ -648,7 +648,7 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
                     print(repr(block[bad_ix+i]).replace(',', ',\t'))
                     block_ixs = []
                     for block_ix, block_temp in enumerate(block[bad_ix+i]):
-                        block_ixs.append(scr.indexResList(resList, block_temp, pwrs[block_ix]))
+                        block_ixs.append(indexResList(resList, block_temp, pwrs[block_ix]))
                     print(repr(block_ixs).replace(',', ',\t'))
 
 
@@ -661,7 +661,7 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
                     tl = tlists[i]
                     t = tl[bad_ix]
                     p = pwrs[i]
-                    res_ix = scr.indexResList(resList, t, p)
+                    res_ix = indexResList(resList, t, p)
                     if verbose:
                         print('T=',t, 'P=',p, 'Res index=',res_ix)
                     if prune:
