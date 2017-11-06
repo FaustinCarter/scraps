@@ -15,8 +15,8 @@ def process_file(fileName, **loadtxt_kwargs):
 
         - temp: The temperature of the resonator in K, five characters Example: '0.150'
 
-    rows_to_skip : int
-        Number of rows to skip at start of file. Default is 1.
+    loadtxt_kwargs : dict
+        This is a pass-through to numpy.loadtxt
 
     Returns
     -------
