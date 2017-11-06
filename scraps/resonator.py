@@ -372,7 +372,7 @@ class Resonator(object):
         err_minus = np.asarray([np.percentile(self.emcee_result.flatchain[key], 16) for key in self.emcee_result.flatchain.keys()])
 
         #Make a list of tuples that are (+err, -err) for each paramter
-        self.emcee_sigmas = zip(err_plus-self.emcee_vals, self.emcee_vals-err_minus)
+        self.emcee_sigmas = list(zip(err_plus-self.emcee_vals, self.emcee_vals-err_minus))
 
         #It is also useful to have easy access to the maximum-liklihood estimates
         self.mle_vals = emcee_result.flatchain.iloc[np.argmax(emcee_result.lnprob)]
@@ -629,7 +629,7 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
     #nominally the same, so the stdev should be small unless
     #one of the elements doesn't match. Return the first
     #instance of the stdev being too high
-    block = zip(*tlists)
+    block = list(zip(*tlists))
     bad_ix = np.argmax([np.std(x) > sdev for x in block])
 
     #If the first row is returned, everything could be ok. Check first row.
