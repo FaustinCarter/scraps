@@ -42,7 +42,20 @@ example tutorials, see the official documentation at: http://scraps.readthedocs.
 
 Citation
 ------
-If you use scraps in a publication, please cite the IEEE Applied Superconductivity Manuscript, DOI: `10.1109/TASC.2016.2625767 <https://doi.org/10.1109/TASC.2016.2625767>`_
+If you use scraps to make plots or analyze data for a publication, please cite the IEEE Applied Superconductivity Manuscript, DOI: `10.1109/TASC.2016.2625767 <https://doi.org/10.1109/TASC.2016.2625767>`_::
+  
+  @article{Carter2016, 
+     author={F. W. Carter and T. S. Khaire and V. Novosad and C. L. Chang}, 
+     journal={IEEE Transactions on Applied Superconductivity}, 
+     title={scraps: An Open-Source Python-Based Analysis Package for Analyzing and Plotting Superconducting Resonator Data}, 
+     year={2017}, 
+     volume={27}, 
+     number={4}, 
+     pages={1-5}, 
+     doi={10.1109/TASC.2016.2625767}, 
+     ISSN={1051-8223}, 
+     month={June}
+  }
 
 Short description of files that aren't code:
 ------------------
@@ -53,8 +66,7 @@ Short description of files that aren't code:
 - Example2: a slightly more advanced tutorial that focuses on lots of sweeps at
   several temperatures and powers.
 
-- Example3: an example showcasing some of the more advanced plotting features. The data for this note book is at: http://dx.doi.org/10.5281/zenodo.61575
-
+- Example3: an example showcasing some of the more advanced plotting features. The data for this notebook is at: http://dx.doi.org/10.5281/zenodo.61575
 
 - ExampleData.zip: A ton of actual superconducting resonator data from a Nb
   microstrip resonator made at ANL.
@@ -67,3 +79,5 @@ Support
 ------
 Please post any bugs or feature requests here on GitHub. Bugs will be squashed ASAP.
 Feature requests will be seriously considered!
+
+Copyright 2016, Faustin W. Carter
