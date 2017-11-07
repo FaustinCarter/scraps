@@ -14,3 +14,4 @@ dist
 
 #Data for editing notebooks
 /ExampleData
+saved_data.pickle

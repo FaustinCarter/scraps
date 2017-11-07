@@ -25,7 +25,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="API" href="api.html" />
-    <link rel="prev" title="Example 2: Analysis of a resonator from W63" href="Example2_LotsOfData.html" />
+    <link rel="prev" title="Example 2: Analysis of a resonator fabricated at Argonne National Laboratory" href="Example2_LotsOfData.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -44,7 +44,6 @@
   <div class="section" id="figure-generation-for-a-manuscript-using-nbn-cpw-resonator-data">
 <h1>Figure generation for a manuscript (using NbN CPW resonator data)<a class="headerlink" href="#figure-generation-for-a-manuscript-using-nbn-cpw-resonator-data" title="Permalink to this headline">¶</a></h1>
 <p>by: Faustin W. Carter</p>
-<p><em>Note: this has not been modified to by py3 compatible yet</em></p>
 <p>Data is from a niobium-nitride CPW resonator fabricated at ANL by Trupti
 Khaire. It was installed in a copper box, and wirebonded with gold bonds
 to an impdence matching board that translated the signal from coax to
@@ -53,6 +52,7 @@ at the VNA output in dBm. The signal passes through about 60-70 dB of
 attenuation on its way down to the resonator, and then experiences
 between 40-50 dB amplification on the way back up. In other words, the
 power axis is very much uncalibrated.</p>
+<p>The resonator data is available here: DOI:10.5281/zenodo.61575</p>
 <div class="section" id="import-some-stuff">
 <h2>Import some stuff<a class="headerlink" href="#import-some-stuff" title="Permalink to this headline">¶</a></h2>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Plot options for inline-notebook figures</span>
@@ -62,8 +62,8 @@ power axis is very much uncalibrated.</p>
 <span class="o">%</span><span class="n">config</span> <span class="n">InlineBackend</span><span class="o">.</span><span class="n">figure_format</span> <span class="o">=</span> <span class="s1">&#39;retina&#39;</span>
 
 <span class="c1">#Useful for saving resonator fit data</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
 
 <span class="c1">#This is optional, comment out if</span>
 <span class="c1">#you don&#39;t care about covariance plots.</span>
@@ -85,14 +85,15 @@ power axis is very much uncalibrated.</p>
 <p>The output is going to be a <code class="docutils literal"><span class="pre">dict</span></code>, keyword-indexed by the strings in
 resNames</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Define the path to the data directory</span>
-<span class="n">dataPath</span> <span class="o">=</span> <span class="s1">&#39;./08222016Res/&#39;</span>
+<span class="n">dataPath</span> <span class="o">=</span> <span class="s1">&#39;/Users/fcarter/Documents/ANL/Analyses/CPW6_AllData/08222016Res/&#39;</span>
 
 <span class="c1">#Make a dict of lists of resonators, one for each name</span>
 <span class="n">resLists</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="n">resName</span> <span class="ow">in</span> <span class="n">resNames</span><span class="p">:</span>
     <span class="n">resLists</span><span class="p">[</span><span class="n">resName</span><span class="p">]</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">makeResList</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">,</span>
                                         <span class="n">dataPath</span><span class="p">,</span>
-                                        <span class="n">resName</span><span class="p">)</span>
+                                        <span class="n">resName</span><span class="p">,</span>
+                                        <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now run fits on the resonator objects</p>
@@ -129,12 +130,13 @@ data, you can just load the cached object back into memory.</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Save resLists to a pickle file for easy loading later.</span>
 <span class="c1">#This is useful for caching data after you have run fits</span>
 <span class="c1">#that take a long time.</span>
-<span class="n">fName</span> <span class="o">=</span> <span class="s1">&#39;CPW6_&#39;</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
-                                             <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">_%H_%M&#39;</span><span class="p">)</span>
-<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;./&#39;</span><span class="o">+</span><span class="n">fName</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
-<span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">resListsAu</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<span class="nb">print</span> <span class="s1">&#39;last saved file was: &#39;</span><span class="o">+</span><span class="n">fName</span><span class="o">+</span><span class="s1">&#39;.pickle&#39;</span>
+<span class="n">fName</span> <span class="o">=</span> <span class="s1">&#39;saved_data.pickle&#39;</span>
+<span class="n">fPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;./&#39;</span><span class="p">,</span> <span class="n">fName</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fPath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">resLists</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;last saved file was: &#39;</span><span class="o">+</span><span class="n">fName</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -145,29 +147,33 @@ this cell, and skip everything above except for the first cell that
 imports modules.</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Load resLists from a pickle file</span>
 <span class="n">fName</span> <span class="o">=</span> <span class="s1">&#39;./saved_data.pickle&#39;</span>
-<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
-<span class="n">resLists</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">resLists</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="now-we-can-make-a-plot-of-the-traces">
 <h1>Now we can make a plot of the traces.<a class="headerlink" href="#now-we-can-make-a-plot-of-the-traces" title="Permalink to this headline">¶</a></h1>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">fig1a</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResListData</span><span class="p">(</span><span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">importlib</span> <span class="k">import</span> <span class="n">reload</span>
+<span class="n">scr</span><span class="o">.</span><span class="n">plot_tools</span> <span class="o">=</span> <span class="n">reload</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">plot_tools</span><span class="p">)</span>
+
+<span class="n">fig1a</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plot_tools</span><span class="o">.</span><span class="n">plotResListData</span><span class="p">(</span><span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
                             <span class="n">plot_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;IQ&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMag&#39;</span><span class="p">,</span> <span class="s1">&#39;uPhase&#39;</span><span class="p">],</span>
                             <span class="n">detrend_phase</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                             <span class="n">plot_fits</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
                             <span class="n">color_by</span><span class="o">=</span><span class="s1">&#39;temps&#39;</span><span class="p">,</span>
                             <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
                             <span class="n">fig_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                            <span class="n">powers</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">55</span><span class="p">])</span>
+                            <span class="n">powers</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">55</span><span class="p">],</span>
+                            <span class="c1">#the fit defaults to a thick dashed line. Small plots are nicer with a thinner line</span>
+                            <span class="n">fit_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;linestyle&#39;</span><span class="p">:</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="s1">&#39;linewidth&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
 
 <span class="c1">#Uncomment to save the figure</span>
 <span class="c1">#fig1a.savefig(&#39;fig1a.pdf&#39;)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_12_0.png"><img alt="_images/Example3_FiguresForManuscript_12_0.png" src="_images/Example3_FiguresForManuscript_12_0.png" style="width: 796px; height: 209px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_12_0.png"><img alt="_images/Example3_FiguresForManuscript_12_0.png" src="_images/Example3_FiguresForManuscript_12_0.png" style="width: 795px; height: 206px;" /></a>
 </div>
 <div class="section" id="use-the-mcmc-sampler-to-calculate-covariances-for-one-of-the-fits">
 <h1>Use the MCMC sampler to calculate covariances for one of the fits<a class="headerlink" href="#use-the-mcmc-sampler-to-calculate-covariances-for-one-of-the-fits" title="Permalink to this headline">¶</a></h1>
@@ -232,21 +238,25 @@ package like <code class="docutils literal"><span class="pre">corner</span></cod
 <span class="c1">#fig1b.savefig(&#39;fig1b.pdf&#39;)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_16_0.png"><img alt="_images/Example3_FiguresForManuscript_16_0.png" src="_images/Example3_FiguresForManuscript_16_0.png" style="width: 501px; height: 502px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_16_0.png"><img alt="_images/Example3_FiguresForManuscript_16_0.png" src="_images/Example3_FiguresForManuscript_16_0.png" style="width: 498px; height: 486px;" /></a>
 </div>
 </div>
 <div class="section" id="s21-fit-results-vs-temperature-and-power">
 <h1>S21 fit results vs temperature and power<a class="headerlink" href="#s21-fit-results-vs-temperature-and-power" title="Permalink to this headline">¶</a></h1>
 <p>Now, in order to look at the fit parameters as a function of power
 and/or temperature, we first have to load all the fit parameters into a
-custom dict of <code class="docutils literal"><span class="pre">pandas</span></code> DataFrames called a <code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object.</p>
+custom dict of <code class="docutils literal"><span class="pre">pandas</span></code> DataFrames called a <code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object.
+In order for this to work, you’ll have to make sure that you are only
+including data that fits properly into a grid. The
+<code class="docutils literal"><span class="pre">block_check_resList</span></code> function can help remove data that is outside of
+the desired temperature/power grid.</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Define a dict that will hold all the ResonatorSweep objects</span>
 <span class="c1">#(one for each name).</span>
 
 <span class="c1">#Each of these objects will be a dict of pandas DataFrames</span>
 
 <span class="n">resSweeps</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="k">for</span> <span class="n">resName</span><span class="p">,</span> <span class="n">resList</span> <span class="ow">in</span> <span class="n">resLists</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+<span class="k">for</span> <span class="n">resName</span><span class="p">,</span> <span class="n">resList</span> <span class="ow">in</span> <span class="n">resLists</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">resSweeps</span><span class="p">[</span><span class="n">resName</span><span class="p">]</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">ResonatorSweep</span><span class="p">(</span><span class="n">resList</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;block&#39;</span><span class="p">)</span>
 
 <span class="c1">#Look at the uncertainties on the best-fit frequencie</span>
@@ -255,11 +265,23 @@ custom dict of <code class="docutils literal"><span class="pre">pandas</span></c
 </pre></div>
 </div>
 <div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>-75.0</th>
       <th>-65.0</th>
       <th>-55.0</th>
       <th>-45.0</th>
@@ -270,47 +292,42 @@ custom dict of <code class="docutils literal"><span class="pre">pandas</span></c
   <tbody>
     <tr>
       <th>101.0</th>
-      <td>2.342925e+04</td>
-      <td>241.628635</td>
-      <td>80.353994</td>
-      <td>26.967362</td>
-      <td>13.266917</td>
-      <td>8.362478</td>
+      <td>241.637272</td>
+      <td>80.337916</td>
+      <td>26.967346</td>
+      <td>13.266754</td>
+      <td>8.742586</td>
     </tr>
     <tr>
       <th>108.0</th>
-      <td>1.155629e+12</td>
-      <td>253.306191</td>
-      <td>80.905558</td>
-      <td>27.029800</td>
-      <td>12.093033</td>
-      <td>9.255624</td>
+      <td>246.788414</td>
+      <td>80.905870</td>
+      <td>27.029770</td>
+      <td>12.117045</td>
+      <td>9.554198</td>
     </tr>
     <tr>
-      <th>118.0</th>
-      <td>6.169252e+06</td>
-      <td>245.307879</td>
-      <td>82.002065</td>
-      <td>27.355258</td>
-      <td>11.756653</td>
-      <td>10.169799</td>
+      <th>117.0</th>
+      <td>236.284541</td>
+      <td>79.852011</td>
+      <td>26.688084</td>
+      <td>11.756270</td>
+      <td>10.169787</td>
     </tr>
     <tr>
       <th>129.0</th>
-      <td>1.013165e+08</td>
-      <td>243.320043</td>
-      <td>82.249325</td>
-      <td>26.863802</td>
-      <td>12.327247</td>
-      <td>8.720828</td>
+      <td>243.919971</td>
+      <td>80.580874</td>
+      <td>26.860352</td>
+      <td>12.327939</td>
+      <td>8.546404</td>
     </tr>
     <tr>
       <th>143.0</th>
-      <td>1.020450e+08</td>
-      <td>248.635163</td>
-      <td>82.393823</td>
-      <td>27.061348</td>
-      <td>11.951223</td>
+      <td>248.637587</td>
+      <td>82.197184</td>
+      <td>26.624129</td>
+      <td>11.951576</td>
       <td>9.116620</td>
     </tr>
   </tbody>
@@ -330,7 +347,7 @@ custom dict of <code class="docutils literal"><span class="pre">pandas</span></c
 <span class="c1">#fig1c.savefig(&#39;fig1c.pdf&#39;)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_20_0.png"><img alt="_images/Example3_FiguresForManuscript_20_0.png" src="_images/Example3_FiguresForManuscript_20_0.png" style="width: 284px; height: 425px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_20_0.png"><img alt="_images/Example3_FiguresForManuscript_20_0.png" src="_images/Example3_FiguresForManuscript_20_0.png" style="width: 287px; height: 423px;" /></a>
 </div>
 </div>
 <div class="section" id="fitting-secondary-fit-parameters-to-a-model">
@@ -384,7 +401,7 @@ to specify some parameters and starting guesses.</p>
 <span class="n">qi_params</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;Pc&#39;</span><span class="p">,</span>
               <span class="n">value</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
               <span class="nb">min</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-              <span class="nb">max</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+              <span class="nb">max</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">)</span>
 
 <span class="c1">#Set the max temperature to fit to</span>
 <span class="n">max_fit_temp</span> <span class="o">=</span> <span class="mi">800</span>
@@ -441,7 +458,7 @@ mesh) overplotted on the semi-transparent surface that is the data.</p>
 
 <span class="c1">#When the tick labels are really long, it&#39;s nice to push them out a little</span>
 <span class="c1">#So they don&#39;t overlap with the label. This will be automatically handled</span>
-<span class="c1">#in the next version.</span>
+<span class="c1">#in a future version.</span>
 <span class="n">fig2a</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 <span class="n">fig2a</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">labelpad</span> <span class="o">=</span> <span class="mi">13</span>
 
@@ -450,8 +467,8 @@ mesh) overplotted on the semi-transparent surface that is the data.</p>
 <span class="c1">#fig2b.savefig(&#39;fig2b.pdf&#39;)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_26_0.png"><img alt="_images/Example3_FiguresForManuscript_26_0.png" src="_images/Example3_FiguresForManuscript_26_0.png" style="width: 532px; height: 352px;" /></a>
-<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_26_1.png"><img alt="_images/Example3_FiguresForManuscript_26_1.png" src="_images/Example3_FiguresForManuscript_26_1.png" style="width: 532px; height: 352px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_26_0.png"><img alt="_images/Example3_FiguresForManuscript_26_0.png" src="_images/Example3_FiguresForManuscript_26_0.png" style="width: 529px; height: 349px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_26_1.png"><img alt="_images/Example3_FiguresForManuscript_26_1.png" src="_images/Example3_FiguresForManuscript_26_1.png" style="width: 529px; height: 349px;" /></a>
 </div>
 <div class="section" id="use-mcmc-to-look-at-the-fit-parameter-covariances">
 <h2>Use MCMC to look at the fit parameter covariances<a class="headerlink" href="#use-mcmc-to-look-at-the-fit-parameter-covariances" title="Permalink to this headline">¶</a></h2>
@@ -485,7 +502,7 @@ before, we will do that.</p>
 
 <span class="c1">#Grab the best-fit values from the least-squares run</span>
 <span class="n">f0_lmfit_truths</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span>
-    <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_results</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">valuesdict</span><span class="p">()</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()]</span>
+    <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_results</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">valuesdict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
 
 <span class="c1">#Scale the parameters for nicer viewing</span>
 <span class="n">mults</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e9</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]</span>
@@ -516,7 +533,7 @@ before, we will do that.</p>
 
 <span class="c1">#Grab the best-fit values from the least-squares run</span>
 <span class="n">qi_lmfit_truths</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span>
-    <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_results</span><span class="p">[</span><span class="s1">&#39;qi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">valuesdict</span><span class="p">()</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()]</span>
+    <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_results</span><span class="p">[</span><span class="s1">&#39;qi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">valuesdict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
 
 <span class="c1">#Scale the parameters for nicer viewing</span>
 <span class="n">mults</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e9</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">]</span>
@@ -547,8 +564,8 @@ before, we will do that.</p>
 <span class="c1">#fig2d.savefig(&#39;fig2d.pdf&#39;)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_30_0.png"><img alt="_images/Example3_FiguresForManuscript_30_0.png" src="_images/Example3_FiguresForManuscript_30_0.png" style="width: 382px; height: 383px;" /></a>
-<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_30_1.png"><img alt="_images/Example3_FiguresForManuscript_30_1.png" src="_images/Example3_FiguresForManuscript_30_1.png" style="width: 379px; height: 380px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_30_0.png"><img alt="_images/Example3_FiguresForManuscript_30_0.png" src="_images/Example3_FiguresForManuscript_30_0.png" style="width: 384px; height: 375px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_30_1.png"><img alt="_images/Example3_FiguresForManuscript_30_1.png" src="_images/Example3_FiguresForManuscript_30_1.png" style="width: 379px; height: 370px;" /></a>
 </div>
 <div class="section" id="joint-fit-of-and">
 <h2>Joint fit of <span class="math">\(f_0\)</span> and <span class="math">\(Q_\mathrm{i}\)</span>.<a class="headerlink" href="#joint-fit-of-and" title="Permalink to this headline">¶</a></h2>
@@ -576,10 +593,14 @@ case, here is a joint fit demonstrated for completeness.</p>
 </div>
 <p>And look at the result with <code class="docutils literal"><span class="pre">pygtc</span></code>. It’s pretty clear that the ‘qi’
 part of the fit is dominating the results for whatever reason. Probably
-this has to do with not scaling the uncertainties correctly or
-something.</p>
+this has to do with 1. not scaling the uncertainties correctly and 2.
+not using compatible models for <span class="math">\(Q_\mathrm{i}\)</span> and <span class="math">\(f_0\)</span>.</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Get the resulting MCMC chain for the &#39;qi&#39; fit</span>
 <span class="n">f0qi_mcmc_chain</span> <span class="o">=</span> <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">emcee_joint_results</span><span class="p">[</span><span class="s1">&#39;f0+qi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatchain</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1">#Grab the best-fit values from the least-squares run</span>
+<span class="n">f0qi_lmfit_truths</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span>
+    <span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_joint_results</span><span class="p">[</span><span class="s1">&#39;f0+qi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">valuesdict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
 
 <span class="c1">#Scale the parameters for nicer viewing</span>
 <span class="n">mults</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e9</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">]</span>
@@ -598,13 +619,46 @@ something.</p>
 
 <span class="c1">#Call pygtc to plot the figure</span>
 <span class="n">fig2d</span> <span class="o">=</span> <span class="n">pygtc</span><span class="o">.</span><span class="n">plotGTC</span><span class="p">(</span><span class="n">f0qi_mcmc_chain</span><span class="p">,</span>
+                        <span class="n">truths</span><span class="o">=</span><span class="n">f0qi_lmfit_truths</span><span class="p">,</span>
                         <span class="n">paramNames</span><span class="o">=</span><span class="n">f0qi_labels</span><span class="p">,</span>
                         <span class="n">GaussianConfLevels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                         <span class="n">nConfidenceLevels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
                         <span class="n">figureSize</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_36_0.png"><img alt="_images/Example3_FiguresForManuscript_36_0.png" src="_images/Example3_FiguresForManuscript_36_0.png" style="width: 384px; height: 385px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_36_0.png"><img alt="_images/Example3_FiguresForManuscript_36_0.png" src="_images/Example3_FiguresForManuscript_36_0.png" style="width: 382px; height: 386px;" /></a>
+<p>Finally, let’s look at the joint fits as surfaces on top of the actual
+data. It’s pretty clear that even though the MCMC analysis produced nice
+looking bullseyes, the values they return are not actually a very good
+fit to the data! It’s probably time to get a better model than the toy
+included here!</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">fig2e</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweep3D</span><span class="p">(</span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+                           <span class="n">plot_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">],</span>
+                           <span class="n">max_temp</span><span class="o">=</span><span class="mi">775</span><span class="p">,</span>
+                           <span class="n">unit_multipliers</span><span class="o">=</span><span class="p">[</span><span class="mf">1e-9</span><span class="p">],</span>
+                           <span class="n">plot_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$f_0$ (GHz)&#39;</span><span class="p">],</span>
+                           <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span>
+                           <span class="n">fig_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                           <span class="n">plot_fits</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lmfit_joint_f0+qi&#39;</span><span class="p">])</span>
+
+<span class="n">fig2f</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweep3D</span><span class="p">(</span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+                           <span class="n">plot_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qi&#39;</span><span class="p">],</span>
+                           <span class="n">max_temp</span><span class="o">=</span><span class="mi">775</span><span class="p">,</span>
+                           <span class="n">unit_multipliers</span><span class="o">=</span><span class="p">[</span><span class="mf">1e-6</span><span class="p">],</span>
+                           <span class="n">plot_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$Q_\mathrm</span><span class="si">{i}</span><span class="se">\\</span><span class="s1">times10^{-6}$&#39;</span><span class="p">],</span>
+                           <span class="n">min_pwr</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span>
+                           <span class="n">fig_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                           <span class="n">plot_fits</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lmfit_joint_f0+qi&#39;</span><span class="p">])</span>
+
+<span class="c1">#When the tick labels are really long, it&#39;s nice to push them out a little</span>
+<span class="c1">#So they don&#39;t overlap with the label. This will be automatically handled</span>
+<span class="c1">#in a future version.</span>
+<span class="n">fig2e</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">fig2e</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">labelpad</span> <span class="o">=</span> <span class="mi">13</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_38_0.png"><img alt="_images/Example3_FiguresForManuscript_38_0.png" src="_images/Example3_FiguresForManuscript_38_0.png" style="width: 529px; height: 349px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_38_1.png"><img alt="_images/Example3_FiguresForManuscript_38_1.png" src="_images/Example3_FiguresForManuscript_38_1.png" style="width: 529px; height: 349px;" /></a>
 </div>
 </div>
 
@@ -647,7 +701,7 @@ something.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="Example2_LotsOfData.html" title="previous chapter">Example 2: Analysis of a resonator from W63</a></li>
+      <li>Previous: <a href="Example2_LotsOfData.html" title="previous chapter">Example 2: Analysis of a resonator fabricated at Argonne National Laboratory</a></li>
       <li>Next: <a href="api.html" title="next chapter">API</a></li>
   </ul></li>
 </ul>

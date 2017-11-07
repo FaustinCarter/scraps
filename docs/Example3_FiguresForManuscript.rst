@@ -4,8 +4,6 @@ Figure generation for a manuscript (using NbN CPW resonator data)
 
 by: Faustin W. Carter
 
-*Note: this has not been modified to by py3 compatible yet*
-
 Data is from a niobium-nitride CPW resonator fabricated at ANL by Trupti
 Khaire. It was installed in a copper box, and wirebonded with gold bonds
 to an impdence matching board that translated the signal from coax to
@@ -14,6 +12,8 @@ at the VNA output in dBm. The signal passes through about 60-70 dB of
 attenuation on its way down to the resonator, and then experiences
 between 40-50 dB amplification on the way back up. In other words, the
 power axis is very much uncalibrated.
+
+The resonator data is available here: DOI:10.5281/zenodo.61575
 
 Import some stuff
 -----------------
@@ -27,8 +27,8 @@ Import some stuff
     %config InlineBackend.figure_format = 'retina'
     
     #Useful for saving resonator fit data
-    import datetime
-    import cPickle
+    import os
+    import pickle
     
     #This is optional, comment out if
     #you don't care about covariance plots.
@@ -52,14 +52,15 @@ resNames
 .. code:: ipython3
 
     #Define the path to the data directory
-    dataPath = './08222016Res/'
+    dataPath = '/Users/fcarter/Documents/ANL/Analyses/CPW6_AllData/08222016Res/'
     
     #Make a dict of lists of resonators, one for each name
     resLists = {}
     for resName in resNames:
         resLists[resName] = scr.makeResList(scr.process_file,
                                             dataPath,
-                                            resName)
+                                            resName,
+                                            skiprows=1, delimiter='\t')
 
 Now run fits on the resonator objects
 
@@ -100,12 +101,13 @@ data, you can just load the cached object back into memory.
     #Save resLists to a pickle file for easy loading later.
     #This is useful for caching data after you have run fits
     #that take a long time.
-    fName = 'CPW6_' + datetime.datetime.strftime(datetime.datetime.now(),
-                                                 '%Y%m%d_%H_%M')
-    f = open('./'+fName+'.pickle', 'wb')
-    cPickle.dump(resListsAu, f, 2)
-    f.close()
-    print 'last saved file was: '+fName+'.pickle'
+    fName = 'saved_data.pickle'
+    fPath = os.path.join('./', fName)
+    
+    with open(fPath, 'wb') as f:
+        pickle.dump(resLists, f, 2)
+    
+    print('last saved file was: '+fName)
 
 Load up previously cached data
 ------------------------------
@@ -118,23 +120,27 @@ imports modules.
 
     #Load resLists from a pickle file
     fName = './saved_data.pickle'
-    f = open(fName, 'rb')
-    resLists = cPickle.load(f)
-    f.close()
+    with open(fName, 'rb') as f:
+        resLists = pickle.load(f)
 
 Now we can make a plot of the traces.
 =====================================
 
 .. code:: ipython3
 
-    fig1a = scr.plotResListData(resLists['RES-1'],
+    from importlib import reload
+    scr.plot_tools = reload(scr.plot_tools)
+    
+    fig1a = scr.plot_tools.plotResListData(resLists['RES-1'],
                                 plot_types=['IQ', 'LogMag', 'uPhase'],
                                 detrend_phase = True,
                                 plot_fits = [True, False, False],
                                 color_by='temps',
                                 num_cols = 3,
                                 fig_size=3,
-                                powers = [-55])
+                                powers = [-55],
+                                #the fit defaults to a thick dashed line. Small plots are nicer with a thinner line
+                                fit_kwargs={'linestyle':'--', 'color':'k', 'linewidth':1})
     
     #Uncomment to save the figure
     #fig1a.savefig('fig1a.pdf')
@@ -142,8 +148,8 @@ Now we can make a plot of the traces.
 
 
 .. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_12_0.png
-   :width: 796px
-   :height: 209px
+   :width: 795px
+   :height: 206px
 
 
 Use the MCMC sampler to calculate covariances for one of the fits
@@ -218,8 +224,8 @@ package like ``corner`` to view the covariances.
 
 
 .. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_16_0.png
-   :width: 501px
-   :height: 502px
+   :width: 498px
+   :height: 486px
 
 
 S21 fit results vs temperature and power
@@ -228,6 +234,10 @@ S21 fit results vs temperature and power
 Now, in order to look at the fit parameters as a function of power
 and/or temperature, we first have to load all the fit parameters into a
 custom dict of ``pandas`` DataFrames called a ``ResonatorSweep`` object.
+In order for this to work, you'll have to make sure that you are only
+including data that fits properly into a grid. The
+``block_check_resList`` function can help remove data that is outside of
+the desired temperature/power grid.
 
 .. code:: ipython3
 
@@ -237,7 +247,7 @@ custom dict of ``pandas`` DataFrames called a ``ResonatorSweep`` object.
     #Each of these objects will be a dict of pandas DataFrames
     
     resSweeps = {}
-    for resName, resList in resLists.iteritems():
+    for resName, resList in resLists.items():
         resSweeps[resName] = scr.ResonatorSweep(resList, index='block')
     
     #Look at the uncertainties on the best-fit frequencie
@@ -250,11 +260,23 @@ custom dict of ``pandas`` DataFrames called a ``ResonatorSweep`` object.
 .. raw:: html
 
     <div>
+    <style>
+        .dataframe thead tr:only-child th {
+            text-align: right;
+        }
+    
+        .dataframe thead th {
+            text-align: left;
+        }
+    
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+    </style>
     <table border="1" class="dataframe">
       <thead>
         <tr style="text-align: right;">
           <th></th>
-          <th>-75.0</th>
           <th>-65.0</th>
           <th>-55.0</th>
           <th>-45.0</th>
@@ -265,47 +287,42 @@ custom dict of ``pandas`` DataFrames called a ``ResonatorSweep`` object.
       <tbody>
         <tr>
           <th>101.0</th>
-          <td>2.342925e+04</td>
-          <td>241.628635</td>
-          <td>80.353994</td>
-          <td>26.967362</td>
-          <td>13.266917</td>
-          <td>8.362478</td>
+          <td>241.637272</td>
+          <td>80.337916</td>
+          <td>26.967346</td>
+          <td>13.266754</td>
+          <td>8.742586</td>
         </tr>
         <tr>
           <th>108.0</th>
-          <td>1.155629e+12</td>
-          <td>253.306191</td>
-          <td>80.905558</td>
-          <td>27.029800</td>
-          <td>12.093033</td>
-          <td>9.255624</td>
+          <td>246.788414</td>
+          <td>80.905870</td>
+          <td>27.029770</td>
+          <td>12.117045</td>
+          <td>9.554198</td>
         </tr>
         <tr>
-          <th>118.0</th>
-          <td>6.169252e+06</td>
-          <td>245.307879</td>
-          <td>82.002065</td>
-          <td>27.355258</td>
-          <td>11.756653</td>
-          <td>10.169799</td>
+          <th>117.0</th>
+          <td>236.284541</td>
+          <td>79.852011</td>
+          <td>26.688084</td>
+          <td>11.756270</td>
+          <td>10.169787</td>
         </tr>
         <tr>
           <th>129.0</th>
-          <td>1.013165e+08</td>
-          <td>243.320043</td>
-          <td>82.249325</td>
-          <td>26.863802</td>
-          <td>12.327247</td>
-          <td>8.720828</td>
+          <td>243.919971</td>
+          <td>80.580874</td>
+          <td>26.860352</td>
+          <td>12.327939</td>
+          <td>8.546404</td>
         </tr>
         <tr>
           <th>143.0</th>
-          <td>1.020450e+08</td>
-          <td>248.635163</td>
-          <td>82.393823</td>
-          <td>27.061348</td>
-          <td>11.951223</td>
+          <td>248.637587</td>
+          <td>82.197184</td>
+          <td>26.624129</td>
+          <td>11.951576</td>
           <td>9.116620</td>
         </tr>
       </tbody>
@@ -334,8 +351,8 @@ Now we can look at the fit parameters from the previous step vs Temperature or P
 
 
 .. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_20_0.png
-   :width: 284px
-   :height: 425px
+   :width: 287px
+   :height: 423px
 
 
 Fitting secondary fit parameters to a model
@@ -395,7 +412,7 @@ to specify some parameters and starting guesses.
     qi_params.add('Pc',
                   value = 4,
                   min = 0,
-                  max = 1)
+                  max = 10000)
     
     #Set the max temperature to fit to
     max_fit_temp = 800
@@ -457,7 +474,7 @@ mesh) overplotted on the semi-transparent surface that is the data.
     
     #When the tick labels are really long, it's nice to push them out a little
     #So they don't overlap with the label. This will be automatically handled
-    #in the next version.
+    #in a future version.
     fig2a.axes[0].tick_params(axis='z', pad=8)
     fig2a.axes[0].zaxis.labelpad = 13
     
@@ -468,14 +485,14 @@ mesh) overplotted on the semi-transparent surface that is the data.
 
 
 .. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_26_0.png
-   :width: 532px
-   :height: 352px
+   :width: 529px
+   :height: 349px
 
 
 
 .. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_26_1.png
-   :width: 532px
-   :height: 352px
+   :width: 529px
+   :height: 349px
 
 
 Use MCMC to look at the fit parameter covariances
@@ -516,7 +533,7 @@ before, we will do that.
     
     #Grab the best-fit values from the least-squares run
     f0_lmfit_truths = [val for key, val in 
-        resSweeps['RES-1'].lmfit_results['f0'].params.valuesdict().iteritems()]
+        resSweeps['RES-1'].lmfit_results['f0'].params.valuesdict().items()]
     
     #Scale the parameters for nicer viewing
     mults = [1e9, 1e-6, 1e-3, 1e-3]
@@ -547,7 +564,7 @@ before, we will do that.
     
     #Grab the best-fit values from the least-squares run
     qi_lmfit_truths = [val for key, val in 
-        resSweeps['RES-1'].lmfit_results['qi'].params.valuesdict().iteritems()]
+        resSweeps['RES-1'].lmfit_results['qi'].params.valuesdict().items()]
     
     #Scale the parameters for nicer viewing
     mults = [1e9, 1e-6, 1e-3, 1e-3, 1e6, 1e-6]
@@ -580,14 +597,14 @@ before, we will do that.
 
 
 .. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_30_0.png
-   :width: 382px
-   :height: 383px
+   :width: 384px
+   :height: 375px
 
 
 
 .. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_30_1.png
    :width: 379px
-   :height: 380px
+   :height: 370px
 
 
 Joint fit of :math:`f_0` and :math:`Q_\mathrm{i}`.
@@ -621,13 +638,17 @@ Now calculate the parameter covariances with MCMC.
 
 And look at the result with ``pygtc``. It's pretty clear that the 'qi'
 part of the fit is dominating the results for whatever reason. Probably
-this has to do with not scaling the uncertainties correctly or
-something.
+this has to do with 1. not scaling the uncertainties correctly and 2.
+not using compatible models for :math:`Q_\mathrm{i}` and :math:`f_0`.
 
 .. code:: ipython3
 
     #Get the resulting MCMC chain for the 'qi' fit
     f0qi_mcmc_chain = resSweeps['RES-1'].emcee_joint_results['f0+qi'].flatchain.copy()
+    
+    #Grab the best-fit values from the least-squares run
+    f0qi_lmfit_truths = [val for key, val in 
+        resSweeps['RES-1'].lmfit_joint_results['f0+qi'].params.valuesdict().items()]
     
     #Scale the parameters for nicer viewing
     mults = [1e9, 1e-6, 1e-3, 1e-3, 1e6, 1e-6]
@@ -646,6 +667,7 @@ something.
     
     #Call pygtc to plot the figure
     fig2d = pygtc.plotGTC(f0qi_mcmc_chain,
+                            truths=f0qi_lmfit_truths,
                             paramNames=f0qi_labels,
                             GaussianConfLevels=True,
                             nConfidenceLevels=3,
@@ -654,7 +676,52 @@ something.
 
 
 .. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_36_0.png
-   :width: 384px
-   :height: 385px
+   :width: 382px
+   :height: 386px
+
+
+Finally, let's look at the joint fits as surfaces on top of the actual
+data. It's pretty clear that even though the MCMC analysis produced nice
+looking bullseyes, the values they return are not actually a very good
+fit to the data! It's probably time to get a better model than the toy
+included here!
+
+.. code:: ipython3
+
+    fig2e = scr.plotResSweep3D(resSweeps['RES-1'],
+                               plot_keys=['f0'],
+                               max_temp=775,
+                               unit_multipliers=[1e-9],
+                               plot_labels = ['$f_0$ (GHz)'],
+                               min_pwr=-70,
+                               fig_size=5,
+                               plot_fits=['lmfit_joint_f0+qi'])
+    
+    fig2f = scr.plotResSweep3D(resSweeps['RES-1'],
+                               plot_keys=['qi'],
+                               max_temp=775,
+                               unit_multipliers=[1e-6],
+                               plot_labels = ['$Q_\mathrm{i}\\times10^{-6}$'],
+                               min_pwr=-70,
+                               fig_size=5,
+                               plot_fits=['lmfit_joint_f0+qi'])
+    
+    #When the tick labels are really long, it's nice to push them out a little
+    #So they don't overlap with the label. This will be automatically handled
+    #in a future version.
+    fig2e.axes[0].tick_params(axis='z', pad=8)
+    fig2e.axes[0].zaxis.labelpad = 13
+
+
+
+.. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_38_0.png
+   :width: 529px
+   :height: 349px
+
+
+
+.. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_38_1.png
+   :width: 529px
+   :height: 349px
 
 

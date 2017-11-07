@@ -387,7 +387,7 @@ See the <code class="docutils literal"><span class="pre">lmfit</span></code> doc
 <h4>process_file()<a class="headerlink" href="#process-file" title="Permalink to this headline">¶</a></h4>
 <dl class="function">
 <dt id="scraps.process_file">
-<code class="descclassname">scraps.</code><code class="descname">process_file</code><span class="sig-paren">(</span><em>fileName</em>, <em>rows_to_skip=1</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.process_file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">scraps.</code><code class="descname">process_file</code><span class="sig-paren">(</span><em>fileName</em>, <em>**loadtxt_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.process_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load Keysight PNA file data into dict.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -402,7 +402,7 @@ See the <code class="docutils literal"><span class="pre">lmfit</span></code> doc
 <li>temp: The temperature of the resonator in K, five characters Example: ‘0.150’</li>
 </ul>
 </li>
-<li><strong>rows_to_skip</strong> (<em>int</em>) – Number of rows to skip at start of file. Default is 1.</li>
+<li><strong>loadtxt_kwargs</strong> (<em>dict</em>) – This is a pass-through to numpy.loadtxt</li>
 </ul>
 </td>
 </tr>
@@ -460,7 +460,7 @@ automatically.</li>
 <h4>makeResList()<a class="headerlink" href="#makereslist" title="Permalink to this headline">¶</a></h4>
 <dl class="function">
 <dt id="scraps.makeResList">
-<code class="descclassname">scraps.</code><code class="descname">makeResList</code><span class="sig-paren">(</span><em>fileFunc</em>, <em>dataPath</em>, <em>resName</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.makeResList" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">scraps.</code><code class="descname">makeResList</code><span class="sig-paren">(</span><em>fileFunc</em>, <em>dataPath</em>, <em>resName</em>, <em>**fileFunc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.makeResList" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a list of resonator objects from a directory of dataDict</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -476,6 +476,7 @@ by fileFunc.</li>
 <li><strong>resName</strong> (<em>string</em>) – The name of your resonator. This can be anything, but it is useful to
 use the same name for every data file that comes from the same physical
 resonator.</li>
+<li><strong>fileFunc_kwargs</strong> (<em>dict</em>) – Keyword arguments to pass through to the fileFunc</li>
 </ul>
 </td>
 </tr>
@@ -978,18 +979,20 @@ a dashed black line.</li>
 </dd></dl>
 
 </div>
-<div class="section" id="plotressweepparamsvstemp">
-<h3>plotResSweepParamsVsTemp()<a class="headerlink" href="#plotressweepparamsvstemp" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="plotressweepparamsvsx">
+<h2>plotResSweepParamsVsX()<a class="headerlink" href="#plotressweepparamsvsx" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="scraps.plotResSweepParamsVsTemp">
-<code class="descclassname">scraps.</code><code class="descname">plotResSweepParamsVsTemp</code><span class="sig-paren">(</span><em>resSweep</em>, <em>plot_keys=None</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.plotResSweepParamsVsTemp" title="Permalink to this definition">¶</a></dt>
+<dt id="scraps.plotResSweepParamsVsX">
+<code class="descclassname">scraps.</code><code class="descname">plotResSweepParamsVsX</code><span class="sig-paren">(</span><em>resSweep</em>, <em>plot_keys=None</em>, <em>ignore_keys=None</em>, <em>xvals='temperature'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.plotResSweepParamsVsX" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot parameter data vs temperature from a ResonatorSweep object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>resSweep</strong> (<code class="docutils literal"><span class="pre">scraps.ResonatorSweep</span></code> object) – The object containing the data you want to look at.</li>
+<li><strong>resSweep</strong> (<code class="docutils literal"><span class="pre">scraps.ResonatorSweep</span></code> object or list of objects) – The object containing the data you want to look at. It is also possible
+to pass a list of these objects and it will combine them into one plot.</li>
 <li><strong>plot_keys</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of strings corresponding to avaiable plot data. The available
 keys depend on your parameter definitions and may be found by executing
 <code class="docutils literal"><span class="pre">print(resSweep.keys())</span></code>. Some keys may point to empty (NaN) objects.
@@ -999,6 +1002,9 @@ you may not pass ignore_ignore keys.</li>
 is useful if you want to plot most of the avaialble data, but ignore one
 or two sets of data. Default is <code class="docutils literal"><span class="pre">None</span></code>. If you pass ignore_keys you
 may not pass plot_keys.</li>
+<li><strong>xvals</strong> (<em>string</em>) – What axis you want to plot by. Deafult is ‘temperature’. Could also be
+‘power’. Future releases may include other options.</li>
+<li><strong>color_by</strong> (<em>string</em>) – Set this to ‘index’ if you pass multiple res sweeps and want to color them by index.</li>
 </ul>
 </td>
 </tr>
@@ -1015,9 +1021,13 @@ list and will default to 1. Default is 1.</li>
 <li><strong>num_cols</strong> (<em>int</em>) – The number of columns to create in the plot grid. Default is 1. The
 number of rows will be calculated based on num_cols and the number of
 requested plots.</li>
-<li><strong>powers</strong> (<em>list</em>) – List of powers to plot. Default is to plot all available.</li>
-<li><strong>max_temp</strong> (<em>numeric</em>) – Don’t plot any temperatures above this value. Default is infinity.</li>
-<li><strong>min_temp</strong> (<em>numeric</em>) – Don’t plot any temperatures below this value. Default is 0.</li>
+<li><strong>powers</strong> (<em>list</em>) – List of powers to plot. Default is to plot all available. If xvals is
+‘power’ this kwarg is ignored.</li>
+<li><strong>temperatures</strong> (<em>list</em>) – List of temperatures to plot. Default is to plot all available. If xvals
+is ‘temperature’ this kwarg is ignored.</li>
+<li><strong>xmax</strong> (<em>numeric</em>) – Don’t plot any xvals above this value. Default is infinity.</li>
+<li><strong>xmin</strong> (<em>numeric</em>) – Don’t plot any xvals below this value. Default is 0 for temperature and
+-infinity for power.</li>
 <li><strong>errorbars</strong> (<em>{None</em><em>, </em><em>'lmfit'</em><em>, </em><em>'emcee'}</em>) – Add error bars to the data. Pulls from either the least-squares or the
 MCMC fits. Default is None.</li>
 <li><strong>fig_size</strong> (<em>numeric</em>) – Size in inches for each plot in the figure.</li>
@@ -1027,11 +1037,12 @@ is a valid option.</li>
 colorbar will correspond to the limits of the colored data. Default is
 True.</li>
 <li><strong>force_square</strong> (<em>bool</em>) – Whether or not to force each subplot to have perfectly square axes.</li>
-<li><strong>plot_kwargs</strong> (<em>dict</em>) – Dict of keyword args to pass through to the plotting function. Default
+<li><strong>plot_kwargs</strong> (<em>dict</em><em> or </em><em>list of dicts</em>) – Dict of keyword args to pass through to the plotting function. Default
 is {‘linestyle’:’–’, label=’Power X dB’}. If errorbars is not None,
 then default linestyle is {‘linestyle’:’o’}. Attempting to set ‘color’
 or ‘yerr’ will result in an exception. Use the color_map and errorbars
-keywords to set those.</li>
+keywords to set those. If you passed in a list of objects to resSweep,
+then you can also pass a list of plot_kwargs, one for each sweep object.</li>
 </ul>
 </td>
 </tr>
@@ -1039,58 +1050,15 @@ keywords to set those.</li>
 </table>
 </dd></dl>
 
+<div class="section" id="plotressweepparamsvstemp">
+<h3>plotResSweepParamsVsTemp()<a class="headerlink" href="#plotressweepparamsvstemp" title="Permalink to this headline">¶</a></h3>
+<p>Note: this has been deprecated in favor of plotResSweepParamsVsX
+.. autofunction :: scraps.plotResSweepParamsVsTemp</p>
 </div>
 <div class="section" id="plotressweepparamsvspwr">
 <h3>plotResSweepParamsVsPwr()<a class="headerlink" href="#plotressweepparamsvspwr" title="Permalink to this headline">¶</a></h3>
-<dl class="function">
-<dt id="scraps.plotResSweepParamsVsPwr">
-<code class="descclassname">scraps.</code><code class="descname">plotResSweepParamsVsPwr</code><span class="sig-paren">(</span><em>resSweep</em>, <em>plot_keys=None</em>, <em>ignore_keys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.plotResSweepParamsVsPwr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot parameter data vs power from a ResonatorSweep object.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>resSweep</strong> (<code class="docutils literal"><span class="pre">scraps.ResonatorSweep</span></code> object) – The object containing the data you want to look at.</li>
-<li><strong>plot_keys</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of strings corresponding to avaiable plot data. The available
-keys depend on your parameter definitions and may be found by executing
-<code class="docutils literal"><span class="pre">print(resSweep.keys())</span></code>. Some keys may point to empty (NaN) objects.
-Default is to plot all of the keys that exist. If you pass plot_keys
-you may not pass ignore_ignore keys.</li>
-<li><strong>ignore_keys</strong> (<em>list-like</em><em> (</em><em>optional</em><em>)</em>) – A list of strings corresponding to plots that should not be made. This
-is useful if you want to plot most of the avaialble data, but ignore one
-or two sets of data. Default is <code class="docutils literal"><span class="pre">None</span></code>. If you pass ignore_keys you
-may not pass plot_keys.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
-<li><strong>plot_labels</strong> (<em>list-like</em>) – A list of strings to use to label the y-axes of the plots. There must be
-one for each plot requested. <code class="docutils literal"><span class="pre">None</span></code> is acceptable for any position in
-the list and will default to using the key as the label. Default is to
-use the key as the label.</li>
-<li><strong>unit_multipliers</strong> (<em>list-like</em>) – A list of numbers to multiply against the y-axis data. There must be one
-for each plot requested. <code class="docutils literal"><span class="pre">None</span></code> is acceptable for any position in the
-list and will default to 1. Default is 1.</li>
-<li><strong>fitter</strong> (<em>string {'lmfit'</em><em>, </em><em>'emcee'}</em>) – Which fit data to use when overlaying best fits. Default is ‘lmfit’.</li>
-<li><strong>num_cols</strong> (<em>int</em>) – The number of columns to create in the plot grid. Default is 1. The
-number of rows will be calculated based on num_cols and the number of
-requested plots.</li>
-<li><strong>temps</strong> (<em>list</em>) – List of temperatures to plot. Default is to plot all available.</li>
-<li><strong>max_power</strong> (<em>numeric</em>) – Don’t plot any powers above this value. Default is infinity.</li>
-<li><strong>min_power</strong> (<em>numeric</em>) – Don’t plot any powers below this value. Default is -infinity.</li>
-<li><strong>fig_size</strong> (<em>numeric</em>) – Size in inches for each plot in the figure.</li>
-<li><strong>color_map</strong> (<em>string</em>) – Specifies the colormap to use. Any value in <code class="docutils literal"><span class="pre">matplotlib.pyplot.colormaps()</span></code>
-is a valid option.</li>
-<li><strong>force_square</strong> (<em>bool</em>) – Whether or not to force each subplot to have perfectly square axes.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<p>Note: this has been deprecated in favor of plotResSweepParamsVsX
+.. autofunction :: scraps.plotResSweepParamsVsPwr</p>
 </div>
 <div class="section" id="plotressweep3d">
 <h3>plotResSweep3D()<a class="headerlink" href="#plotressweep3d" title="Permalink to this headline">¶</a></h3>
@@ -1391,6 +1359,9 @@ function in this module for returning gap as a function of temperature.</p>
 </li>
 <li><a class="reference internal" href="#plotting-tools">Plotting tools</a><ul>
 <li><a class="reference internal" href="#plotreslistdata">plotResListData()</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plotressweepparamsvsx">plotResSweepParamsVsX()</a><ul>
 <li><a class="reference internal" href="#plotressweepparamsvstemp">plotResSweepParamsVsTemp()</a></li>
 <li><a class="reference internal" href="#plotressweepparamsvspwr">plotResSweepParamsVsPwr()</a></li>
 <li><a class="reference internal" href="#plotressweep3d">plotResSweep3D()</a></li>
