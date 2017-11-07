@@ -1,4 +1,4 @@
-Version Next (these are things that work now in the develop branch):
+Version 0.3.0:
 
 * Fixed a bug in the plotting routines that was drawing incorrect x-axis labels
 * Added a keyword arguments passthrough to numpy.loadtxt for tuning how process_file loads a file
