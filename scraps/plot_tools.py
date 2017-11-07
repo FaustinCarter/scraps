@@ -421,7 +421,10 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                     if key == 'rQ':
                         ax.plot(scaled_freq, res.residualQ, color=plt_color, **plot_kwargs)
 
-                    ax.set_xticklabels(ax.get_xticks(),rotation=45)
+                    #Matplotlib sucks at rotating ticks properly, so have to do all this!
+                    xticks = ax.get_xticks()
+                    ax.set_xticks(xticks)
+                    ax.set_xticklabels(xticks,rotation=45)
 
                     if force_square:
                         #Make the plot a square
@@ -810,7 +813,7 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
             axs.set_ylabel(key)
             
         #No idea why this is necessary, but it all falls apart without it
-        axs.set_xlim(xmin, xmax)
+        axs.set_xlim(np.min(x_data), np.max(x_data))
         xticks = axs.get_xticks()
         axs.set_xticks(xticks)
         axs.set_xticklabels(xticks,rotation=45)
