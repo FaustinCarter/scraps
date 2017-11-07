@@ -808,7 +808,12 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
             axs.set_ylabel(plot_labels[ix])
         else:
             axs.set_ylabel(key)
-        axs.set_xticklabels(axs.get_xticks(),rotation=45)
+            
+        #No idea why this is necessary, but it all falls apart without it
+        axs.set_xlim(xmin, xmax)
+        xticks = axs.get_xticks()
+        axs.set_xticks(xticks)
+        axs.set_xticklabels(xticks,rotation=45)
 
         if force_square:
             #Make the plot a square
