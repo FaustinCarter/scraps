@@ -9,7 +9,7 @@ scraps: SuperConducting Resonator Analysis and Plotting Software
 Scraps is a package designed to help you analyze lots of data from superconducting
 resonators. The basic idea is that you hook up your VNA (or mixer) and measure S21
 at several different temperatures and driving powers. Maybe you have a PID and some
-decent automation software that take several hundred traces, and now you don't know
+decent automation software that takes several hundred traces, and now you don't know
 what to do with all that data. Enter scraps. Scraps will organize it all and run
 fits on it, and make pretty pictures you can show your advisor or funding committee
 or spouse (when asked what you do all day upon returning home) or even put into a
@@ -23,7 +23,7 @@ get involved by posting a message at the github repo.
 Scraps is licensed under the MIT license, so feel free to copy it, play with it,
 modify it, etc. under those terms (which are pretty loose!).
 
-Development of scraps happens over at `github <http://github.com/faustin315/scraps>`_
+Development of scraps happens over at `github <http://github.com/FaustinCarter/scraps>`_
 so that is a great place to post bug reports, requests, kudos, etc.
 
 Contents:

@@ -75,6 +75,13 @@ class ResonatorSweep(dict):
         The minimum value of the magnitude vs frequency curve after subtraction
         of the best-guess baseline.
 
+    'listIndex' : ``pandas.DataFrame``
+        The sweep objects are built from a list of ``pyres.Resonator``
+        objects; this is the index of the original list for
+        each data value in the sweep.
+
+    If the ``do_lmfit`` method has been run, these keys are also added:
+
     'chisq' : ``pandas.DataFrame``
         The Chi-squared value of each fit in the sweep.
 
@@ -84,14 +91,31 @@ class ResonatorSweep(dict):
     'feval' : ``pandas.DataFrame``
         The number of function evaluations for each fit in the sweep.
 
-    'listIndex' : ``pandas.DataFrame``
-        The sweep objects are built from a list of ``pyres.Resonator``
-        objects; this is the index of the original list for
-        each data value in the sweep.
-
-    paramValues : ``pandas.DataFrame``
+    paramNames : ``pandas.DataFrame``
         There is a key for each parameter value in the ``Resonator.params``
         attribute.
+
+    paramNames + '_sigma' : ``pandas.DataFrame``
+        There is a key for the uncertainty on each paramter value returned by
+        the fit. Key name is paramName + '_sigma'
+
+    If the ``do_emcee`` method has been run, these keys are also added:
+
+    paramNames + '_mle' : ``pandas.DataFrame``
+        The maximum-liklihood estimate from the MCMC sampling.
+
+    paramNames + '_mc' : ``pandas.DataFrame``
+        The 50th percentile value of the posterior distribution from MCMC
+        sampling.
+
+    paramNames + '_sigma_plus_mc' : ``pandas.DataFrame``
+        The plus errorbar on the MCMC data. Calculated as the difference between
+        the 84th percentile value and the 50th percentile value.
+
+    paramNames + '_sigma_minus_mc' : ``pandas.DataFrame``
+        The minus errorbar on the MCMC data. Calculated as the difference between
+        the 50th percentile value and the 16th percentile value.
+
 
     """
 
@@ -115,9 +139,11 @@ class ResonatorSweep(dict):
         #Start with the list of fit parameters, want to save all of them
         #Can just use the first resonator's list, as they are all the same.
         #params is NOT an lmfit object.
-        params = resList[0].params.keys()
+        params = list(resList[0].params.keys())
 
         #Add a few more
+        #TODO: Right now, only fit information from the most recent fit is stored
+        #TODO: Would be good to maybe have keys for each joint fit?
         params.append('temps') #Actual temperature value of measured resonator
         params.append('fmin') #Frequency at magnitude minimum
         params.append('chisq') #Chi-squared value from fit
@@ -218,8 +244,21 @@ class ResonatorSweep(dict):
 
 
             if pname in resList[0].params.keys():
+                #Uncertainty on best fit from least-squares
                 self[pname+'_sigma'] = pd.DataFrame(np.nan, index=self.tvec, columns = self.pvec)
+
+                #Maximum liklihood value from MCMC
+                self[pname+'_mle'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+
+                #50th percentile value of MCMC chain
                 self[pname+'_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+
+                #84th-50th values from MCMC chain
+                self[pname+'_sigma_plus_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+
+                #50th-16th values from MCMC chain
+                self[pname+'_sigma_minus_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+
 
             #Fill it with as much data as exists
             for index, res in enumerate(resList):
@@ -237,7 +276,16 @@ class ResonatorSweep(dict):
 
                         #Get the maximum liklihood if it exists
                         if res.hasChain is True:
+
+                            #Grab the index of the parameter in question
+                            sx = list(res.emcee_result.flatchain.iloc[np.argmax(res.emcee_result.lnprob)].keys()).index(pname)
+                            self[pname+'_mle'][res.pwr][res.itemp] = res.mle_vals[pname]
                             self[pname+'_mc'][res.pwr][res.itemp] = res.emcee_result.params[pname].value
+
+                            #Since the plus and minus errorbars can be different,
+                            #have to store them separately
+                            self[pname+'_sigma_plus_mc'][res.pwr][res.itemp] = res.emcee_sigmas[sx][0]
+                            self[pname+'_sigma_minus_mc'][res.pwr][res.itemp] = res.emcee_sigmas[sx][1]
                 elif pname == 'temps':
                     #Since we bin the temps by itemp for indexing, store the actual temp here
                     self[pname][res.pwr][res.itemp] = res.temp
@@ -305,6 +353,29 @@ class ResonatorSweep(dict):
             Supported keyword arugments are 'min_temp', 'max_temp', 'min_pwr',
             and 'max_pwr'. These set limits on which data to fit.
 
+        Keyword arguments
+        -----------------
+
+        min_temp : numeric
+            Lower limit of temperature to fit. Default is 0.
+
+        max_temp : numeric
+            Upper limit of temerature to fit. Default is infinity.
+
+        min_pwr : numeric
+            Lower limit of temperature to fit. Default is -infinity.
+
+        max_pwr : numeric
+            Upper limit of temperature to fit. Default is infinity.
+
+        raw_data : string {'lmfit', 'emcee', 'mle'}
+            Whether to use the values returned by lmfit, or the values returned
+            by the emcee fitter (either the 50th percentile or the maximum
+            liklihood). This also chooses which set of errorbars to use: either
+            those from the lmfit covariance matrix, or those from the 16th and
+            84th percentiles of the posterior probablility distribution. Default
+            is 'lmfit'.
+
         Note
         ----
         If the fits are succesful, the resulting fit data (ie the best fit
@@ -331,6 +402,10 @@ class ResonatorSweep(dict):
         min_pwr = kwargs.pop('min_pwr', min(self.pvec))
         max_pwr = kwargs.pop('max_pwr', max(self.pvec))
         p_filter = (self.pvec >= min_pwr) * (self.pvec <= max_pwr)
+
+        #Process the final kwarg:
+        raw_data = kwargs.pop('raw_data', 'lmfit')
+        assert raw_data in ['lmfit', 'emcee', 'mle'], "raw_data must be 'lmfit' or 'emcee'."
 
 
 
@@ -380,14 +455,26 @@ class ResonatorSweep(dict):
         #Transposing is important because numpy matrices are transposed from
         #Pandas DataFrames
         for key in fit_keys:
+
+            if raw_data == 'emcee':
+                key = key + '_mc'
+            elif raw_data == 'mle':
+                key = key + '_mle'
+
+            if raw_data in ['emcee', 'mle']:
+                err_bars = (self[key+'_sigma_plus_mc'].loc[t_filter, p_filter].values.T+
+                            self[key+'_sigma_minus_mc'].loc[t_filter, p_filter].values.T)
+            else:
+                err_bars = self[key+'_sigma'].loc[t_filter, p_filter].values.T
+
             fit_data_list.append(self[key].loc[t_filter, p_filter].values.T)
-            fit_sigmas_list.append(self[key+'_sigma'].loc[t_filter, p_filter].values.T)
+            fit_sigmas_list.append(err_bars)
 
         #Create a new model function that will be passed to the minimizer.
         #Basically this runs each fit and passes all the residuals back out
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
+            residuals = []
             for ix, key in enumerate(fit_keys):
-                residuals = []
                 residuals.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
 
             return np.asarray(residuals).flatten()
@@ -427,7 +514,7 @@ class ResonatorSweep(dict):
 
 
 
-    def do_emcee(self, fit_keys, models_list, params_list=None, model_kwargs=None, param_kwargs=None, emcee_kwargs={}, **kwargs):
+    def do_emcee(self, fit_keys, models_list, params_list=None, model_kwargs=None, param_kwargs=None, emcee_kwargs=None, **kwargs):
         r"""Run simulatneous MCMC sampling on the temp/pwr data for several
         parameters. Results are stored in either the ``emcee_results`` or
         ``emcee_joint_results`` attribute depending on whether one or multiple
@@ -492,6 +579,14 @@ class ResonatorSweep(dict):
             object that resulted from calling ``ResonatorSweep.do_lmfit()`` as
             the starting value for the MCMC sampler. Default is True.
 
+        raw_data : string {'lmfit', 'emcee', 'mle'}
+            Whether to use the values returned by lmfit, or the values returned
+            by the emcee fitter (either the 50th percentile or the maximum
+            liklihood). This also chooses which set of errorbars to use: either
+            those from the lmfit covariance matrix, or those from the 16th and
+            84th percentiles of the posterior probablility distribution. Default
+            is 'lmfit'.
+
         Note
         ----
         If the fits are succesful, the resulting fit data (ie the best fit
@@ -507,6 +602,10 @@ class ResonatorSweep(dict):
             'emcee_'+key
 
         """
+
+        #Figure out which data to fit
+        raw_data = kwargs.pop('raw_data', 'lmfit')
+        assert raw_data in ['lmfit', 'emcee', 'mle'], "raw_data must be 'lmfit' or 'emcee'."
 
 
 
@@ -526,12 +625,16 @@ class ResonatorSweep(dict):
         else:
             assert len(fit_keys) == len(models_list), "Make sure argument lists match in number."
 
-        #Make some empty dictionaries just in case
+        #Make some empty dictionaries just in case so we don't break functions
+        #by passing None as a kwargs
         if model_kwargs is None:
             model_kwargs = [{}]*len(fit_keys)
 
         if param_kwargs is None:
             params_kwargs = [{}]*len(fit_keys)
+
+        if emcee_kwargs is None:
+            emcee_kwargs = {}
 
 
         #Check to see if this should go in the joint_fits dict, and build a key if needed.
@@ -586,14 +689,26 @@ class ResonatorSweep(dict):
         #Transposing is important because numpy matrices are transposed from
         #Pandas DataFrames
         for key in fit_keys:
+
+            if raw_data == 'emcee':
+                key = key + '_mc'
+            elif raw_data == 'mle':
+                key = key + '_mle'
+
+            if raw_data in ['emcee', 'mle']:
+                err_bars = (self[key+'_sigma_plus_mc'].loc[t_filter, p_filter].values.T+
+                            self[key+'_sigma_minus_mc'].loc[t_filter, p_filter].values.T)
+            else:
+                err_bars = self[key+'_sigma'].loc[t_filter, p_filter].values.T
+
             fit_data_list.append(self[key].loc[t_filter, p_filter].values.T)
-            fit_sigmas_list.append(self[key+'_sigma'].loc[t_filter, p_filter].values.T)
+            fit_sigmas_list.append(err_bars)
 
         #Create a new model function that will be passed to the minimizer.
         #Basically this runs each fit and passes all the residuals back out
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
+            residuals = []
             for ix, key in enumerate(fit_keys):
-                residuals = []
                 residuals.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
 
             return np.asarray(residuals).flatten()
@@ -629,3 +744,9 @@ class ResonatorSweep(dict):
             #Have to transpose the matrix to turn it back into a DF
             self[new_key] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
             self[new_key].loc[self.tvec[t_filter], self.pvec[p_filter]] = returned_model.T
+
+    def info():
+        """Print out some information on all the keys that are stored in the object."""
+
+        #For now, this just spits out all the keys. Could be more useful.
+        print(sorted(self.keys()))

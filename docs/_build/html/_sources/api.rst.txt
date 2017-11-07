@@ -23,7 +23,7 @@ Resonator methods
 ^^^^^^^^^^^^^^^^^
 
 .load_params()
------------
+--------------
 .. automethod :: scraps.Resonator.load_params
 
 .torch_params()
@@ -112,12 +112,18 @@ plotResListData()
 ^^^^^^^^^^^^^^^^^
 .. autofunction :: scraps.plotResListData
 
+plotResSweepParamsVsX()
+~~~~~~~~~~~~~~~~~~~~~~~
+.. autofunction :: scraps.plotResSweepParamsVsX
+
 plotResSweepParamsVsTemp()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+Note: this has been deprecated in favor of plotResSweepParamsVsX
 .. autofunction :: scraps.plotResSweepParamsVsTemp
 
 plotResSweepParamsVsPwr()
 ^^^^^^^^^^^^^^^^^^^^^^^^^
+Note: this has been deprecated in favor of plotResSweepParamsVsX
 .. autofunction :: scraps.plotResSweepParamsVsPwr
 
 plotResSweep3D()

@@ -1,6 +1,6 @@
 import numpy as np
 
-def process_file(fileName, rows_to_skip = 1):
+def process_file(fileName, **loadtxt_kwargs):
     """Load Keysight PNA file data into dict.
 
     Parameters
@@ -15,8 +15,8 @@ def process_file(fileName, rows_to_skip = 1):
 
         - temp: The temperature of the resonator in K, five characters Example: '0.150'
 
-    rows_to_skip : int
-        Number of rows to skip at start of file. Default is 1.
+    loadtxt_kwargs : dict
+        This is a pass-through to numpy.loadtxt
 
     Returns
     -------
@@ -47,7 +47,7 @@ def process_file(fileName, rows_to_skip = 1):
         resName = fileName[resNameLoc:resNameLoc+5]
 
         #Grab frequency, I, and Q
-        fileData = np.loadtxt(fileName, skiprows=rows_to_skip)
+        fileData = np.loadtxt(fileName, **loadtxt_kwargs)
         freqData = fileData[:,0]
         IData = fileData[:,1]
         QData = fileData[:,2]

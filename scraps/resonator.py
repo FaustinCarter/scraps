@@ -172,7 +172,7 @@ class Resonator(object):
         self.phase = np.arctan2(Q,I) #use arctan2 because it is quadrant-aware
         self.uphase = np.unwrap(self.phase) #Unwrap the 2pi phase jumps
         self.mag = np.abs(self.S21) #Units are volts.
-        self.logmag = 20*np.log(self.mag) #Units are dB (20 because V->Pwr)
+        self.logmag = 20*np.log10(self.mag) #Units are dB (20 because V->Pwr)
 
         #Find the frequency at magnitude minimum (this can, and should, be
         #overwritten by a custom params function)
@@ -249,7 +249,7 @@ class Resonator(object):
 
         #Update any of the default Parameter guesses
         if kwargs is not None:
-            for key, val in kwargs.iteritems():
+            for key, val in kwargs.items():
                 #Allow for turning on and off parameter variation
                 if '_vary' in key:
                     key = key.split('_')[0]
@@ -300,8 +300,8 @@ class Resonator(object):
         self.resultPhase = resultPhase
 
         #It's useful to have a list of the best fits for the varying parameters
-        self.lmfit_vals = np.asarray([val.value for key, val in lmfit_result.params.iteritems() if val.vary is True])
-        self.lmfit_labels = [key for key, val in lmfit_result.params.iteritems() if val.vary is True]
+        self.lmfit_vals = np.asarray([val.value for key, val in lmfit_result.params.items() if val.vary is True])
+        self.lmfit_labels = [key for key, val in lmfit_result.params.items() if val.vary is True]
 
     def torch_lmfit(self):
         r"""Reset all the lmfit attributes to ``None`` and set ``hasFit = False``.
@@ -366,9 +366,19 @@ class Resonator(object):
         emcee_result = minObj.emcee(**kwargs)
         self.emcee_result = emcee_result
 
-        #It is useful to have easy access to the maximum-liklihood estimates
-        self.mle_vals = np.asarray([val.value for key, val in emcee_result.params.iteritems() if val.vary is True])
-        self.mle_labels = [key for key, val in emcee_result.params.iteritems() if val.vary is True]
+        #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
+        self.emcee_vals = np.asarray([np.percentile(emcee_result.flatchain[key], 50) for key in emcee_result.flatchain.keys()])
+        err_plus = np.asarray([np.percentile(self.emcee_result.flatchain[key], 84) for key in self.emcee_result.flatchain.keys()])
+        err_minus = np.asarray([np.percentile(self.emcee_result.flatchain[key], 16) for key in self.emcee_result.flatchain.keys()])
+
+        #Make a list of tuples that are (+err, -err) for each paramter
+        self.emcee_sigmas = list(zip(err_plus-self.emcee_vals, self.emcee_vals-err_minus))
+
+        #It is also useful to have easy access to the maximum-liklihood estimates
+        self.mle_vals = emcee_result.flatchain.iloc[np.argmax(emcee_result.lnprob)]
+
+        #This is useful because only varying parameters have mle vals
+        self.mle_labels = self.mle_vals.keys()
 
         #This is also nice to have explicitly for passing to triangle-plotting routines
         self.chain = emcee_result.flatchain.copy()
@@ -378,6 +388,8 @@ class Resonator(object):
         r"""Set the emcee-related attributes to ``None`` and ``hasChain = False``."""
         self.hasChain = False
         self.emcee_result = None
+        self.emcee_vals = None
+        self.emcee_sigmas = None
         self.mle_vals = None
         self.mle_labels = None
         self.chain = None
@@ -459,7 +471,7 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
     #Return resonator object
     return res
 
-def makeResList(fileFunc, dataPath, resName):
+def makeResList(fileFunc, dataPath, resName, **fileFunc_kwargs):
     """Create a list of resonator objects from a directory of dataDict
 
     Parameters
@@ -479,12 +491,18 @@ def makeResList(fileFunc, dataPath, resName):
         use the same name for every data file that comes from the same physical
         resonator.
 
+    fileFunc_kwargs : dict
+        Keyword arguments to pass through to the fileFunc
+
     """
     #Find the files that match the resonator you care about
-    fileList = glob.glob(dataPath + '*' + resName + '_*' + '*')
+    fileList = glob.glob(dataPath + resName + '_*')
 
     #loop through files and process all the data
-    fileDataDicts = map(fileFunc, fileList)
+    fileDataDicts = []
+
+    for f in fileList:
+        fileDataDicts.append(fileFunc(f, **fileFunc_kwargs))
 
     #Create resonator objects from the data
     #makeResFromData returns a tuple of (res, temp, pwr),
@@ -494,7 +512,7 @@ def makeResList(fileFunc, dataPath, resName):
     return resList
 
 #Index a list of resonator objects easily
-def indexResList(resList, temp, pwr, **kwargs):
+def indexResList(resList, temp=None, pwr=None, **kwargs):
     """Index resList by temp and pwr.
 
     Parameters
@@ -512,8 +530,9 @@ def indexResList(resList, temp, pwr, **kwargs):
 
     Returns
     -------
-    index : int
-        Index is the index of the Resonator in resList
+    index : int or list
+        Index is the index of the Resonator in resList or a list of indices of
+        all matches if only pwr or only temp is specified.
 
     Notes
     -----
@@ -523,13 +542,127 @@ def indexResList(resList, temp, pwr, **kwargs):
     itemp = kwargs.pop('itemp', False)
     assert itemp in [True, False], "'itemp' must be boolean."
 
+    assert (pwr is not None) or (temp is not None), "Must specify at least either a temp or a pwr."
 
-    for index, res in enumerate(resList):
-        if itemp is True:
-            if res.itemp == temp and res.pwr == pwr:
-                return index
-        else:
-            if res.temp == temp and res.pwr == pwr:
-                return index
+
+    if (pwr is not None) and (temp is not None):
+        for index, res in enumerate(resList):
+            if itemp is True:
+                if res.itemp == temp and res.pwr == pwr:
+                    return index
+            else:
+                if np.isclose(res.temp, temp) and res.pwr == pwr:
+                    return index
+    elif (pwr is None):
+        index = []
+        for ix, res in enumerate(resList):
+            if itemp is True:
+                if res.itemp == temp:
+                    index.append(ix)
+                else:
+                    if np.isclose(res.temp, temp):
+                        index.append(ix)
+    elif (temp is None):
+        index = []
+        for ix, res in enumerate(resList):
+            if res.pwr == pwr:
+                index.append(ix)
+        return index
 
     return None
+
+def print_resList(resList):
+    """Print all the temperatures and powers in a table-like form"""
+    #Get all possible powers
+    pwrs = np.unique([res.pwr for res in resList])
+
+    #This will hold a list of temps at each power
+    tlists = []
+    max_len = 0
+
+    #Populate the lists of temps for each power
+    for p in pwrs:
+        tlist = [res.temp for res in resList if res.pwr == p]
+        tlist.sort()
+        tlists.append(tlist)
+        if len(tlist) > max_len:
+            max_len = len(tlist)
+
+    for ix, tlist in enumerate(tlists):
+        pad = max_len - len(tlist)
+        tlist = tlist + pad*['NaN']
+        tlists[ix] = tlist
+
+    block = zip(*tlists)
+
+    print(repr(list(pwrs)).replace(',', ',\t'))
+    for b in block:
+        print(repr(b).replace(',', ',\t'))
+
+
+
+def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
+    """Helper tool for preparing a resList with missing data for resSweep"""
+    #Get all possible powers
+    pwrs = np.unique([res.pwr for res in resList])
+
+    #This will hold a list of temps at each power
+    tlists = []
+
+    #Populate the lists of temps for each power
+    for p in pwrs:
+        tlist = [res.temp for res in resList if res.pwr == p]
+        tlist.sort()
+        tlists.append(tlist)
+
+    #Calculate the lengths and find the shortest one
+    lens = [len(tl) for tl in tlists]
+    shortest = min(lens)
+
+    if all(el == shortest for el in lens) and verbose:
+        print('All lists have same length.')
+    else:
+        print('Lengths for each set of powers: ',list(zip(pwrs,lens)))
+
+    #Zip the lists into tuples and take the standard deviation
+    #of each tuple. All the elements in each tuple should be
+    #nominally the same, so the stdev should be small unless
+    #one of the elements doesn't match. Return the first
+    #instance of the stdev being too high
+    block = list(zip(*tlists))
+    bad_ix = np.argmax([np.std(x) > sdev for x in block])
+
+    #If the first row is returned, everything could be ok. Check first row.
+    if bad_ix == 0:
+        if np.std(block[0]) < sdev:
+            bad_ix = -1
+
+    if verbose:
+        print("Bad index: ", bad_ix)
+
+    if bad_ix >= 0:
+
+        if verbose:
+            for i in np.arange(-2,3):
+                if (bad_ix+i < len(block)) and (bad_ix+i >= 0):
+                    print(repr(block[bad_ix+i]).replace(',', ',\t'))
+                    block_ixs = []
+                    for block_ix, block_temp in enumerate(block[bad_ix+i]):
+                        block_ixs.append(indexResList(resList, block_temp, pwrs[block_ix]))
+                    print(repr(block_ixs).replace(',', ',\t'))
+
+
+            #The longer list is where the extra file is most likely
+            #so return the temp, power, and resList index of the
+            #suspect.
+            for i, x in enumerate(block[bad_ix]):
+                if np.abs(x-np.mean(block[bad_ix])) > np.std(block[bad_ix]):
+
+                    tl = tlists[i]
+                    t = tl[bad_ix]
+                    p = pwrs[i]
+                    res_ix = indexResList(resList, t, p)
+                    if verbose:
+                        print('T=',t, 'P=',p, 'Res index=',res_ix)
+                    if prune:
+                        resList.pop(res_ix)

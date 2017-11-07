@@ -5,7 +5,7 @@ Installation
 Required packages
 ~~~~~~~~~~~~~~~~~
 
-Scraps is written in Python 2.7 and requires the following packages:
+Scraps is written in Python 3.6 (compatible with 2.7) and requires the following packages:
 
 * numpy
 * pandas
@@ -35,19 +35,24 @@ install from source with::
 Development
 ~~~~~~~~~~~
 
-Development happens at `github <http://github.com/faustin315/scraps>`_. You can
+Development happens at `github <http://github.com/FaustinCarter/scraps>`_. You can
 clone the repo with::
 
-  git clone http://github.com/faustin315/scraps
+  git clone http://github.com/FaustinCarter/scraps
 
 And you can install it in developer mode with pip::
 
-  pip install -e directory_where_you_cloned_scraps
+  pip install -e /directory/where/you/cloned/scraps
 
 or from source::
 
-  cd directory_cloned_scraps_into
+  cd /directory/where/you/cloned/scraps
   python setup.py develop
+
+For the bleeding edge version checkout the develop branch::
+
+  cd /directory/where/you/cloned/scraps
+  git checkout develop
 
 If you like this project and want to contribute, send a message over at the
 github repo and you can be added as a collaborator!

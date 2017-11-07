@@ -1,37 +1,38 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>scraps: SuperConducting Resonator Analysis and Plotting Software &mdash; scraps 0.2.3 documentation</title>
-    
+    <title>scraps: SuperConducting Resonator Analysis and Plotting Software &#8212; scraps 0.2.3 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '0.2.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="scraps 0.2.3 documentation" href="#" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Installation" href="installation.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">
+  <body>
   
 
     <div class="document">
@@ -44,7 +45,7 @@
 <p>Scraps is a package designed to help you analyze lots of data from superconducting
 resonators. The basic idea is that you hook up your VNA (or mixer) and measure S21
 at several different temperatures and driving powers. Maybe you have a PID and some
-decent automation software that take several hundred traces, and now you don&#8217;t know
+decent automation software that takes several hundred traces, and now you don’t know
 what to do with all that data. Enter scraps. Scraps will organize it all and run
 fits on it, and make pretty pictures you can show your advisor or funding committee
 or spouse (when asked what you do all day upon returning home) or even put into a
@@ -55,7 +56,7 @@ also, as well as noise in addition to S21. If you would like to be a part of tha
 get involved by posting a message at the github repo.</p>
 <p>Scraps is licensed under the MIT license, so feel free to copy it, play with it,
 modify it, etc. under those terms (which are pretty loose!).</p>
-<p>Development of scraps happens over at <a class="reference external" href="http://github.com/faustin315/scraps">github</a>
+<p>Development of scraps happens over at <a class="reference external" href="http://github.com/FaustinCarter/scraps">github</a>
 so that is a great place to post bug reports, requests, kudos, etc.</p>
 <div class="section" id="contents">
 <h2>Contents:<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
@@ -68,6 +69,7 @@ so that is a great place to post bug reports, requests, kudos, etc.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Example1_LoadAndPlot.html">Example 1: Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Example1_LoadAndPlot.html#load-up-the-scraps-modules">Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example1_LoadAndPlot.html#load-a-file-and-process-the-data">Load a file and process the data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example1_LoadAndPlot.html#make-a-resonator-object">Make a <code class="docutils literal"><span class="pre">Resonator</span></code> object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example1_LoadAndPlot.html#make-a-pretty-plot">Make a pretty plot</a></li>
@@ -76,35 +78,44 @@ so that is a great place to post bug reports, requests, kudos, etc.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Example2_LotsOfData.html">Example 2: Lots of Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Example2_LotsOfData.html#load-up-the-scraps-modules">Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example2_LotsOfData.html#make-a-list-of-resonator-objects">Make a list of Resonator objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example2_LotsOfData.html#fit-i-and-q-data-to-a-model">Fit I and Q data to a model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example2_LotsOfData.html#make-a-pretty-plot">Make a pretty plot</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example2_LotsOfData.html#use-the-resonatorsweep-object-to-look-at-fit-parameters">Use the <code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object to look at fit parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Example3_FiguresForManuscript.html">Example 3: Beautiful Figures</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="Example3_FiguresForManuscript.html">Figure generation for a manuscript (using NbN CPW resonator data)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#import-some-stuff">Import some stuff</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#load-the-data-using-the-makereslist-tool-from-scraps">Load the data using the makeResList tool from <code class="docutils literal"><span class="pre">scraps</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#if-you-have-cached-data-skip-a-few-cells-down-to-load-up-previously-cached-data"><em>If you have cached data, skip a few cells down to &#8220;Load up previously cached data&#8221;</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#if-you-have-cached-data-skip-a-few-cells-down-to-load-up-previously-cached-data"><em>If you have cached data, skip a few cells down to “Load up previously cached data”</em></a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#cache-fit-results-for-future-analysis">Cache fit results for future analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#load-up-previously-cached-data">Load up previously cached data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#now-we-can-make-a-plot-of-the-traces">Now we can make a plot of the traces.</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#use-the-mcmc-sampler-to-calculate-covariances-for-one-of-the-fits">Use the MCMC sampler to calculate covariances for one of the fits</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Example3_FiguresForManuscript.html#now-we-can-make-a-plot-of-the-traces">Now we can make a plot of the traces.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Example3_FiguresForManuscript.html#use-the-mcmc-sampler-to-calculate-covariances-for-one-of-the-fits">Use the MCMC sampler to calculate covariances for one of the fits</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#use-pygtc-to-plot-the-parameter-covariances">Use <code class="docutils literal"><span class="pre">pygtc</span></code> to plot the parameter covariances</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#s21-fit-results-vs-temperature-and-power">S21 fit results vs temperature and power</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Example3_FiguresForManuscript.html#s21-fit-results-vs-temperature-and-power">S21 fit results vs temperature and power</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#now-we-can-look-at-the-fit-parameters-from-the-previous-step-vs-temperature-or-power">Now we can look at the fit parameters from the previous step vs Temperature or Power</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#fitting-secondary-fit-parameters-to-a-model">Fitting secondary fit parameters to a model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Example3_FiguresForManuscript.html#fitting-secondary-fit-parameters-to-a-model">Fitting secondary fit parameters to a model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#generate-model-parameters">Generate model parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#run-the-fit-with-the-toy-model">Run the fit with the toy model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#plot-the-results-as-a-surface">Plot the results as a surface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#use-mcmc-to-look-at-the-fit-parameter-covariances">Use MCMC to look at the fit parameter covariances</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#id1">Use <code class="docutils literal"><span class="pre">pygtc</span></code> to plot the parameter covariances</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#joint-fit-of-f0-and-qi">Joint fit of <code class="docutils literal"><span class="pre">f0</span></code> and <code class="docutils literal"><span class="pre">qi</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example3_FiguresForManuscript.html#joint-fit-of-and">Joint fit of <span class="math">\(f_0\)</span> and <span class="math">\(Q_\mathrm{i}\)</span>.</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api.html#resonator-class">Resonator class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#resonatorsweep-class">ResonatorSweep class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#plotting-tools">Plotting tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#plotressweepparamsvsx">plotResSweepParamsVsX()</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#fit-models">Fit models</a></li>
 </ul>
 </li>
@@ -137,8 +148,8 @@ so that is a great place to post bug reports, requests, kudos, etc.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -152,11 +163,11 @@ so that is a great place to post bug reports, requests, kudos, etc.</p>
       &copy;2016, Faustin W. Carter.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="_sources/index.txt"
+      <a href="_sources/index.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
