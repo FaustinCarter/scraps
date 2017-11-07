@@ -421,9 +421,7 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                     if key == 'rQ':
                         ax.plot(scaled_freq, res.residualQ, color=plt_color, **plot_kwargs)
 
-                    #Matplotlib sucks at rotating ticks properly, so have to do all this!
                     xticks = ax.get_xticks()
-                    ax.set_xticks(xticks)
                     ax.set_xticklabels(xticks,rotation=45)
 
                     if force_square:

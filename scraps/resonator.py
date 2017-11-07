@@ -622,7 +622,7 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
     if all(el == shortest for el in lens) and verbose:
         print('All lists have same length.')
     else:
-        print('Lengths for each set of powers: ',zip(pwrs,lens))
+        print('Lengths for each set of powers: ',list(zip(pwrs,lens)))
 
     #Zip the lists into tuples and take the standard deviation
     #of each tuple. All the elements in each tuple should be
