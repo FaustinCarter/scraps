@@ -1,5 +1,6 @@
 Version Next (these are things that work now in the develop branch):
 
+* Fixed a bug in the plotting routines that was drawing incorrect x-axis labels
 * Added a keyword arguments passthrough to numpy.loadtxt for tuning how process_file loads a file
 * Huge plotting update! Now can plot data from multiple ResonatorSweep objects on the same axis
 * Compatible with Python 2 and 3
