@@ -1,9 +1,5 @@
 scraps stands for: SuperConducting Resonator Analysis and Plotting Software
-=============
-
-.. |DOI| image:: https://zenodo.org/badge/23506/FaustinCarter/scraps.svg
-   :target: https://doi.org/10.1109/TASC.2016.2625767
-
+===========================================================================
 Scraps is a package designed to help you analyze lots of data from superconducting
 resonators. The basic idea is that you hook up your VNA (or mixer) and measure S21
 at several different temperatures and driving powers. Maybe you have a PID and some
@@ -19,12 +15,12 @@ also, as well as noise in addition to S21. If you would like to be a part of tha
 get involved by posting a message here.
 
 License
------
+-------
 Scraps is licensed under the MIT license, so feel free to copy it, play with it,
 modify it, etc. under those terms (which are pretty loose!).
 
 Documentation
---------
+-------------
 Installation is as simple as::
 
   pip install scraps
@@ -41,7 +37,7 @@ For complete API documentation, more in depth installation instructions and some
 example tutorials, see the official documentation at: http://scraps.readthedocs.io
 
 Citation
-------
+--------
 If you use scraps to make plots or analyze data for a publication, please cite the IEEE Applied Superconductivity Manuscript, DOI: `10.1109/TASC.2016.2625767 <https://doi.org/10.1109/TASC.2016.2625767>`_::
   
   @article{Carter2016, 
@@ -58,7 +54,7 @@ If you use scraps to make plots or analyze data for a publication, please cite t
   }
 
 Short description of files that aren't code:
-------------------
+--------------------------------------------
 
 - Example1: a JuPyter notebook that will help you get started with the basics.
   Focus is on a single S21 sweep.
@@ -76,7 +72,7 @@ Short description of files that aren't code:
 - readthedocs.yml and environment.yml: These are needed to properly build the documentation hosted at RTD.
 
 Support
-------
+-------
 Please post any bugs or feature requests here on GitHub. Bugs will be squashed ASAP.
 Feature requests will be seriously considered!
 

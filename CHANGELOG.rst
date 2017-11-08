@@ -1,3 +1,7 @@
+Version 0.3.1:
+
+* Fix README formatting for PyPI
+
 Version 0.3.0:
 
 * Fixed a bug in the plotting routines that was drawing incorrect x-axis labels
