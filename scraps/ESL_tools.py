@@ -1,5 +1,47 @@
 from .resonator import Resonator, makeResFromData
 import numpy as np
+from astropy.io import fits
+
+def load_fits(dataFile, resNum = 0):
+    """Load in a single sweep from one of Pete's .fits files"""
+    
+    data = fits.open(dataFile, memmap=False)
+    
+    header = data[1].header
+    table = data[1].data
+    
+    num_sweeps = header['VNATONES']
+    attenuation = header['ATT_UC'] + header['ATT_C'] + header['ATT_RT']
+    vna_power = header['VNAPOWER']
+    power = vna_power - attenuation
+    
+    temp = header['SAMPLETE']
+    
+    num_pts = header['NAXIS2']//num_sweeps
+    
+    dataDict = {}
+    
+    start_ix = resNum*num_pts
+    end_ix = start_ix + num_pts - 1
+    
+    mask = slice(start_ix, end_ix)
+    
+    dataDict['freqs'] = table['Freq'][mask]
+    dataDict['I'] = table['ReS21'][mask]
+    dataDict['Q'] = table['ImS21'][mask]
+    
+    dataDict['temp'] = temp
+    dataDict['pwr'] = power
+    dataDict['name'] = 'RES-' + str(resNum)
+    
+    data.close()
+    
+    return dataDict
+    
+    
+    
+    
+    
 
 def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
     """Load a single resonator file from ESL into a data dict for later processing.
