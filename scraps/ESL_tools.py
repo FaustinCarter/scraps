@@ -11,7 +11,7 @@ def load_fits(dataFile, resNum = 0):
     table = data[1].data
     
     num_sweeps = header['VNATONES']
-    attenuation = header['ATT_UC'] + header['ATT_C'] + header['ATT_RT']
+    attenuation = header['INPUTATT'] + header['ATT_UC'] + header['ATT_C'] + header['ATT_RT']
     vna_power = header['VNAPOWER']
     power = vna_power - attenuation
     
