@@ -90,7 +90,7 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     offset = Ioffset + 1j*Qoffset
 
     #Calculate model from params at each point in freqs
-    modelCmplx = -gain*pgain*(1./qi+1j*2.0*(ff+df/fs))/(1./q0+1j*2.0*ff)+offset
+    modelCmplx = gain*pgain*(1./qi+1j*2.0*(ff+df/fs))/(1./q0+1j*2.0*ff)+offset
 
     #Package complex data in 1D vector form
     modelI = np.real(modelCmplx)
@@ -199,7 +199,7 @@ def cmplxIQ_params(res, **kwargs):
     freqEnds = ffm(np.concatenate((res.freq[0:findex_5pc], res.freq[-findex_5pc:-1])))
 
     #This fits a second order polynomial
-    magBaseCoefs = np.polyfit(freqEnds, magEnds, 2)
+    magBaseCoefs = np.polyfit(freqEnds, magEnds, 2) 
 
     magBase = np.poly1d(magBaseCoefs)
 
@@ -226,7 +226,6 @@ def cmplxIQ_params(res, **kwargs):
 
     #Remove any linear variation from the phase (caused by electrical delay)
     phaseEnds = np.concatenate((resUPhase[0:findex_5pc], resUPhase[-findex_5pc:-1]))
-    phaseRot = resUPhase[findex_min]-resPhase[findex_min]+np.pi
 
     if fit_quadratic_phase:
         phase_poly_order = 2
@@ -234,7 +233,7 @@ def cmplxIQ_params(res, **kwargs):
         phase_poly_order = 1
 
     #This fits a second order polynomial
-    phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds+phaseRot, phase_poly_order)
+    phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds, phase_poly_order)
     phaseBase = np.poly1d(phaseBaseCoefs)
 
     #Add to resonator object
