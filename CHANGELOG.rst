@@ -1,3 +1,9 @@
+Version NEXT:
+
+* Fix minus-sign error in cmplxIQ fit function and params guessing (each had one error, was cancelling)
+* Add a burn_flatchain method to each resonator to allow burning off some samples from the mcmc analysis
+* Add a function to ESL_tools to read in binary fits files coming out of ESL
+
 Version 0.3.1:
 
 * Fix README formatting for PyPI

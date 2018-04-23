@@ -384,6 +384,33 @@ class Resonator(object):
         self.chain = emcee_result.flatchain.copy()
         self.hasChain = True
 
+    def burn_flatchain(num_samples=0):
+        r"""Burns off num_samples samples from each of the chains and then flattens. Recalculates all
+        statistical quantities associated with the emcee"""
+
+        #Create a new pandas DataFrame and fill it with the flattened chains after burning
+        flatchain_with_burn = pd.DataFrame()
+        chains = self.emcee_result.chain
+            for ix, chain in enumerate(chains.T):
+                flatchain_with_burn[self.emcee_result.var_names[ix]] = chain[num_samples:].flat
+
+        #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
+        self.emcee_vals = np.asarray([np.percentile(flatchain_with_burn[key], 50) for key in flatchain_with_burn.keys()])
+        err_plus = np.asarray([np.percentile(flatchain_with_burn[key], 84) for key in flatchain_with_burn.keys()])
+        err_minus = np.asarray([np.percentile(flatchain_with_burn[key], 16) for key in flatchain_with_burn.keys()])
+
+        #Make a list of tuples that are (+err, -err) for each paramter
+        self.emcee_sigmas = list(zip(err_plus-self.emcee_vals, self.emcee_vals-err_minus))
+
+        #It is also useful to have easy access to the maximum-liklihood estimates
+        self.mle_vals = flatchain_with_burn.iloc[np.argmax(emcee_result.lnprob)]
+
+        #This is useful because only varying parameters have mle vals
+        self.mle_labels = self.mle_vals.keys()
+
+        #This is also nice to have explicitly for passing to triangle-plotting routines
+        self.chain = flatchain_with_burn.copy()
+
     def torch_emcee(self):
         r"""Set the emcee-related attributes to ``None`` and ``hasChain = False``."""
         self.hasChain = False
