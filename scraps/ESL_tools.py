@@ -26,7 +26,7 @@ def load_fits(dataFile, resNum = 0):
     
     mask = slice(start_ix, end_ix)
     
-    dataDict['freqs'] = table['Freq'][mask]
+    dataDict['freq'] = table['Freq'][mask]
     dataDict['I'] = table['ReS21'][mask]
     dataDict['Q'] = table['ImS21'][mask]
     
