@@ -2,7 +2,7 @@
 Example 2: Analysis of a resonator fabricated at Argonne National Laboratory
 ============================================================================
 
-**By: Faustin Carter, 2016, updated 2017**
+**By: Faustin Carter, 2016, updated 2018**
 
 This notebook imports the data from the Agilent files, creates resonator
 objects from each datafile, packs those objects into a list, runs a
@@ -30,7 +30,7 @@ already familiar with them.
     import numpy as np
 
 Load up the ``scraps`` modules
-------------------------------
+==============================
 
 You'll need to change the path to reflect wherever you stored the code
 
@@ -46,7 +46,7 @@ You'll need to change the path to reflect wherever you stored the code
     import scraps as scr
 
 Make a list of Resonator objects
---------------------------------
+================================
 
 Lists are a great way to organize things. ``scraps`` includes a tool for
 easily indexing lists of Resonator objects by temperature and power.
@@ -64,7 +64,7 @@ organizing data taken at the 'same' temperature that has fluctuations.
     resName = 'RES-1'
     
     #We pass the process file and the path to the data, and the built-in routine spits out a list of Resonator objects!
-    resList = scr.makeResList(scr.process_file, dataPath, resName)
+    resList = scr.makeResList(scr.process_file, dataPath, resName, skiprows=1)
     
     #Create index vectors for all temps and pwrs in the experiment
     
@@ -105,7 +105,7 @@ organizing data taken at the 'same' temperature that has fluctuations.
 
 
 Fit I and Q data to a model
----------------------------
+===========================
 
 This fits I and Q data simultaneously using the built in ``cmplxIQ``
 routine.
@@ -120,7 +120,7 @@ routine.
         res.do_lmfit(scr.cmplxIQ_fit)
 
 Make a pretty plot
-------------------
+==================
 
 Fits aren't worth anything if you don't plot the results!!
 
@@ -146,7 +146,7 @@ Fits aren't worth anything if you don't plot the results!!
 
 
 Use the ``ResonatorSweep`` object to look at fit parameters
------------------------------------------------------------
+===========================================================
 
 Usually what we are really interested in is the fit parameters as
 functions of temperature at different powers. There is a nice object we
@@ -210,7 +210,7 @@ can use to look at this easily.
 
 
 .. image:: _static/Example2_LotsOfData_files/Example2_LotsOfData_13_0.png
-   :width: 899px
+   :width: 898px
    :height: 351px
 
 

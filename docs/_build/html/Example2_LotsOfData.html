@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Example 2: Analysis of a resonator fabricated at Argonne National Laboratory &#8212; scraps 0.2.3 documentation</title>
+    <title>Example 2: Analysis of a resonator fabricated at Argonne National Laboratory &#8212; scraps 0.3.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.3',
+        VERSION:     '0.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,7 +43,7 @@
             
   <div class="section" id="example-2-analysis-of-a-resonator-fabricated-at-argonne-national-laboratory">
 <h1>Example 2: Analysis of a resonator fabricated at Argonne National Laboratory<a class="headerlink" href="#example-2-analysis-of-a-resonator-fabricated-at-argonne-national-laboratory" title="Permalink to this headline">¶</a></h1>
-<p><strong>By: Faustin Carter, 2016, updated 2017</strong></p>
+<p><strong>By: Faustin Carter, 2016, updated 2018</strong></p>
 <p>This notebook imports the data from the Agilent files, creates resonator
 objects from each datafile, packs those objects into a list, runs a
 semi-intelligent fitting algorithm predicated on the fact that things
@@ -65,8 +65,9 @@ already familiar with them.</p>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </pre></div>
 </div>
+</div>
 <div class="section" id="load-up-the-scraps-modules">
-<h2>Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules<a class="headerlink" href="#load-up-the-scraps-modules" title="Permalink to this headline">¶</a></h2>
+<h1>Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules<a class="headerlink" href="#load-up-the-scraps-modules" title="Permalink to this headline">¶</a></h1>
 <p>You’ll need to change the path to reflect wherever you stored the code</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 
@@ -80,7 +81,7 @@ already familiar with them.</p>
 </div>
 </div>
 <div class="section" id="make-a-list-of-resonator-objects">
-<h2>Make a list of Resonator objects<a class="headerlink" href="#make-a-list-of-resonator-objects" title="Permalink to this headline">¶</a></h2>
+<h1>Make a list of Resonator objects<a class="headerlink" href="#make-a-list-of-resonator-objects" title="Permalink to this headline">¶</a></h1>
 <p>Lists are a great way to organize things. <code class="docutils literal"><span class="pre">scraps</span></code> includes a tool for
 easily indexing lists of Resonator objects by temperature and power.
 Each object has a value called <code class="docutils literal"><span class="pre">itemp</span></code> that is just the experiment
@@ -94,7 +95,7 @@ organizing data taken at the ‘same’ temperature that has fluctuations.</p>
 <span class="n">resName</span> <span class="o">=</span> <span class="s1">&#39;RES-1&#39;</span>
 
 <span class="c1">#We pass the process file and the path to the data, and the built-in routine spits out a list of Resonator objects!</span>
-<span class="n">resList</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">makeResList</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">,</span> <span class="n">dataPath</span><span class="p">,</span> <span class="n">resName</span><span class="p">)</span>
+<span class="n">resList</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">makeResList</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">,</span> <span class="n">dataPath</span><span class="p">,</span> <span class="n">resName</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1">#Create index vectors for all temps and pwrs in the experiment</span>
 
@@ -134,7 +135,7 @@ organizing data taken at the ‘same’ temperature that has fluctuations.</p>
 </div>
 </div>
 <div class="section" id="fit-i-and-q-data-to-a-model">
-<h2>Fit I and Q data to a model<a class="headerlink" href="#fit-i-and-q-data-to-a-model" title="Permalink to this headline">¶</a></h2>
+<h1>Fit I and Q data to a model<a class="headerlink" href="#fit-i-and-q-data-to-a-model" title="Permalink to this headline">¶</a></h1>
 <p>This fits I and Q data simultaneously using the built in <code class="docutils literal"><span class="pre">cmplxIQ</span></code>
 routine.</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">resList</span><span class="p">:</span>
@@ -147,7 +148,7 @@ routine.</p>
 </div>
 </div>
 <div class="section" id="make-a-pretty-plot">
-<h2>Make a pretty plot<a class="headerlink" href="#make-a-pretty-plot" title="Permalink to this headline">¶</a></h2>
+<h1>Make a pretty plot<a class="headerlink" href="#make-a-pretty-plot" title="Permalink to this headline">¶</a></h1>
 <p>Fits aren’t worth anything if you don’t plot the results!!</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">figA</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResListData</span><span class="p">(</span><span class="n">resList</span><span class="p">,</span>
                             <span class="n">plot_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;IQ&#39;</span><span class="p">,</span> <span class="c1">#Real vs Imaginary part of S21</span>
@@ -165,7 +166,7 @@ routine.</p>
 <a class="reference internal image-reference" href="_images/Example2_LotsOfData_9_0.png"><img alt="_images/Example2_LotsOfData_9_0.png" src="_images/Example2_LotsOfData_9_0.png" style="width: 704px; height: 566px;" /></a>
 </div>
 <div class="section" id="use-the-resonatorsweep-object-to-look-at-fit-parameters">
-<h2>Use the <code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object to look at fit parameters<a class="headerlink" href="#use-the-resonatorsweep-object-to-look-at-fit-parameters" title="Permalink to this headline">¶</a></h2>
+<h1>Use the <code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object to look at fit parameters<a class="headerlink" href="#use-the-resonatorsweep-object-to-look-at-fit-parameters" title="Permalink to this headline">¶</a></h1>
 <p>Usually what we are really interested in is the fit parameters as
 functions of temperature at different powers. There is a nice object we
 can use to look at this easily.</p>
@@ -211,11 +212,10 @@ can use to look at this easily.</p>
                                    <span class="n">fig_size</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/Example2_LotsOfData_13_0.png"><img alt="_images/Example2_LotsOfData_13_0.png" src="_images/Example2_LotsOfData_13_0.png" style="width: 899px; height: 351px;" /></a>
+<a class="reference internal image-reference" href="_images/Example2_LotsOfData_13_0.png"><img alt="_images/Example2_LotsOfData_13_0.png" src="_images/Example2_LotsOfData_13_0.png" style="width: 898px; height: 351px;" /></a>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Now you should try running the emcee fitter on all the traces and compare the plots.</span>
 <span class="c1">#You can get the mc output by asking to plot &#39;f0_mc&#39; instead of &#39;f0&#39;, for instance.</span>
 </pre></div>
-</div>
 </div>
 </div>
 
@@ -227,14 +227,12 @@ can use to look at this easily.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Example 2: Analysis of a resonator fabricated at Argonne National Laboratory</a><ul>
+<li><a class="reference internal" href="#">Example 2: Analysis of a resonator fabricated at Argonne National Laboratory</a></li>
 <li><a class="reference internal" href="#load-up-the-scraps-modules">Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules</a></li>
 <li><a class="reference internal" href="#make-a-list-of-resonator-objects">Make a list of Resonator objects</a></li>
 <li><a class="reference internal" href="#fit-i-and-q-data-to-a-model">Fit I and Q data to a model</a></li>
 <li><a class="reference internal" href="#make-a-pretty-plot">Make a pretty plot</a></li>
 <li><a class="reference internal" href="#use-the-resonatorsweep-object-to-look-at-fit-parameters">Use the <code class="docutils literal"><span class="pre">ResonatorSweep</span></code> object to look at fit parameters</a></li>
-</ul>
-</li>
 </ul>
 <div class="relations">
 <h3>Related Topics</h3>

@@ -2,7 +2,7 @@
 Example 1: Load one file into the ``Resonator`` class
 =====================================================
 
-**By: Faustin Carter, 2016, updated 2017**
+**By: Faustin Carter, 2016, updated 2018**
 
 This notebook imports the data from one Agilent file, creates a
 ``Resonator`` object, runs a fitting routine, and then plots the data
@@ -27,7 +27,7 @@ and updating the code that finds the datafile.
     import numpy as np
 
 Load up the ``scraps`` modules
-------------------------------
+==============================
 
 You'll need to change the path to reflect wherever you stored the code
 
@@ -43,7 +43,7 @@ You'll need to change the path to reflect wherever you stored the code
     import scraps as scr
 
 Load a file and process the data
---------------------------------
+================================
 
 This unpacks the file data into a dict objects. This block of code is
 the only thing you need to change to make this work with your data.
@@ -66,7 +66,7 @@ The data dict has the following quantities:
     dataFile = './ExampleData/RES-1_-10_DBM_TEMP_0.113.S2P'
     
     #Use the process_file routine to read the file and create a dict of resonator data
-    fileDataDict = scr.process_file(dataFile)
+    fileDataDict = scr.process_file(dataFile, skiprows=1)
     
     #Look at the contents of the dict:
     pp.pprint(fileDataDict)
@@ -85,7 +85,7 @@ The data dict has the following quantities:
 
 
 Make a ``Resonator`` object
----------------------------
+===========================
 
 You can either create a resonator object directly, or use the
 ``makeResFromData`` helper tool, which takes the data dict you made
@@ -157,7 +157,7 @@ the parameters defined in ``cmplxIQ_params`` that is passed to the
 
 
 Make a pretty plot
-------------------
+==================
 
 Fits aren't worth anything if you don't plot the results!!
 
@@ -182,7 +182,7 @@ Fits aren't worth anything if you don't plot the results!!
 
 
 Find the maximum liklhood estimate of the fit params using ``emcee``
---------------------------------------------------------------------
+====================================================================
 
 Let's use the built-in ``emcee`` hooks to compare the results of the
 ``lmfit`` values with the maximum liklihood values for the fit
@@ -219,34 +219,34 @@ parameters.
     Does an emcee chain exist?  True
     
     Head of chains:
-                df            f0            qc             qi     gain0     gain1  \
-    0  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969   
-    1  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969   
-    2  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969   
-    3  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969   
-    4  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969   
+                 df            f0            qc             qi     gain0  \
+    0  88693.406843  8.174866e+09  48824.208882  284002.416495  0.068197   
+    1  88693.406843  8.174866e+09  48824.208882  284002.416495  0.068197   
+    2  88693.406843  8.174866e+09  48824.208882  284002.416495  0.068197   
+    3  88693.008781  8.174866e+09  48824.278726  284002.362452  0.068197   
+    4  88692.961646  8.174866e+09  48824.307274  284002.265436  0.068197   
     
-             gain2    pgain0       pgain1  
-    0  1107.755048  4.317309 -1563.863741  
-    1  1107.755048  4.317309 -1563.863741  
-    2  1107.755048  4.317309 -1563.863741  
-    3  1107.755048  4.317309 -1563.863741  
-    4  1107.755048  4.317309 -1563.863741  
+          gain1        gain2    pgain0       pgain1  
+    0  1.039819  1107.969128  1.175712 -1563.858100  
+    1  1.039819  1107.969128  1.175712 -1563.858100  
+    2  1.039819  1107.969128  1.175712 -1563.858100  
+    3  1.039815  1107.965833  1.175712 -1563.857059  
+    4  1.039809  1107.965217  1.175712 -1563.857247  
     
     Perecent difference:
-    [('df', -0.0005044574162677047),
-     ('f0', 5.9165526894802568e-09),
-     ('qc', -0.00042210636481046374),
-     ('qi', 0.0040312688997595006),
-     ('gain0', 6.8081838833118757e-05),
-     ('gain1', 0.0034954527806059987),
-     ('gain2', -0.010104059690110649),
-     ('pgain0', 3.5469655585706252e-06),
-     ('pgain1', 9.9454230765084369e-05)]
+    [('df', -2.3923422906790731e-05),
+     ('f0', 1.1886418690784143e-09),
+     ('qc', 0.00068441527131252644),
+     ('qi', -0.0024670336800228566),
+     ('gain0', -7.8184691759815211e-05),
+     ('gain1', 0.019622075027724666),
+     ('gain2', 0.15207381284401014),
+     ('pgain0', 5.6203853824325028e-05),
+     ('pgain1', -0.00031084684826337039)]
 
 
 Make a sweet giant triangle confusogram of your ``emcee`` results.
-------------------------------------------------------------------
+==================================================================
 
 If you don't have ``pygtc`` installed, open a terminal and type
 ``pip install pygtc``. Go ahead, I'll wait...
@@ -259,6 +259,11 @@ If you don't have ``pygtc`` installed, open a terminal and type
 
     #Plot the triangle plot, and overlay the best fit values with dashed black lines (default)
     #You can see that the least-squares fitter did a very nice job of getting the values right
+    
+    #You can also see that there is some strange non-gaussian parameter space that the MCMC
+    #analysis maps out! This is kind of wierd, but not too worrisome. It is probably suggestive
+    #that more care is needed in choosing good options for the MCMC engine.
+    
     figGTC = pygtc.plotGTC(chains, truths = [resObj2.lmfit_vals])
 
 

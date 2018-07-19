@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Example 1: Load one file into the Resonator class &#8212; scraps 0.2.3 documentation</title>
+    <title>Example 1: Load one file into the Resonator class &#8212; scraps 0.3.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.3',
+        VERSION:     '0.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,7 +43,7 @@
             
   <div class="section" id="example-1-load-one-file-into-the-resonator-class">
 <h1>Example 1: Load one file into the <code class="docutils literal"><span class="pre">Resonator</span></code> class<a class="headerlink" href="#example-1-load-one-file-into-the-resonator-class" title="Permalink to this headline">¶</a></h1>
-<p><strong>By: Faustin Carter, 2016, updated 2017</strong></p>
+<p><strong>By: Faustin Carter, 2016, updated 2018</strong></p>
 <p>This notebook imports the data from one Agilent file, creates a
 <code class="docutils literal"><span class="pre">Resonator</span></code> object, runs a fitting routine, and then plots the data
 and fit curves in a nice way.</p>
@@ -63,8 +63,9 @@ and updating the code that finds the datafile.</p>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </pre></div>
 </div>
+</div>
 <div class="section" id="load-up-the-scraps-modules">
-<h2>Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules<a class="headerlink" href="#load-up-the-scraps-modules" title="Permalink to this headline">¶</a></h2>
+<h1>Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules<a class="headerlink" href="#load-up-the-scraps-modules" title="Permalink to this headline">¶</a></h1>
 <p>You’ll need to change the path to reflect wherever you stored the code</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 
@@ -78,7 +79,7 @@ and updating the code that finds the datafile.</p>
 </div>
 </div>
 <div class="section" id="load-a-file-and-process-the-data">
-<h2>Load a file and process the data<a class="headerlink" href="#load-a-file-and-process-the-data" title="Permalink to this headline">¶</a></h2>
+<h1>Load a file and process the data<a class="headerlink" href="#load-a-file-and-process-the-data" title="Permalink to this headline">¶</a></h1>
 <p>This unpacks the file data into a dict objects. This block of code is
 the only thing you need to change to make this work with your data.</p>
 <p>The data dict has the following quantities:</p>
@@ -95,7 +96,7 @@ temperature in K that the measurement was taken at.</li>
 <span class="n">dataFile</span> <span class="o">=</span> <span class="s1">&#39;./ExampleData/RES-1_-10_DBM_TEMP_0.113.S2P&#39;</span>
 
 <span class="c1">#Use the process_file routine to read the file and create a dict of resonator data</span>
-<span class="n">fileDataDict</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">(</span><span class="n">dataFile</span><span class="p">)</span>
+<span class="n">fileDataDict</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">(</span><span class="n">dataFile</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1">#Look at the contents of the dict:</span>
 <span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">fileDataDict</span><span class="p">)</span>
@@ -113,7 +114,7 @@ temperature in K that the measurement was taken at.</li>
 </div>
 </div>
 <div class="section" id="make-a-resonator-object">
-<h2>Make a <code class="docutils literal"><span class="pre">Resonator</span></code> object<a class="headerlink" href="#make-a-resonator-object" title="Permalink to this headline">¶</a></h2>
+<h1>Make a <code class="docutils literal"><span class="pre">Resonator</span></code> object<a class="headerlink" href="#make-a-resonator-object" title="Permalink to this headline">¶</a></h1>
 <p>You can either create a resonator object directly, or use the
 <code class="docutils literal"><span class="pre">makeResFromData</span></code> helper tool, which takes the data dict you made
 earlier as an argument. The <code class="docutils literal"><span class="pre">makeResFromData</span></code> tool also allows you to
@@ -177,7 +178,7 @@ Best fit with different qc guess =  8174865670.34  Hz
 </div>
 </div>
 <div class="section" id="make-a-pretty-plot">
-<h2>Make a pretty plot<a class="headerlink" href="#make-a-pretty-plot" title="Permalink to this headline">¶</a></h2>
+<h1>Make a pretty plot<a class="headerlink" href="#make-a-pretty-plot" title="Permalink to this headline">¶</a></h1>
 <p>Fits aren’t worth anything if you don’t plot the results!!</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#When using inline plotting, you have to assign the output of the plotting functions to a figure, or it will plot twice</span>
 
@@ -194,7 +195,7 @@ Best fit with different qc guess =  8174865670.34  Hz
 <a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_9_0.png"><img alt="_images/Example1_LoadAndPlot_9_0.png" src="_images/Example1_LoadAndPlot_9_0.png" style="width: 605px; height: 278px;" /></a>
 </div>
 <div class="section" id="find-the-maximum-liklhood-estimate-of-the-fit-params-using-emcee">
-<h2>Find the maximum liklhood estimate of the fit params using <code class="docutils literal"><span class="pre">emcee</span></code><a class="headerlink" href="#find-the-maximum-liklhood-estimate-of-the-fit-params-using-emcee" title="Permalink to this headline">¶</a></h2>
+<h1>Find the maximum liklhood estimate of the fit params using <code class="docutils literal"><span class="pre">emcee</span></code><a class="headerlink" href="#find-the-maximum-liklhood-estimate-of-the-fit-params-using-emcee" title="Permalink to this headline">¶</a></h1>
 <p>Let’s use the built-in <code class="docutils literal"><span class="pre">emcee</span></code> hooks to compare the results of the
 <code class="docutils literal"><span class="pre">lmfit</span></code> values with the maximum liklihood values for the fit
 parameters.</p>
@@ -225,33 +226,33 @@ parameters.</p>
 Does an emcee chain exist?  True
 
 Head of chains:
-            df            f0            qc             qi     gain0     gain1  0  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
-1  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
-2  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
-3  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
-4  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
+             df            f0            qc             qi     gain0  0  88693.406843  8.174866e+09  48824.208882  284002.416495  0.068197
+1  88693.406843  8.174866e+09  48824.208882  284002.416495  0.068197
+2  88693.406843  8.174866e+09  48824.208882  284002.416495  0.068197
+3  88693.008781  8.174866e+09  48824.278726  284002.362452  0.068197
+4  88692.961646  8.174866e+09  48824.307274  284002.265436  0.068197
 
-         gain2    pgain0       pgain1
-0  1107.755048  4.317309 -1563.863741
-1  1107.755048  4.317309 -1563.863741
-2  1107.755048  4.317309 -1563.863741
-3  1107.755048  4.317309 -1563.863741
-4  1107.755048  4.317309 -1563.863741
+      gain1        gain2    pgain0       pgain1
+0  1.039819  1107.969128  1.175712 -1563.858100
+1  1.039819  1107.969128  1.175712 -1563.858100
+2  1.039819  1107.969128  1.175712 -1563.858100
+3  1.039815  1107.965833  1.175712 -1563.857059
+4  1.039809  1107.965217  1.175712 -1563.857247
 
 Perecent difference:
-[('df', -0.0005044574162677047),
- ('f0', 5.9165526894802568e-09),
- ('qc', -0.00042210636481046374),
- ('qi', 0.0040312688997595006),
- ('gain0', 6.8081838833118757e-05),
- ('gain1', 0.0034954527806059987),
- ('gain2', -0.010104059690110649),
- ('pgain0', 3.5469655585706252e-06),
- ('pgain1', 9.9454230765084369e-05)]
+[('df', -2.3923422906790731e-05),
+ ('f0', 1.1886418690784143e-09),
+ ('qc', 0.00068441527131252644),
+ ('qi', -0.0024670336800228566),
+ ('gain0', -7.8184691759815211e-05),
+ ('gain1', 0.019622075027724666),
+ ('gain2', 0.15207381284401014),
+ ('pgain0', 5.6203853824325028e-05),
+ ('pgain1', -0.00031084684826337039)]
 </pre>
 </div>
 <div class="section" id="make-a-sweet-giant-triangle-confusogram-of-your-emcee-results">
-<h2>Make a sweet giant triangle confusogram of your <code class="docutils literal"><span class="pre">emcee</span></code> results.<a class="headerlink" href="#make-a-sweet-giant-triangle-confusogram-of-your-emcee-results" title="Permalink to this headline">¶</a></h2>
+<h1>Make a sweet giant triangle confusogram of your <code class="docutils literal"><span class="pre">emcee</span></code> results.<a class="headerlink" href="#make-a-sweet-giant-triangle-confusogram-of-your-emcee-results" title="Permalink to this headline">¶</a></h1>
 <p>If you don’t have <code class="docutils literal"><span class="pre">pygtc</span></code> installed, open a terminal and type
 <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pygtc</span></code>. Go ahead, I’ll wait…</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pygtc</span>
@@ -259,11 +260,15 @@ Perecent difference:
 </div>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Plot the triangle plot, and overlay the best fit values with dashed black lines (default)</span>
 <span class="c1">#You can see that the least-squares fitter did a very nice job of getting the values right</span>
+
+<span class="c1">#You can also see that there is some strange non-gaussian parameter space that the MCMC</span>
+<span class="c1">#analysis maps out! This is kind of wierd, but not too worrisome. It is probably suggestive</span>
+<span class="c1">#that more care is needed in choosing good options for the MCMC engine.</span>
+
 <span class="n">figGTC</span> <span class="o">=</span> <span class="n">pygtc</span><span class="o">.</span><span class="n">plotGTC</span><span class="p">(</span><span class="n">chains</span><span class="p">,</span> <span class="n">truths</span> <span class="o">=</span> <span class="p">[</span><span class="n">resObj2</span><span class="o">.</span><span class="n">lmfit_vals</span><span class="p">])</span>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_15_0.png"><img alt="_images/Example1_LoadAndPlot_15_0.png" src="_images/Example1_LoadAndPlot_15_0.png" style="width: 549px; height: 535px;" /></a>
-</div>
 </div>
 
 
@@ -274,15 +279,13 @@ Perecent difference:
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Example 1: Load one file into the <code class="docutils literal"><span class="pre">Resonator</span></code> class</a><ul>
+<li><a class="reference internal" href="#">Example 1: Load one file into the <code class="docutils literal"><span class="pre">Resonator</span></code> class</a></li>
 <li><a class="reference internal" href="#load-up-the-scraps-modules">Load up the <code class="docutils literal"><span class="pre">scraps</span></code> modules</a></li>
 <li><a class="reference internal" href="#load-a-file-and-process-the-data">Load a file and process the data</a></li>
 <li><a class="reference internal" href="#make-a-resonator-object">Make a <code class="docutils literal"><span class="pre">Resonator</span></code> object</a></li>
 <li><a class="reference internal" href="#make-a-pretty-plot">Make a pretty plot</a></li>
 <li><a class="reference internal" href="#find-the-maximum-liklhood-estimate-of-the-fit-params-using-emcee">Find the maximum liklhood estimate of the fit params using <code class="docutils literal"><span class="pre">emcee</span></code></a></li>
 <li><a class="reference internal" href="#make-a-sweet-giant-triangle-confusogram-of-your-emcee-results">Make a sweet giant triangle confusogram of your <code class="docutils literal"><span class="pre">emcee</span></code> results.</a></li>
-</ul>
-</li>
 </ul>
 <div class="relations">
 <h3>Related Topics</h3>
