@@ -1,6 +1,7 @@
 import numpy as np
+import simplejson as json
 
-def process_file(fileName, **loadtxt_kwargs):
+def process_file(fileName, mask = None, **loadtxt_kwargs):
     """Load Keysight PNA file data into dict.
 
     Parameters
@@ -15,7 +16,10 @@ def process_file(fileName, **loadtxt_kwargs):
 
         - temp: The temperature of the resonator in K, five characters Example: '0.150'
 
-    loadtxt_kwargs : dict
+    mask : slice (optional)
+        You can pass a slice to cut out some region of data. Example 1: mask = slice(10,-10) will cut out the first 10 and last 10 datapoints. Example 2: maks = slice(None,None,10) will resample your data and take every 10th point. Example 3: mask = slice(None, -50) will cut the last 50 points off your data.
+
+    loadtxt_kwargs : dict (optional)
         This is a pass-through to numpy.loadtxt
 
     Returns
@@ -35,8 +39,13 @@ def process_file(fileName, **loadtxt_kwargs):
     pwrLoc = fileName.find('DBM') - 4
     resNameLoc = fileName.find('RES-')
 
+    if mask is None:
+        mask = slice(None, None)
+    else:
+        assert type(mask) == slice, "mask must be of type slice."
+
     #Read the temp, pwr, and resName from the filename
-    if(fileName[tempLoc + 6] != '.'):
+    if(fileName[tempLoc + 1] == '.'):
         temp = np.float(fileName[tempLoc:tempLoc+5])
 
         if fileName[pwrLoc] == '_':
@@ -48,11 +57,12 @@ def process_file(fileName, **loadtxt_kwargs):
 
         #Grab frequency, I, and Q
         fileData = np.loadtxt(fileName, **loadtxt_kwargs)
-        freqData = fileData[:,0]
-        IData = fileData[:,1]
-        QData = fileData[:,2]
+        freqData = fileData[:,0][mask]
+        IData = fileData[:,1][mask]
+        QData = fileData[:,2][mask]
 
         dataDict = {'name':resName,'temp':temp,'pwr':pwr,'freq':freqData,'I':IData,'Q':QData}
         return dataDict
     else:
-        return None
+        
+        assert False, "Bad file? " + fileName
