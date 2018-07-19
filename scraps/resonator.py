@@ -453,7 +453,7 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
 
     #Check dataDict for validity
     expectedKeys = ['name', 'temp', 'pwr', 'freq', 'I', 'Q']
-    assert all(key in dataDict for key in expectedKeys), "Your dataDict is missing one or more keys"
+    assert all(key in dataDict.keys() for key in expectedKeys), "Your dataDict is missing one or more keys"
 
     resName = dataDict['name']
     temp = dataDict['temp']
@@ -526,7 +526,7 @@ def makeResList(fileFunc, dataPath, resName, **fileFunc_kwargs):
     for f in fileList:
         fileDataDicts.append(fileFunc(f, **fileFunc_kwargs))
 
-    #Create resonator objects from the data
+    #Create resonator objects from the data 
     #makeResFromData returns a tuple of (res, temp, pwr),
     #but only care about the first one
     resList = [makeResFromData(fileDataDict) for fileDataDict in fileDataDicts]
