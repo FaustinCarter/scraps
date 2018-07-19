@@ -4,6 +4,9 @@ Version NEXT:
 * Add a burn_flatchain method to each resonator to allow burning off some samples from the mcmc analysis
 * Add a function to ESL_tools to read in binary fits files coming out of ESL
 * Add a mask option to process_file to allow for masking data via a slice object
+* Change under the hood to how fitting works for Resonator objects (and eventually to ResonatorSweep data as well).
+  Now instead of being forced into fitting only I/Q data, fit functions take a Resonator object as an argument.
+  This gives the fit function author access to all of the attributes and data stored in the object.
 
 Version 0.3.1:
 

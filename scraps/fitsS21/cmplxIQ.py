@@ -4,28 +4,25 @@ import scipy.signal as sps
 import scipy.special as spc
 import lmfit as lf
 
-def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
+# def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
+def cmplxIQ_fit(paramsVec, res, residual=True, **kwargs):
     """Return complex S21 resonance model or, if data is specified, a residual.
 
     Parameters
     ----------
     params : list-like
         A an ``lmfit.Parameters`` object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain0, pgain1, pgain2)
-    freqs : list-like
-        A list of frequency points at which the model is calculated
-    data : list-like (optional)
-        A list of complex data in the form I + Q where I and Q are both lists of data and
-        ``len(I) == len(Q) == len(freqs)``. If data is not passed, then the return value is the model
-        calculated at each frequency point.
-    eps : list-like (optional)
-        A list of errors, one for each point in data.
+    res : scraps.Resonator object
+        A Resonator object.
+    residual : bool
+        Whether to return a residual (True) or to return the model calcuated at the frequencies present in res (False).    
     kwargs : dict (optional)
         Currently no keyword arguments are accepted.
 
     Returns
     -------
-    model or (model-data) : ``numpy.array``
-        If data is specified, the return is the residuals. If not, the return is the model
+    model or (model-data)/eps : ``numpy.array``
+        If residual=True is specified, the return is the residuals weighted by the uncertainties. If residual=False, the return is the model
         values calculated at the frequency points. The returned array is in the form
         ``I + Q`` or ``residualI + residualQ``.
 
@@ -67,6 +64,17 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
         Ioffset = paramsVec[9]
         Qoffset = paramsVec[10]
 
+    #Grab a shortcut to the resonant frequency
+    freqs = res.freq
+
+    #Repackage resonator data in 1D vector form
+    data = np.concatenate((res.I, res.Q),axis=0)
+
+    if (res.sigmaI is not None) and (res.sigmaQ is not None):
+        cmplxSigma = np.concatenate((res.sigmaI, res.sigmaQ), axis=0)
+    else:
+        cmplxSigma = None
+
     #Make everything referenced to the shifted, unitless, reduced frequency
     fs = f0+df
     ff = (freqs-fs)/fs
@@ -99,17 +107,16 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     model = np.concatenate((modelI, modelQ),axis=0)
 
     #Calculate eps from stdev of first 10 pts of data if not supplied
-    if eps is None and data is not None:
-        dataI, dataQ = np.split(data, 2)
-        epsI = np.std(sps.detrend(dataI[0:10]))
-        epsQ = np.std(sps.detrend(dataQ[0:10]))
-        eps = np.concatenate((np.full_like(dataI, epsI), np.full_like(dataQ, epsQ)))
+    if cmplxSigma is None and residual == True:
+        epsI = np.std(sps.detrend(res.I[0:10]))
+        epsQ = np.std(sps.detrend(res.Q[0:10]))
+        eps = np.concatenate((np.full_like(res.I, epsI), np.full_like(res.Q, epsQ)))
 
     #Return model or residual
-    if data is None:
-        return model
-    else:
+    if residual == True:
         return (model-data)/eps
+    else:
+        return model
 
 def cmplxIQ_params(res, **kwargs):
     """Initialize fitting parameters used by the cmplxIQ_fit function.

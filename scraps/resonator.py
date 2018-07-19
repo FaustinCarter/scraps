@@ -234,10 +234,10 @@ class Resonator(object):
         Parameters
         ----------
         fitFn : function
-            fitFn must have the signature ([A,B] means concatenate lists A and
-            B): fitFn(params, [Idata, Qdata], [I error, Q error]) and must
-            return a 1D list-like object of residuals with form [I residual, Q
-            residual].
+            fitFn must have the signature fitFn(params, res, residual, **kwargs).
+            If residual == True, fitFn must return a 1D list-like object of 
+            residuals with form [I residual, Q residual] where [A, B] means
+            concatenate. Otherwise it must return the model data in the same form.
 
         kwargs : optional keywords
             Use this to override any of the lmfit parameter initial guesses or
@@ -262,23 +262,26 @@ class Resonator(object):
                 else:
                     raise ValueError("Unknown key: "+key)
 
-        #Make complex vectors of the form cData = [reData, imData]
-        cmplxData = np.concatenate((self.I, self.Q), axis=0)
+        # #Make complex vectors of the form cData = [reData, imData]
+        # cmplxData = np.concatenate((self.I, self.Q), axis=0)
 
-        if (self.sigmaI is not None) and (self.sigmaQ is not None):
-            cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
-        else:
-            cmplxSigma = None
+        # if (self.sigmaI is not None) and (self.sigmaQ is not None):
+        #     cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
+        # else:
+        #     cmplxSigma = None
+
+        # #Create a lmfit minimizer object
+        # minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self.freq, cmplxData, cmplxSigma))
 
         #Create a lmfit minimizer object
-        minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self.freq, cmplxData, cmplxSigma))
+        minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self, True))
 
         #Call the lmfit minimizer method and minimize the residual
         lmfit_result = minObj.minimize(method = 'leastsq')
 
         #Add the data back to the final minimized residual to get the final fit
         #Also calculate all relevant curves
-        cmplxResult = fitFn(lmfit_result.params, self.freq)
+        cmplxResult = fitFn(lmfit_result.params, self, residual=False)
         cmplxResidual = lmfit_result.residual
 
         #Split the complex data back up into real and imaginary parts
@@ -327,10 +330,10 @@ class Resonator(object):
         Parameters
         ----------
         fitFn : function
-            fitFn must have the signature ([A,B] means concatenate lists A and
-            B): fitFn(params, [Idata, Qdata], [I error, Q error]) and must
-            return a 1D list-like object of residuals with form [I residual, Q
-            residual].
+            fitFn must have the signature fitFn(params, res, residual, **kwargs).
+            If residual == True, fitFn must return a 1D list-like object of 
+            residuals with form [I residual, Q residual] where [A, B] means
+            concatenate. Otherwise it must return the model data in the same form.
 
         kwargs : optional keyword arguments
             These are passed through to the ``lmfit.Minimizer.emcee`` method.
@@ -348,20 +351,13 @@ class Resonator(object):
 
         assert self.hasParams == True, "Must load params before running emcee."
 
-        cmplxData = np.concatenate((self.I, self.Q), axis=0)
-
-        if (self.sigmaI is not None) and (self.sigmaQ is not None):
-            cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
-        else:
-            cmplxSigma = None
-
         #Create a lmfit minimizer object
         if self.hasFit:
             emcee_params = self.lmfit_result.params
         else:
             emcee_params = self.params
 
-        minObj = lf.Minimizer(fitFn, emcee_params, fcn_args=(self.freq, cmplxData, cmplxSigma))
+        minObj = lf.Minimizer(fitFn, emcee_params, fcn_args=(self, True))
 
         #Run the emcee and add the result in
         emcee_result = minObj.emcee(**kwargs)
