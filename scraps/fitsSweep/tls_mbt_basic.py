@@ -61,8 +61,10 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     Pc = params['Pc'].value
     f0 = params['f0'].value
     q0 = params['q0'].value
-    delta0 = params['delta0'].value*sc.e
+    tc = params['tc'].value
+    bcs = params['bcs'].value
     alpha = params['alpha'].value
+    beta = params['beta'].value
 
     units = kwargs.pop('units', 'mK')
     assert units in ['mK', 'K'], "Units must be 'mK' or 'K'."
@@ -74,13 +76,12 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     #Other good options are 1 or 1/3
     gamma = kwargs.pop('gamma', 0.5)
 
-    #Calculate tc from BCS relation
-    tc = delta0/(1.76*sc.k)
-
-    #Get the reduced energy gap
-    deltaR = deltaBCS(ts/tc)
+    #Calculate delta0 from BCS relation
+    #Typically the bcs param is 1.76
+    delta0 = tc*bcs*sc.k
 
     #And the energy gap at T
+    deltaR = deltaBCS(ts/tc)
     deltaT = delta0*deltaR
 
     #Pack all these together for convenience
@@ -91,13 +92,24 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     pwr_cal_dB = kwargs.pop('pwr_cal_dB', 0)
     ps = powers+pwr_cal_dB
 
+    #Whether to treat the Pc param as lin or log
+    #Defaults to lin for backwards compatibility
+    pwr_ref_units = kwargs.pop('pwr_ref_units', 'lin')
+    assert pwr_ref_units in ['lin', 'log', 'dB', 'db'], "Must specify reference power units as 'lin' or 'log'."
+
     #Working in inverse Q since they add and subtract  nicely
 
     #Calculate the inverse Q from TLS
-    invQtls = Fd*np.tanh(zeta)/np.sqrt(1.0+10**(ps/10.0)/Pc)
+    if pwr_ref_units == 'lin':
+        invQtls = Fd*np.tanh(zeta)/np.sqrt(1.0+(10**(0.5*beta*ps/10.0)/Pc))
+    else:
+        invQtls = Fd*np.tanh(zeta)/np.sqrt(1.0+10**(0.5*beta*0.1*(ps-Pc)))
 
     #Calculte the inverse Q from MBD
-    invQmbd = alpha*gamma*4*deltaR*np.exp(-deltaT/(sc.k*ts))*np.sinh(zeta)*k0(zeta)
+    # invQmbd = alpha*gamma*4*(deltaT/(sc.h*f0))*np.exp(-deltaT/(sc.k*ts))*np.sinh(zeta)*k0(zeta)
+
+    invQmbd = alpha*gamma*(4/np.pi)*deltaR*np.exp(-deltaT/(sc.k*ts))*np.sinh(zeta)*k0(zeta)
+
 
     #Get the difference from the total Q and
     model = 1.0/(invQtls + invQmbd + 1.0/q0)
@@ -170,8 +182,10 @@ def f0_tlsAndMBT(params, temps, powers, data = None, eps = None, **kwargs):
     #Unpack parameter values from params
     Fd = params['Fd'].value
     f0 = params['f0'].value
+    tc = params['tc'].value
+    bcs = params['bcs'].value
     alpha = params['alpha'].value
-    delta0 = params['delta0'].value*sc.e
+    df = params['df'].value
 
     #Set temperature units
     units = kwargs.pop('units', 'mK')
@@ -180,14 +194,12 @@ def f0_tlsAndMBT(params, temps, powers, data = None, eps = None, **kwargs):
     if units == 'mK':
         ts = temps*0.001
 
-    #Calculate tc from BCS relation
-    tc = delta0/(1.76*sc.k)
-
-    #Get the reduced energy gap
-    deltaR = deltaBCS(ts/tc)
+    #Calculate delta0 from BCS relation
+    delta0 = tc*bcs*sc.k
 
     #And the energy gap at T
-    deltaT = delta0*deltaR
+    deltaR = deltaBCS(ts/tc)
+    deltaT = deltaR*delta0
 
     #Pack all these together for convenience
     zeta = sc.h*f0/(2*sc.k*ts)
@@ -200,14 +212,14 @@ def f0_tlsAndMBT(params, temps, powers, data = None, eps = None, **kwargs):
     dfTLS = Fd/sc.pi*(np.real(digamma(0.5+zeta/(1j*sc.pi)))-np.log(zeta/sc.pi))
 
     #MBD contribution
-    dfMBD = alpha*gamma*0.5*(deltaR*(1-
+    dfMBD = alpha*0.5*gamma*(np.pi*deltaR*(1-
                         2*np.exp(-deltaT/(sc.k*ts))
                         *np.exp(-zeta)
                         *i0(zeta))-1)
 
 
     #Calculate model from parameters
-    model = f0+f0*(dfTLS + dfMBD)
+    model = f0+f0*((1-df)*(dfTLS + dfMBD)-df)
 
 
     #Weight the residual if eps is supplied
