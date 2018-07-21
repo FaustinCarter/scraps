@@ -183,11 +183,11 @@ class Resonator(object):
         self.params = None
         self.hasParams = False
 
-        #Whether or not a lmfit has been run
-        self.hasFit = False
-
         #These won't exist until the lmfit method is called
         self.lmfit_result = None
+
+        #These are scheduled for deprecation. They will eventually live in the lmfit_result dictionary
+        self.hasFit = False
         self.residualI = None
         self.residualQ = None
         self.resultI = None
@@ -195,13 +195,37 @@ class Resonator(object):
         self.resultMag = None
         self.resultPhase = None
 
-        #Whether or not an emcee has been run
-        self.hasChain = False
-
         #These won't exist until the emcee method is called
         self.emcee_result = None
+
+        #These are scheduled for deprecation. They will eventually live in the lmfit_result dictionary
+        self.hasChain = False
         self.mle_vals = None
         self.mle_labels = None
+
+    def to_disk(self):
+        """To be implemented: dumps resonator to disk as various file types. Default will be netcdf4"""
+        pass
+
+    def from_disk(self):
+        """To be implemented: load resonator object from disk."""
+        pass
+
+    def to_json(self):
+        """To be implemented: serialize resonator as a JSON string"""
+        pass
+
+    def from_json(self):
+        """To be implemented: create rsonator from JSON string"""
+        pass
+
+    #TODO: Implement the following for handling pickling:
+
+    #def __getstate__(self):
+    #   pass
+
+    #def __setstate__(self):
+    #   pass
 
 
     def load_params(self, paramsFn, **kwargs):
