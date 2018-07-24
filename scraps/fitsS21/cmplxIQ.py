@@ -110,11 +110,11 @@ def cmplxIQ_fit(paramsVec, res, residual=True, **kwargs):
     if cmplxSigma is None and residual == True:
         epsI = np.std(sps.detrend(res.I[0:10]))
         epsQ = np.std(sps.detrend(res.Q[0:10]))
-        eps = np.concatenate((np.full_like(res.I, epsI), np.full_like(res.Q, epsQ)))
+        cmplxSigma = np.concatenate((np.full_like(res.I, epsI), np.full_like(res.Q, epsQ)))
 
     #Return model or residual
     if residual == True:
-        return (model-data)/eps
+        return (model-data)/cmplxSigma
     else:
         return model
 

@@ -310,13 +310,15 @@ class Resonator(object):
         #Create a lmfit minimizer object
         minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self, True))
 
+        lmfit_result = minObj.minimize(method = 'leastsq')
+
         #Call the lmfit minimizer method and minimize the residual
         if self.lmfit_result is None:
             self.lmfit_result = {}
 
         self.lmfit_result[label] = {}
         self.lmfit_result[label]['fit_type'] = fit_type
-        self.lmfit_result[label]['result'] = minObj.minimize(method = 'leastsq')
+        self.lmfit_result[label]['result'] = lmfit_result
         self.lmfit_result[label]['values'] = np.asarray([val.value for key, val in lmfit_result.params.items() if val.vary is True])
         self.lmfit_result[label]['labels'] = [key for key, val in lmfit_result.params.items() if val.vary is True]
 
@@ -370,7 +372,6 @@ class Resonator(object):
             
                 if (deleted_fit['fit_type'] == 'IQ') and label == 'default':
                     
-                    self.lmfit_result = None
                     self.residualI = None
                     self.residualQ = None
                     self.resultI = None
