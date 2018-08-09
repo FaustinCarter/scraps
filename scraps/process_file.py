@@ -1,5 +1,6 @@
 import numpy as np
-import simplejson as json
+try: import simplejson as json
+except ImportError: import json
 
 def process_file(fileName, mask = None, **loadtxt_kwargs):
     """Load Keysight PNA file data into dict.
