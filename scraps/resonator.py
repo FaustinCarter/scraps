@@ -419,9 +419,7 @@ class Resonator(object):
 
         #Create a lmfit minimizer object
         if self.hasFit:
-            if label == 'default':
-                emcee_params = self.lmfit_result.params
-            elif self.lmfit_result is not None:
+            if self.lmfit_result is not None:
                 if label in self.lmfit_result.keys():
                     emcee_params = self.lmfit_result[label]['result'].params
         else:
