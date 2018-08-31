@@ -659,7 +659,7 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
     color_map = kwargs.pop('color_map', None)
     if color_map is None:
         if color_by == 'index':
-            color_map = 'Vega10'
+            color_map = 'tab10'
         elif xvals == 'temperature':
             color_map = 'viridis'
         elif xvals == 'power':
@@ -681,7 +681,7 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
 
     #Unknown kwargs are discouraged
     if kwargs:
-        raise NameError("Unknown keyword argument: " + kwargs.keys()[0])
+        raise NameError("Unknown keyword argument: " + list(kwargs.keys())[0])
 
     #Set up the figure
     figS = plt.figure()
