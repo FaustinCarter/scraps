@@ -438,18 +438,21 @@ class Resonator(object):
         self.emcee_result[label]['result'] = emcee_result
         
         #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
-        self.emcee_result[label]['values'] = np.asarray([np.percentile(emcee_result.flatchain[key], 50) for key in emcee_result.flatchain.keys()])
-        err_plus = np.asarray([np.percentile(self.emcee_result.flatchain[key], 84) for key in self.emcee_result.flatchain.keys()])
-        err_minus = np.asarray([np.percentile(self.emcee_result.flatchain[key], 16) for key in self.emcee_result.flatchain.keys()])
+        emcee_vals = np.asarray([np.percentile(emcee_result.flatchain[key], 50) for key in emcee_result.flatchain.keys()])
+        err_plus = np.asarray([np.percentile(emcee_result.flatchain[key], 84) for key in emcee_result.flatchain.keys()])
+        err_minus = np.asarray([np.percentile(emcee_result.flatchain[key], 16) for key in emcee_result.flatchain.keys()])
+
+        #Pack these values into the fit storage dict
+        self.emcee_result[label]['values'] = emcee_vals
 
         #Make a list of tuples that are (+err, -err) for each paramter
-        self.emcee_result[label]['emcee_sigmas'] = list(zip(err_plus-self.emcee_vals, self.emcee_vals-err_minus))
+        self.emcee_result[label]['emcee_sigmas'] = list(zip(err_plus-emcee_vals, emcee_vals-err_minus))
 
         #It is also useful to have easy access to the maximum-liklihood estimates
         self.emcee_result[label]['mle_vals'] = emcee_result.flatchain.iloc[np.argmax(emcee_result.lnprob)]
 
         #This is useful because only varying parameters have mle vals
-        self.emcee_result[label]['mle_labels'] = self.mle_vals.keys()
+        self.emcee_result[label]['mle_labels'] = self.emcee_result[label]['mle_vals'].keys()
 
 
         if label == 'default':
