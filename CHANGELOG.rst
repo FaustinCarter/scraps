@@ -1,6 +1,6 @@
 Version 0.4.0:
 
-* Change the way fits are stored in the resonator object. _This slightly breaks backwards compatibility._
+* Change the way fits are stored in the resonator object. *This slightly breaks backwards compatibility.*
   Results that used to live at `Resonator.lmfit_result` or `Resonator.emcee_result` now live at
   `Resonator.lmfit_result['default']['result']` and `Resonator.emcee_result['default']['result']`. This allows the user to store
   multiple fit results for the same resonator by specifying a label for the fit (as opposed to using the
