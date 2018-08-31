@@ -16,8 +16,17 @@ def cmplxIQ_fit(paramsVec, res, residual=True, **kwargs):
         A Resonator object.
     residual : bool
         Whether to return a residual (True) or to return the model calcuated at the frequencies present in res (False).    
-    kwargs : dict (optional)
-        Currently no keyword arguments are accepted.
+
+    Keyword Arguments
+    -----------------
+    freqs : list-like
+        A list of frequency points at which to calculate the model. Only used if `residual=False`
+
+    remove_baseline : bool
+        Whether or not to remove the baseline during calculation (i.e. ignore pgain and gain polynomials). Default is False.
+
+    only_baseline: bool
+        Whether or not to calculate and return only the baseline. Default is False.
 
     Returns
     -------
@@ -64,8 +73,12 @@ def cmplxIQ_fit(paramsVec, res, residual=True, **kwargs):
         Ioffset = paramsVec[9]
         Qoffset = paramsVec[10]
 
-    #Grab a shortcut to the resonant frequency
-    freqs = res.freq
+    if residual == False:
+        #Use a custom vector of frequencies
+        freqs = np.array(kwargs.pop('freqs', res.freq))
+    else:
+        #Grab a shortcut to the resonant frequency
+        freqs = res.freq
 
     #Repackage resonator data in 1D vector form
     data = np.concatenate((res.I, res.Q),axis=0)
@@ -98,8 +111,23 @@ def cmplxIQ_fit(paramsVec, res, residual=True, **kwargs):
     #Allow for voltage offset of I and Q
     offset = Ioffset + 1j*Qoffset
 
-    #Calculate model from params at each point in freqs
-    modelCmplx = gain*pgain*(1./qi+1j*2.0*(ff+df/fs))/(1./q0+1j*2.0*ff)+offset
+    remove_baseline = kwargs.pop('remove_baseline', False)
+
+    if remove_baseline:
+        #Set the baseline vector to a bunch of ones, with zero imaginary part
+        total_gain = np.ones_like(freqs, dtype=np.complex)
+    else:
+        #Actually calculate the baseline
+        total_gain = gain*pgain
+
+    only_baseline = kwargs.pop('only_baseline', False)
+
+    if only_baseline:
+        #Only return the baseline
+        modelCmplx = total_gain
+    else:
+        #Calculate model from params at each point in freqs
+        modelCmplx = total_gain*(1./qi+1j*2.0*(ff+df/fs))/(1./q0+1j*2.0*ff)+offset
 
     #Package complex data in 1D vector form
     modelI = np.real(modelCmplx)

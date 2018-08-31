@@ -7,6 +7,7 @@ Version NEXT:
 * Change under the hood to how fitting works for Resonator objects (and eventually to ResonatorSweep data as well).
   Now instead of being forced into fitting only I/Q data, fit functions take a Resonator object as an argument.
   This gives the fit function author access to all of the attributes and data stored in the object.
+* Update the complxIQ fit function to calculate not just the model, but the baseline, or even the model without the baseline.
 
 Version 0.3.1:
 
