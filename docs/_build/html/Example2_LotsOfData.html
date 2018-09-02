@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Example 2: Analysis of a resonator fabricated at Argonne National Laboratory &#8212; scraps 0.2.3 documentation</title>
+    <title>Example 2: Analysis of a resonator fabricated at Argonne National Laboratory &#8212; scraps 0.4.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.3',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,7 +43,7 @@
             
   <div class="section" id="example-2-analysis-of-a-resonator-fabricated-at-argonne-national-laboratory">
 <h1>Example 2: Analysis of a resonator fabricated at Argonne National Laboratory<a class="headerlink" href="#example-2-analysis-of-a-resonator-fabricated-at-argonne-national-laboratory" title="Permalink to this headline">¶</a></h1>
-<p><strong>By: Faustin Carter, 2016, updated 2017</strong></p>
+<p><strong>By: Faustin Carter, 2016, updated 2018</strong></p>
 <p>This notebook imports the data from the Agilent files, creates resonator
 objects from each datafile, packs those objects into a list, runs a
 semi-intelligent fitting algorithm predicated on the fact that things
@@ -94,7 +94,7 @@ organizing data taken at the ‘same’ temperature that has fluctuations.</p>
 <span class="n">resName</span> <span class="o">=</span> <span class="s1">&#39;RES-1&#39;</span>
 
 <span class="c1">#We pass the process file and the path to the data, and the built-in routine spits out a list of Resonator objects!</span>
-<span class="n">resList</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">makeResList</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">,</span> <span class="n">dataPath</span><span class="p">,</span> <span class="n">resName</span><span class="p">)</span>
+<span class="n">resList</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">makeResList</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">,</span> <span class="n">dataPath</span><span class="p">,</span> <span class="n">resName</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1">#Create index vectors for all temps and pwrs in the experiment</span>
 
@@ -199,19 +199,21 @@ can use to look at this easily.</p>
 </div>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Now let&#39;s make a plot of some of the parameters!</span>
 
-<span class="n">figS</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweepParamsVsTemp</span><span class="p">(</span><span class="n">resSweep</span><span class="p">,</span>
+<span class="n">figS</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweepParamsVsX</span><span class="p">(</span><span class="n">resSweep</span><span class="p">,</span>
                                    <span class="n">plot_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gain0&#39;</span><span class="p">,</span> <span class="s1">&#39;f0&#39;</span><span class="p">,</span> <span class="s1">&#39;qi&#39;</span><span class="p">,</span> <span class="s1">&#39;qc&#39;</span><span class="p">,</span> <span class="s1">&#39;df&#39;</span><span class="p">,</span> <span class="s1">&#39;redchi&#39;</span><span class="p">],</span>
-                                   <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+                                   <span class="n">num_cols</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+                                   <span class="n">xvals</span><span class="o">=</span><span class="s1">&#39;temperature&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="_images/Example2_LotsOfData_12_0.png"><img alt="_images/Example2_LotsOfData_12_0.png" src="_images/Example2_LotsOfData_12_0.png" style="width: 795px; height: 423px;" /></a>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Or maybe you just want to look at how Q varies with power at different temperatures:</span>
-<span class="n">figS2</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweepParamsVsPwr</span><span class="p">(</span><span class="n">resSweep</span><span class="p">,</span>
+<span class="n">figS2</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweepParamsVsX</span><span class="p">(</span><span class="n">resSweep</span><span class="p">,</span>
                                    <span class="n">plot_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qc&#39;</span><span class="p">,</span> <span class="s1">&#39;qi&#39;</span><span class="p">],</span>
-                                   <span class="n">fig_size</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+                                   <span class="n">fig_size</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+                                   <span class="n">xvals</span><span class="o">=</span><span class="s1">&#39;power&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/Example2_LotsOfData_13_0.png"><img alt="_images/Example2_LotsOfData_13_0.png" src="_images/Example2_LotsOfData_13_0.png" style="width: 899px; height: 351px;" /></a>
+<a class="reference internal image-reference" href="_images/Example2_LotsOfData_13_0.png"><img alt="_images/Example2_LotsOfData_13_0.png" src="_images/Example2_LotsOfData_13_0.png" style="width: 898px; height: 351px;" /></a>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Now you should try running the emcee fitter on all the traces and compare the plots.</span>
 <span class="c1">#You can get the mc output by asking to plot &#39;f0_mc&#39; instead of &#39;f0&#39;, for instance.</span>
 </pre></div>

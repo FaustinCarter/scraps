@@ -1,30 +1,37 @@
+import warnings
 import numpy as np
 import scipy.signal as sps
 import scipy.special as spc
 import lmfit as lf
 
-def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
+# def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
+def cmplxIQ_fit(paramsVec, res, residual=True, **kwargs):
     """Return complex S21 resonance model or, if data is specified, a residual.
 
     Parameters
     ----------
     params : list-like
         A an ``lmfit.Parameters`` object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain0, pgain1, pgain2)
+    res : scraps.Resonator object
+        A Resonator object.
+    residual : bool
+        Whether to return a residual (True) or to return the model calcuated at the frequencies present in res (False).    
+
+    Keyword Arguments
+    -----------------
     freqs : list-like
-        A list of frequency points at which the model is calculated
-    data : list-like (optional)
-        A list of complex data in the form I + Q where I and Q are both lists of data and
-        ``len(I) == len(Q) == len(freqs)``. If data is not passed, then the return value is the model
-        calculated at each frequency point.
-    eps : list-like (optional)
-        A list of errors, one for each point in data.
-    kwargs : dict (optional)
-        Currently no keyword arguments are accepted.
+        A list of frequency points at which to calculate the model. Only used if `residual=False`
+
+    remove_baseline : bool
+        Whether or not to remove the baseline during calculation (i.e. ignore pgain and gain polynomials). Default is False.
+
+    only_baseline: bool
+        Whether or not to calculate and return only the baseline. Default is False.
 
     Returns
     -------
-    model or (model-data) : ``numpy.array``
-        If data is specified, the return is the residuals. If not, the return is the model
+    model or (model-data)/eps : ``numpy.array``
+        If residual=True is specified, the return is the residuals weighted by the uncertainties. If residual=False, the return is the model
         values calculated at the frequency points. The returned array is in the form
         ``I + Q`` or ``residualI + residualQ``.
 
@@ -58,13 +65,28 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
         Ioffset = paramsVec[10]
         Qoffset = paramsVec[11]
     else:
-        print("Warning: new model also fits for quadratic phase. Setting pgain2 = 0.")
-        print("If using Resonator.do_lmfit() pass kwarg: pgain2_vary = False for legacy behavior.")
+        warnings.warn("Warning: new model also fits for quadratic phase. Setting pgain2 = 0. \
+                    \nIf using Resonator.do_lmfit() pass kwarg: pgain2_vary = False for legacy behavior.")
         pgain2 = 0
 
         #Voltage offset at mixer output. Not needed for VNA
         Ioffset = paramsVec[9]
         Qoffset = paramsVec[10]
+
+    if residual == False:
+        #Use a custom vector of frequencies
+        freqs = np.array(kwargs.pop('freqs', res.freq))
+    else:
+        #Grab a shortcut to the resonant frequency
+        freqs = res.freq
+
+    #Repackage resonator data in 1D vector form
+    data = np.concatenate((res.I, res.Q),axis=0)
+
+    if (res.sigmaI is not None) and (res.sigmaQ is not None):
+        cmplxSigma = np.concatenate((res.sigmaI, res.sigmaQ), axis=0)
+    else:
+        cmplxSigma = None
 
     #Make everything referenced to the shifted, unitless, reduced frequency
     fs = f0+df
@@ -89,8 +111,23 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     #Allow for voltage offset of I and Q
     offset = Ioffset + 1j*Qoffset
 
-    #Calculate model from params at each point in freqs
-    modelCmplx = -gain*pgain*(1./qi+1j*2.0*(ff+df/fs))/(1./q0+1j*2.0*ff)+offset
+    remove_baseline = kwargs.pop('remove_baseline', False)
+
+    if remove_baseline:
+        #Set the baseline vector to a bunch of ones, with zero imaginary part
+        total_gain = np.ones_like(freqs, dtype=np.complex)
+    else:
+        #Actually calculate the baseline
+        total_gain = gain*pgain
+
+    only_baseline = kwargs.pop('only_baseline', False)
+
+    if only_baseline:
+        #Only return the baseline
+        modelCmplx = total_gain
+    else:
+        #Calculate model from params at each point in freqs
+        modelCmplx = total_gain*(1./qi+1j*2.0*(ff+df/fs))/(1./q0+1j*2.0*ff)+offset
 
     #Package complex data in 1D vector form
     modelI = np.real(modelCmplx)
@@ -98,17 +135,16 @@ def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
     model = np.concatenate((modelI, modelQ),axis=0)
 
     #Calculate eps from stdev of first 10 pts of data if not supplied
-    if eps is None and data is not None:
-        dataI, dataQ = np.split(data, 2)
-        epsI = np.std(sps.detrend(dataI[0:10]))
-        epsQ = np.std(sps.detrend(dataQ[0:10]))
-        eps = np.concatenate((np.full_like(dataI, epsI), np.full_like(dataQ, epsQ)))
+    if cmplxSigma is None and residual == True:
+        epsI = np.std(sps.detrend(res.I[0:10]))
+        epsQ = np.std(sps.detrend(res.Q[0:10]))
+        cmplxSigma = np.concatenate((np.full_like(res.I, epsI), np.full_like(res.Q, epsQ)))
 
     #Return model or residual
-    if data is None:
-        return model
+    if residual == True:
+        return (model-data)/cmplxSigma
     else:
-        return (model-data)/eps
+        return model
 
 def cmplxIQ_params(res, **kwargs):
     """Initialize fitting parameters used by the cmplxIQ_fit function.
@@ -199,7 +235,7 @@ def cmplxIQ_params(res, **kwargs):
     freqEnds = ffm(np.concatenate((res.freq[0:findex_5pc], res.freq[-findex_5pc:-1])))
 
     #This fits a second order polynomial
-    magBaseCoefs = np.polyfit(freqEnds, magEnds, 2)
+    magBaseCoefs = np.polyfit(freqEnds, magEnds, 2) 
 
     magBase = np.poly1d(magBaseCoefs)
 
@@ -226,7 +262,6 @@ def cmplxIQ_params(res, **kwargs):
 
     #Remove any linear variation from the phase (caused by electrical delay)
     phaseEnds = np.concatenate((resUPhase[0:findex_5pc], resUPhase[-findex_5pc:-1]))
-    phaseRot = resUPhase[findex_min]-resPhase[findex_min]+np.pi
 
     if fit_quadratic_phase:
         phase_poly_order = 2
@@ -234,7 +269,7 @@ def cmplxIQ_params(res, **kwargs):
         phase_poly_order = 1
 
     #This fits a second order polynomial
-    phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds+phaseRot, phase_poly_order)
+    phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds, phase_poly_order)
     phaseBase = np.poly1d(phaseBaseCoefs)
 
     #Add to resonator object

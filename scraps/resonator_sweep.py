@@ -20,6 +20,9 @@ class ResonatorSweep(dict):
 
     Keyword Arguments
     -----------------
+    label : string (optional)
+        Selects which set of fit data to build the ResonatorSweep from. Default is 'default'.
+
     index : string{'raw', 'round', 'block'} (optional)
         Selects which method to use for indexing.
 
@@ -156,6 +159,9 @@ class ResonatorSweep(dict):
             params.append('q0') #The total Q = qi*qc/(qi+qc)
 
 
+        #This flag sets which data to pull from the Resonator objects
+        self.label = kwargs.pop('label', 'default')
+        assert all([(self.label in res.lmfit_result.keys()) for res in resList]), "label must be present in lmfit_result dict keys for every Resonator in resList."
 
         #This flag sets different indexing methods
         self.smartindex = kwargs.pop('index', 'raw')
@@ -222,6 +228,9 @@ class ResonatorSweep(dict):
                     settemps = []
 
             self.tvec = np.asarray(temptvec)
+
+            assert all(hasattr(res, 'itemp') for res in resList), "Something went wrong with assigning itemps for block mode. Make sure data is square!"
+
         elif self.smartindex == 'raw':
             for res in resList:
                 res.itemp = np.round(res.temp*1000)
@@ -236,6 +245,7 @@ class ResonatorSweep(dict):
             for res in resList:
                 res.itemp = np.round(res.temp*1000)
 
+        
         #Loop through the parameters list and create a DataFrame for each one
         for pname in params:
             #Start out with a 2D dataframe full of NaN of type float
@@ -262,47 +272,47 @@ class ResonatorSweep(dict):
 
             #Fill it with as much data as exists
             for index, res in enumerate(resList):
-                if pname in res.lmfit_result.params.keys():
-                    if res.lmfit_result.params[pname].vary is True:
+                if pname in res.lmfit_result[self.label]['result'].params.keys():
+                    if res.lmfit_result[self.label]['result'].params[pname].vary is True:
                         #The actual best fit value
-                        self[pname][res.pwr][res.itemp] = res.lmfit_result.params[pname].value
+                        self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]['result'].params[pname].value
 
                         #Get the right index to find the uncertainty in the covariance matrix
-                        cx = res.lmfit_result.var_names.index(pname)
+                        cx = res.lmfit_result[self.label]['result'].var_names.index(pname)
 
                         #The uncertainty is the sqrt of the autocovariance
-                        if res.lmfit_result.covar is not None:
-                            self[pname+'_sigma'][res.pwr][res.itemp] = np.sqrt(res.lmfit_result.covar[cx, cx])
+                        if res.lmfit_result[self.label]['result'].covar is not None:
+                            self[pname+'_sigma'][res.pwr][res.itemp] = np.sqrt(res.lmfit_result[self.label]['result'].covar[cx, cx])
 
                         #Get the maximum liklihood if it exists
                         if res.hasChain is True:
 
                             #Grab the index of the parameter in question
-                            sx = list(res.emcee_result.flatchain.iloc[np.argmax(res.emcee_result.lnprob)].keys()).index(pname)
-                            self[pname+'_mle'][res.pwr][res.itemp] = res.mle_vals[pname]
-                            self[pname+'_mc'][res.pwr][res.itemp] = res.emcee_result.params[pname].value
+                            sx = list(res.emcee_result[self.label]['result'].flatchain.iloc[np.argmax(res.emcee_result[self.label]['result'].lnprob)].keys()).index(pname)
+                            self[pname+'_mle'][res.pwr][res.itemp] = res.emcee_result[self.label]['mle_vals'][pname]
+                            self[pname+'_mc'][res.pwr][res.itemp] = res.emcee_result[self.label]['result'].params[pname].value
 
                             #Since the plus and minus errorbars can be different,
                             #have to store them separately
-                            self[pname+'_sigma_plus_mc'][res.pwr][res.itemp] = res.emcee_sigmas[sx][0]
-                            self[pname+'_sigma_minus_mc'][res.pwr][res.itemp] = res.emcee_sigmas[sx][1]
+                            self[pname+'_sigma_plus_mc'][res.pwr][res.itemp] = res.emcee_result[self.label]['emcee_sigmas'][sx][0]
+                            self[pname+'_sigma_minus_mc'][res.pwr][res.itemp] = res.emcee_result[self.label]['emcee_sigmas'][sx][1]
                 elif pname == 'temps':
                     #Since we bin the temps by itemp for indexing, store the actual temp here
                     self[pname][res.pwr][res.itemp] = res.temp
                 elif pname == 'fmin':
                     self[pname][res.pwr][res.itemp] = res.fmin
                 elif pname == 'chisq':
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result.chisqr
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]['result'].chisqr
                 elif pname == 'redchi':
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result.redchi
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]['result'].redchi
                 elif pname == 'feval':
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result.nfev
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]['result'].nfev
                 elif pname == 'listIndex':
                     #This is useful for figuring out where in the resList the data you care about is
                     self[pname][res.pwr][res.itemp] = index
                 elif pname == 'q0':
-                    qi = res.lmfit_result.params['qi'].value
-                    qc = res.lmfit_result.params['qc'].value
+                    qi = res.lmfit_result[self.label]['result'].params['qi'].value
+                    qc = res.lmfit_result[self.label]['result'].params['qc'].value
                     self[pname][res.pwr][res.itemp] = qi*qc/(qi+qc)
 
     def do_lmfit(self, fit_keys, models_list, params_list, model_kwargs=None, param_kwargs=None, **kwargs):

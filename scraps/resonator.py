@@ -2,6 +2,7 @@ import numpy as np
 import lmfit as lf
 import glob
 import scipy.signal as sps
+import pandas as pd
 
 class Resonator(object):
     r"""Fit an S21 measurement of a hanger (or notch) type resonator.
@@ -182,11 +183,11 @@ class Resonator(object):
         self.params = None
         self.hasParams = False
 
-        #Whether or not a lmfit has been run
-        self.hasFit = False
-
         #These won't exist until the lmfit method is called
         self.lmfit_result = None
+
+        #These are scheduled for deprecation. They will eventually live in the lmfit_result dictionary
+        self.hasFit = False
         self.residualI = None
         self.residualQ = None
         self.resultI = None
@@ -194,13 +195,37 @@ class Resonator(object):
         self.resultMag = None
         self.resultPhase = None
 
-        #Whether or not an emcee has been run
-        self.hasChain = False
-
         #These won't exist until the emcee method is called
         self.emcee_result = None
+
+        #These are scheduled for deprecation. They will eventually live in the lmfit_result dictionary
+        self.hasChain = False
         self.mle_vals = None
         self.mle_labels = None
+
+    def to_disk(self):
+        """To be implemented: dumps resonator to disk as various file types. Default will be netcdf4"""
+        pass
+
+    def from_disk(self):
+        """To be implemented: load resonator object from disk."""
+        pass
+
+    def to_json(self):
+        """To be implemented: serialize resonator as a JSON string"""
+        pass
+
+    def from_json(self):
+        """To be implemented: create rsonator from JSON string"""
+        pass
+
+    #TODO: Implement the following for handling pickling:
+
+    #def __getstate__(self):
+    #   pass
+
+    #def __setstate__(self):
+    #   pass
 
 
     def load_params(self, paramsFn, **kwargs):
@@ -227,16 +252,26 @@ class Resonator(object):
         self.params = None
         self.hasParams = False
 
-    def do_lmfit(self, fitFn, **kwargs):
+    def do_lmfit(self, fitFn, label='default', fit_type='IQ', **kwargs):
         r"""Run lmfit on an existing resonator object and update the results.
 
         Parameters
         ----------
         fitFn : function
-            fitFn must have the signature ([A,B] means concatenate lists A and
-            B): fitFn(params, [Idata, Qdata], [I error, Q error]) and must
-            return a 1D list-like object of residuals with form [I residual, Q
-            residual].
+            fitFn must have the signature fitFn(params, res, residual, **kwargs).
+            If residual == True, fitFn must return a 1D list-like object of
+            residuals with form [I residual, Q residual] where [A, B] means
+            concatenate. Otherwise it must return the model data in the same form.
+
+        label: string
+            A label to use as a key when storing results from the fit to the
+            lmfit_results dict.
+
+        fit_type: string
+            Indicates the type of fit to be run. For some types of fits, certain
+            quantities will automatically be calculated and added to the resonator
+            object. For instance, 'IQ' will cause the magnitude, phase, I, and Q
+            as well as associated residuals to be calculated.
 
         kwargs : optional keywords
             Use this to override any of the lmfit parameter initial guesses or
@@ -261,75 +296,112 @@ class Resonator(object):
                 else:
                     raise ValueError("Unknown key: "+key)
 
-        #Make complex vectors of the form cData = [reData, imData]
-        cmplxData = np.concatenate((self.I, self.Q), axis=0)
+        # #Make complex vectors of the form cData = [reData, imData]
+        # cmplxData = np.concatenate((self.I, self.Q), axis=0)
 
-        if (self.sigmaI is not None) and (self.sigmaQ is not None):
-            cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
-        else:
-            cmplxSigma = None
+        # if (self.sigmaI is not None) and (self.sigmaQ is not None):
+        #     cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
+        # else:
+        #     cmplxSigma = None
+
+        # #Create a lmfit minimizer object
+        # minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self.freq, cmplxData, cmplxSigma))
 
         #Create a lmfit minimizer object
-        minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self.freq, cmplxData, cmplxSigma))
+        minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self, True))
 
-        #Call the lmfit minimizer method and minimize the residual
         lmfit_result = minObj.minimize(method = 'leastsq')
 
-        #Add the data back to the final minimized residual to get the final fit
-        #Also calculate all relevant curves
-        cmplxResult = fitFn(lmfit_result.params, self.freq)
-        cmplxResidual = lmfit_result.residual
+        #Call the lmfit minimizer method and minimize the residual
+        if self.lmfit_result is None:
+            self.lmfit_result = {}
 
-        #Split the complex data back up into real and imaginary parts
-        residualI, residualQ = np.split(cmplxResidual, 2)
-        resultI, resultQ = np.split(cmplxResult, 2)
+        self.lmfit_result[label] = {}
+        self.lmfit_result[label]['fit_type'] = fit_type
+        self.lmfit_result[label]['result'] = lmfit_result
+        self.lmfit_result[label]['values'] = np.asarray([val.value for key, val in lmfit_result.params.items() if val.vary is True])
+        self.lmfit_result[label]['labels'] = [key for key, val in lmfit_result.params.items() if val.vary is True]
 
-        resultMag = np.abs(resultI + 1j*resultQ)
-        resultPhase = np.arctan2(resultQ,resultI)
+        #NOTE: These are likely to be deprecated
+        if label == 'default':
+            self.lmfit_vals = self.lmfit_result[label]['values']
+            self.lmfit_labels = self.lmfit_result[label]['labels']
 
-        #Set the hasFit flag
+
+        #Set the hasFit flag NOTE:(scheduled for deprecation)
         self.hasFit = True
 
-        #Add some results back to the resonator object
-        self.lmfit_result = lmfit_result
-        self.residualI = residualI
-        self.residualQ = residualQ
-        self.resultI = resultI
-        self.resultQ = resultQ
-        self.resultMag = resultMag
-        self.resultPhase = resultPhase
+        #NOTE: This whole block may be deprecated
+        if (fit_type == 'IQ') and (label == 'default'):
+            #Add the data back to the final minimized residual to get the final fit
+            #Also calculate all relevant curves
+            cmplxResult = fitFn(self.lmfit_result[label]['result'].params, self, residual=False)
+            cmplxResidual = self.lmfit_result[label]['result'].residual
 
-        #It's useful to have a list of the best fits for the varying parameters
-        self.lmfit_vals = np.asarray([val.value for key, val in lmfit_result.params.items() if val.vary is True])
-        self.lmfit_labels = [key for key, val in lmfit_result.params.items() if val.vary is True]
+            #Split the complex data back up into real and imaginary parts
+            residualI, residualQ = np.split(cmplxResidual, 2)
+            resultI, resultQ = np.split(cmplxResult, 2)
 
-    def torch_lmfit(self):
+            resultMag = np.abs(resultI + 1j*resultQ)
+            resultPhase = np.arctan2(resultQ,resultI)
+
+            #Add some results back to the resonator object
+            self.residualI = residualI
+            self.residualQ = residualQ
+            self.resultI = resultI
+            self.resultQ = resultQ
+            self.resultMag = resultMag
+            self.resultPhase = resultPhase
+
+    def torch_lmfit(self, label='default'):
         r"""Reset all the lmfit attributes to ``None`` and set ``hasFit = False``.
+
+        Parameters
+        ----------
+        label : string (optional)
+            Choose which fit to kill off.
         """
-        #Delete all the lmfit results
-        self.hasFit = False
-        self.lmfit_result = None
-        self.residualI = None
-        self.residualQ = None
-        self.resultI = None
-        self.resultQ = None
-        self.resultMag = None
-        self.resultPhase = None
-        self.lmfit_vals = None
-        self.lmfit_labels = None
+
+        if self.lmfit_result is not None:
+            if label in self.lmfit_result.keys():
+                deleted_fit = self.lmfit_result.pop(label)
+
+                if label == 'default':
+                    self.lmfit_vals = None
+                    self.lmfit_labels = None
+            
+                if (deleted_fit['fit_type'] == 'IQ') and label == 'default':
+                    
+                    self.residualI = None
+                    self.residualQ = None
+                    self.resultI = None
+                    self.resultQ = None
+                    self.resultMag = None
+                    self.resultPhase = None
 
 
-    def do_emcee(self, fitFn, **kwargs):
+                if len(self.lmfit_result.keys()) == 0:
+                    self.lmfit_result = None
+                    self.hasFit = False
+
+
+    def do_emcee(self, fitFn, label='default', **kwargs):
         r"""Run the Monte-Carlo Markov Chain routine to generate samples for
         each parameter given a model.
 
         Parameters
         ----------
         fitFn : function
-            fitFn must have the signature ([A,B] means concatenate lists A and
-            B): fitFn(params, [Idata, Qdata], [I error, Q error]) and must
-            return a 1D list-like object of residuals with form [I residual, Q
-            residual].
+            fitFn must have the signature fitFn(params, res, residual, **kwargs).
+            If residual == True, fitFn must return a 1D list-like object of
+            residuals with form [I residual, Q residual] where [A, B] means
+            concatenate. Otherwise it must return the model data in the same form.
+
+        label : string (optional)
+            A label to assign to the fit results. This will be the dict key they
+            are stored under in the emcee_results dict. Also, if label matches a
+            label in lmfit_results, then that params object will be used to seed
+            the emcee fit.
 
         kwargs : optional keyword arguments
             These are passed through to the ``lmfit.Minimizer.emcee`` method.
@@ -345,55 +417,115 @@ class Resonator(object):
         #minimizerObj.emcee already updates parameters object to result
         #This means can call res.emcee_result.params to get results
 
-        assert self.hasParams == True, "Must load params before running emcee."
-
-        cmplxData = np.concatenate((self.I, self.Q), axis=0)
-
-        if (self.sigmaI is not None) and (self.sigmaQ is not None):
-            cmplxSigma = np.concatenate((self.sigmaI, self.sigmaQ), axis=0)
-        else:
-            cmplxSigma = None
-
         #Create a lmfit minimizer object
         if self.hasFit:
-            emcee_params = self.lmfit_result.params
+            if self.lmfit_result is not None:
+                if label in self.lmfit_result.keys():
+                    emcee_params = self.lmfit_result[label]['result'].params
         else:
+            assert self.hasParams == True, "Must load params before running emcee."
             emcee_params = self.params
 
-        minObj = lf.Minimizer(fitFn, emcee_params, fcn_args=(self.freq, cmplxData, cmplxSigma))
+        minObj = lf.Minimizer(fitFn, emcee_params, fcn_args=(self, True))
 
         #Run the emcee and add the result in
         emcee_result = minObj.emcee(**kwargs)
-        self.emcee_result = emcee_result
 
+        if self.emcee_result is None:
+            self.emcee_result = {}
+
+        self.emcee_result[label] = {}
+        self.emcee_result[label]['result'] = emcee_result
+        
         #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
-        self.emcee_vals = np.asarray([np.percentile(emcee_result.flatchain[key], 50) for key in emcee_result.flatchain.keys()])
-        err_plus = np.asarray([np.percentile(self.emcee_result.flatchain[key], 84) for key in self.emcee_result.flatchain.keys()])
-        err_minus = np.asarray([np.percentile(self.emcee_result.flatchain[key], 16) for key in self.emcee_result.flatchain.keys()])
+        emcee_vals = np.asarray([np.percentile(emcee_result.flatchain[key], 50) for key in emcee_result.flatchain.keys()])
+        err_plus = np.asarray([np.percentile(emcee_result.flatchain[key], 84) for key in emcee_result.flatchain.keys()])
+        err_minus = np.asarray([np.percentile(emcee_result.flatchain[key], 16) for key in emcee_result.flatchain.keys()])
+
+        #Pack these values into the fit storage dict
+        self.emcee_result[label]['values'] = emcee_vals
 
         #Make a list of tuples that are (+err, -err) for each paramter
-        self.emcee_sigmas = list(zip(err_plus-self.emcee_vals, self.emcee_vals-err_minus))
+        self.emcee_result[label]['emcee_sigmas'] = list(zip(err_plus-emcee_vals, emcee_vals-err_minus))
 
         #It is also useful to have easy access to the maximum-liklihood estimates
-        self.mle_vals = emcee_result.flatchain.iloc[np.argmax(emcee_result.lnprob)]
+        self.emcee_result[label]['mle_vals'] = emcee_result.flatchain.iloc[np.argmax(emcee_result.lnprob)]
 
         #This is useful because only varying parameters have mle vals
-        self.mle_labels = self.mle_vals.keys()
+        self.emcee_result[label]['mle_labels'] = self.emcee_result[label]['mle_vals'].keys()
 
-        #This is also nice to have explicitly for passing to triangle-plotting routines
-        self.chain = emcee_result.flatchain.copy()
+
+        if label == 'default':
+            self.emcee_vals = self.emcee_result[label]['values']
+
+            #Make a list of tuples that are (+err, -err) for each paramter
+            self.emcee_sigmas = self.emcee_result[label]['emcee_sigmas']
+
+            #It is also useful to have easy access to the maximum-liklihood estimates
+            self.mle_vals = self.emcee_result[label]['mle_vals']
+
+            #This is useful because only varying parameters have mle vals
+            self.mle_labels = self.emcee_result[label]['mle_labels']
+
+            #This is also nice to have explicitly for passing to triangle-plotting routines
+            self.chain = emcee_result.flatchain.copy()
+        
         self.hasChain = True
 
-    def torch_emcee(self):
-        r"""Set the emcee-related attributes to ``None`` and ``hasChain = False``."""
-        self.hasChain = False
-        self.emcee_result = None
-        self.emcee_vals = None
-        self.emcee_sigmas = None
-        self.mle_vals = None
-        self.mle_labels = None
-        self.chain = None
+    def burn_flatchain(self, num_samples=0, label='default'):
+        r"""Burns off num_samples samples from each of the chains and then reflattens. Recalculates all
+        statistical quantities associated with the emcee run and saves them under the original
+        label, but with the suffix '_burn' appended to the various keys. Does not modify original chain."""
+        
+        flatchain_with_burn = pd.DataFrame()
+        chains = self.emcee_result[label]['result'].chain
+        
+        for ix, chain in enumerate(chains.T):
+            flatchain_with_burn[self.emcee_result[label]['mle_labels'][ix]] = chain[num_samples:].flat
 
+        #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
+        emcee_vals = np.asarray([np.percentile(flatchain_with_burn[key], 50) for key in flatchain_with_burn.keys()])
+        err_plus = np.asarray([np.percentile(flatchain_with_burn[key], 84) for key in flatchain_with_burn.keys()])
+        err_minus = np.asarray([np.percentile(flatchain_with_burn[key], 16) for key in flatchain_with_burn.keys()])
+
+        #Make a list of tuples that are (+err, -err) for each paramter
+        emcee_sigmas = list(zip(err_plus-emcee_vals, emcee_vals-err_minus))
+
+        #Pack these values into the fit storage dict with suffix _burn
+        self.emcee_result[label]['values_burn'] = emcee_vals
+
+        #Make a list of tuples that are (+err, -err) for each paramter
+        self.emcee_result[label]['emcee_sigmas_burn'] = list(zip(err_plus-emcee_vals, emcee_vals-err_minus))
+
+        #TODO: Implement this!
+        #It is also useful to have easy access to the maximum-liklihood estimates
+        #self.emcee_result[label]['mle_vals_burn'] = flatchain_with_burn.iloc[np.argmax(emcee_result.lnprob)]
+
+        #Add the burned flatchain in its own key
+        self.emcee_result[label]['flatchain_burn'] = flatchain_with_burn
+
+    def torch_emcee(self, label='default'):
+        r"""Set the emcee-related attributes to ``None`` and ``hasChain = False``.
+        Parameters
+        ----------
+        label : string (optional)
+            Which fit to torch"""
+        
+        if self.emcee_result is not None:
+            if label in self.emcee_result.keys():
+                deleted_fit = self.emcee_result.pop(label)
+
+                if label == 'default':
+                    self.emcee_vals = None
+                    self.emcee_sigmas = None
+                    self.mle_vals = None
+                    self.mle_labels = None
+                    self.chain = None
+
+
+                if len(self.emcee_result.keys()) == 0:
+                    self.hasChain = False
+                    self.emcee_result = None
 
 #This creates a resonator object from a data dictionary. Optionally performs a fit, and
 #adds the fit data back in to the resonator object
@@ -431,7 +563,7 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
 
     #Check dataDict for validity
     expectedKeys = ['name', 'temp', 'pwr', 'freq', 'I', 'Q']
-    assert all(key in dataDict for key in expectedKeys), "Your dataDict is missing one or more keys"
+    assert all(key in dataDict.keys() for key in expectedKeys), "Your dataDict is missing one or more keys"
 
     resName = dataDict['name']
     temp = dataDict['temp']
@@ -504,7 +636,7 @@ def makeResList(fileFunc, dataPath, resName, **fileFunc_kwargs):
     for f in fileList:
         fileDataDicts.append(fileFunc(f, **fileFunc_kwargs))
 
-    #Create resonator objects from the data
+    #Create resonator objects from the data 
     #makeResFromData returns a tuple of (res, temp, pwr),
     #but only care about the first one
     resList = [makeResFromData(fileDataDict) for fileDataDict in fileDataDicts]
@@ -666,3 +798,5 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
                         print('T=',t, 'P=',p, 'Res index=',res_ix)
                     if prune:
                         resList.pop(res_ix)
+
+

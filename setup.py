@@ -17,7 +17,7 @@ setup(
     long_description = open('README.rst').read(),
     install_requires = [
         'numpy>=1.5',
-        'matplotlib>=1.5',
+        'matplotlib>=2.0',
         'scipy>=0.14',
         'lmfit>=0.9.5',
         'emcee>=2.2.1',

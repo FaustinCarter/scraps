@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Figure generation for a manuscript (using NbN CPW resonator data) &#8212; scraps 0.2.3 documentation</title>
+    <title>Figure generation for a manuscript (using NbN CPW resonator data) &#8212; scraps 0.4.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.3',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -44,6 +44,7 @@
   <div class="section" id="figure-generation-for-a-manuscript-using-nbn-cpw-resonator-data">
 <h1>Figure generation for a manuscript (using NbN CPW resonator data)<a class="headerlink" href="#figure-generation-for-a-manuscript-using-nbn-cpw-resonator-data" title="Permalink to this headline">¶</a></h1>
 <p>by: Faustin W. Carter</p>
+<p>(Updated 2018)</p>
 <p>Data is from a niobium-nitride CPW resonator fabricated at ANL by Trupti
 Khaire. It was installed in a copper box, and wirebonded with gold bonds
 to an impdence matching board that translated the signal from coax to
@@ -139,6 +140,9 @@ data, you can just load the cached object back into memory.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;last saved file was: &#39;</span><span class="o">+</span><span class="n">fName</span><span class="p">)</span>
 </pre></div>
 </div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">last</span> <span class="n">saved</span> <span class="n">file</span> <span class="n">was</span><span class="p">:</span> <span class="n">saved_data</span><span class="o">.</span><span class="n">pickle</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="load-up-previously-cached-data">
 <h2>Load up previously cached data<a class="headerlink" href="#load-up-previously-cached-data" title="Permalink to this headline">¶</a></h2>
@@ -155,10 +159,7 @@ imports modules.</p>
 </div>
 <div class="section" id="now-we-can-make-a-plot-of-the-traces">
 <h1>Now we can make a plot of the traces.<a class="headerlink" href="#now-we-can-make-a-plot-of-the-traces" title="Permalink to this headline">¶</a></h1>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">importlib</span> <span class="k">import</span> <span class="n">reload</span>
-<span class="n">scr</span><span class="o">.</span><span class="n">plot_tools</span> <span class="o">=</span> <span class="n">reload</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">plot_tools</span><span class="p">)</span>
-
-<span class="n">fig1a</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plot_tools</span><span class="o">.</span><span class="n">plotResListData</span><span class="p">(</span><span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">fig1a</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plot_tools</span><span class="o">.</span><span class="n">plotResListData</span><span class="p">(</span><span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
                             <span class="n">plot_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;IQ&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMag&#39;</span><span class="p">,</span> <span class="s1">&#39;uPhase&#39;</span><span class="p">],</span>
                             <span class="n">detrend_phase</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                             <span class="n">plot_fits</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
@@ -190,7 +191,7 @@ imports modules.</p>
 <span class="c1">#The first 300 samples from each chain are</span>
 <span class="c1">#discarded to allow for burn-in</span>
 <span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">][</span><span class="n">rix</span><span class="p">]</span><span class="o">.</span><span class="n">do_emcee</span><span class="p">(</span><span class="n">scr</span><span class="o">.</span><span class="n">cmplxIQ_fit</span><span class="p">,</span>
-                                <span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+                                <span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
                                 <span class="n">steps</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
                                 <span class="n">burn</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
 </pre></div>
@@ -221,7 +222,7 @@ package like <code class="docutils literal"><span class="pre">corner</span></cod
 
 <span class="c1">#Copy the best-fit values from the least-squares</span>
 <span class="c1">#routine so we can modify the units</span>
-<span class="n">least_squares_fit_vals</span> <span class="o">=</span> <span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">][</span><span class="n">rix</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_vals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">least_squares_fit_vals</span> <span class="o">=</span> <span class="n">resLists</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">][</span><span class="n">rix</span><span class="p">]</span><span class="o">.</span><span class="n">lmfit_result</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;values&#39;</span><span class="p">]</span>
 
 <span class="c1">#Change the frequency units from Hz to GHz</span>
 <span class="n">least_squares_fit_vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/=</span><span class="mf">1e9</span>
@@ -254,10 +255,11 @@ the desired temperature/power grid.</p>
 <span class="c1">#(one for each name).</span>
 
 <span class="c1">#Each of these objects will be a dict of pandas DataFrames</span>
-
+<span class="c1">#We will ignore anything with a readout power below -70 dBm since</span>
+<span class="c1">#we happen to know that data is all bad!</span>
 <span class="n">resSweeps</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="n">resName</span><span class="p">,</span> <span class="n">resList</span> <span class="ow">in</span> <span class="n">resLists</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="n">resSweeps</span><span class="p">[</span><span class="n">resName</span><span class="p">]</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">ResonatorSweep</span><span class="p">(</span><span class="n">resList</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;block&#39;</span><span class="p">)</span>
+    <span class="n">resSweeps</span><span class="p">[</span><span class="n">resName</span><span class="p">]</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">ResonatorSweep</span><span class="p">([</span><span class="n">res</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">resList</span> <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">pwr</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">70</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;block&#39;</span><span class="p">)</span>
 
 <span class="c1">#Look at the uncertainties on the best-fit frequencie</span>
 <span class="c1">#for the first few files of &#39;RES-1&#39;</span>
@@ -292,49 +294,50 @@ the desired temperature/power grid.</p>
   <tbody>
     <tr>
       <th>101.0</th>
-      <td>241.637272</td>
-      <td>80.337916</td>
-      <td>26.967346</td>
-      <td>13.266754</td>
-      <td>8.742586</td>
+      <td>241.636656</td>
+      <td>80.326332</td>
+      <td>26.967414</td>
+      <td>12.740956</td>
+      <td>8.730099</td>
     </tr>
     <tr>
       <th>108.0</th>
-      <td>246.788414</td>
-      <td>80.905870</td>
-      <td>27.029770</td>
-      <td>12.117045</td>
-      <td>9.554198</td>
+      <td>253.990069</td>
+      <td>80.906091</td>
+      <td>27.029754</td>
+      <td>11.760725</td>
+      <td>9.538588</td>
     </tr>
     <tr>
       <th>117.0</th>
-      <td>236.284541</td>
-      <td>79.852011</td>
-      <td>26.688084</td>
-      <td>11.756270</td>
-      <td>10.169787</td>
+      <td>246.129562</td>
+      <td>79.844324</td>
+      <td>26.622559</td>
+      <td>11.756268</td>
+      <td>9.909033</td>
     </tr>
     <tr>
       <th>129.0</th>
-      <td>243.919971</td>
-      <td>80.580874</td>
-      <td>26.860352</td>
-      <td>12.327939</td>
-      <td>8.546404</td>
+      <td>243.923856</td>
+      <td>80.745320</td>
+      <td>26.860808</td>
+      <td>12.573795</td>
+      <td>8.546415</td>
     </tr>
     <tr>
       <th>143.0</th>
-      <td>248.637587</td>
-      <td>82.197184</td>
-      <td>26.624129</td>
-      <td>11.951576</td>
-      <td>9.116620</td>
+      <td>248.637777</td>
+      <td>82.198278</td>
+      <td>27.060582</td>
+      <td>11.976298</td>
+      <td>9.268566</td>
     </tr>
   </tbody>
 </table>
 </div><div class="section" id="now-we-can-look-at-the-fit-parameters-from-the-previous-step-vs-temperature-or-power">
 <h2>Now we can look at the fit parameters from the previous step vs Temperature or Power<a class="headerlink" href="#now-we-can-look-at-the-fit-parameters-from-the-previous-step-vs-temperature-or-power" title="Permalink to this headline">¶</a></h2>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">fig1c</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweepParamsVsTemp</span><span class="p">(</span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">fig1c</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweepParamsVsX</span><span class="p">(</span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
+                                    <span class="n">xvals</span> <span class="o">=</span> <span class="s1">&#39;temperature&#39;</span><span class="p">,</span>
                                     <span class="n">fig_size</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
                                     <span class="n">plot_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">,</span> <span class="s1">&#39;qi&#39;</span><span class="p">],</span>
                                     <span class="n">plot_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$f_0$ (GHz)&#39;</span><span class="p">,</span>
@@ -490,6 +493,12 @@ mesh) overplotted on the semi-transparent surface that is the data.</p>
                                             <span class="s1">&#39;burn&#39;</span><span class="p">:</span><span class="mi">300</span><span class="p">})</span>
 </pre></div>
 </div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">fcarter</span><span class="o">/</span><span class="n">anaconda</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">py36</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="o">.</span><span class="mi">6</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">emcee</span><span class="o">/</span><span class="n">ensemble</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">335</span><span class="p">:</span> <span class="ne">RuntimeWarning</span><span class="p">:</span> <span class="n">invalid</span> <span class="n">value</span> <span class="n">encountered</span> <span class="ow">in</span> <span class="n">subtract</span>
+  <span class="n">lnpdiff</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">zz</span><span class="p">)</span> <span class="o">+</span> <span class="n">newlnprob</span> <span class="o">-</span> <span class="n">lnprob0</span>
+<span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">fcarter</span><span class="o">/</span><span class="n">anaconda</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">py36</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="o">.</span><span class="mi">6</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">emcee</span><span class="o">/</span><span class="n">ensemble</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">336</span><span class="p">:</span> <span class="ne">RuntimeWarning</span><span class="p">:</span> <span class="n">invalid</span> <span class="n">value</span> <span class="n">encountered</span> <span class="ow">in</span> <span class="n">greater</span>
+  <span class="n">accept</span> <span class="o">=</span> <span class="p">(</span><span class="n">lnpdiff</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lnpdiff</span><span class="p">))))</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="id1">
 <h2>Use <code class="docutils literal"><span class="pre">pygtc</span></code> to plot the parameter covariances<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
@@ -626,12 +635,11 @@ not using compatible models for <span class="math">\(Q_\mathrm{i}\)</span> and <
                         <span class="n">figureSize</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_36_0.png"><img alt="_images/Example3_FiguresForManuscript_36_0.png" src="_images/Example3_FiguresForManuscript_36_0.png" style="width: 382px; height: 386px;" /></a>
+<a class="reference internal image-reference" href="_images/Example3_FiguresForManuscript_36_0.png"><img alt="_images/Example3_FiguresForManuscript_36_0.png" src="_images/Example3_FiguresForManuscript_36_0.png" style="width: 394px; height: 384px;" /></a>
 <p>Finally, let’s look at the joint fits as surfaces on top of the actual
-data. It’s pretty clear that even though the MCMC analysis produced nice
-looking bullseyes, the values they return are not actually a very good
-fit to the data! It’s probably time to get a better model than the toy
-included here!</p>
+data. It’s no surprise after looking at the corner plot above that the
+values they return are not actually a very good fit to the data! It’s
+probably time to get a better model than the toy included here!</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">fig2e</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">plotResSweep3D</span><span class="p">(</span><span class="n">resSweeps</span><span class="p">[</span><span class="s1">&#39;RES-1&#39;</span><span class="p">],</span>
                            <span class="n">plot_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">],</span>
                            <span class="n">max_temp</span><span class="o">=</span><span class="mi">775</span><span class="p">,</span>

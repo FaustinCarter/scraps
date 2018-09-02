@@ -4,6 +4,8 @@ Figure generation for a manuscript (using NbN CPW resonator data)
 
 by: Faustin W. Carter
 
+(Updated 2018)
+
 Data is from a niobium-nitride CPW resonator fabricated at ANL by Trupti
 Khaire. It was installed in a copper box, and wirebonded with gold bonds
 to an impdence matching board that translated the signal from coax to
@@ -109,6 +111,12 @@ data, you can just load the cached object back into memory.
     
     print('last saved file was: '+fName)
 
+
+.. parsed-literal::
+
+    last saved file was: saved_data.pickle
+
+
 Load up previously cached data
 ------------------------------
 
@@ -128,9 +136,6 @@ Now we can make a plot of the traces.
 
 .. code:: ipython3
 
-    from importlib import reload
-    scr.plot_tools = reload(scr.plot_tools)
-    
     fig1a = scr.plot_tools.plotResListData(resLists['RES-1'],
                                 plot_types=['IQ', 'LogMag', 'uPhase'],
                                 detrend_phase = True,
@@ -171,7 +176,7 @@ Running this next cell will take a few minutes (5 or 10, maybe)
     #The first 300 samples from each chain are
     #discarded to allow for burn-in
     resLists['RES-1'][rix].do_emcee(scr.cmplxIQ_fit,
-                                    nwalkers = 100,
+                                    nwalkers = 30,
                                     steps = 1000,
                                     burn=300)
 
@@ -205,7 +210,7 @@ package like ``corner`` to view the covariances.
     
     #Copy the best-fit values from the least-squares
     #routine so we can modify the units
-    least_squares_fit_vals = resLists['RES-1'][rix].lmfit_vals.copy()
+    least_squares_fit_vals = resLists['RES-1'][rix].lmfit_result['default']['values']
     
     #Change the frequency units from Hz to GHz
     least_squares_fit_vals[1]/=1e9
@@ -245,10 +250,11 @@ the desired temperature/power grid.
     #(one for each name).
     
     #Each of these objects will be a dict of pandas DataFrames
-    
+    #We will ignore anything with a readout power below -70 dBm since
+    #we happen to know that data is all bad!
     resSweeps = {}
     for resName, resList in resLists.items():
-        resSweeps[resName] = scr.ResonatorSweep(resList, index='block')
+        resSweeps[resName] = scr.ResonatorSweep([res for res in resList if res.pwr > -70], index='block')
     
     #Look at the uncertainties on the best-fit frequencie
     #for the first few files of 'RES-1'
@@ -287,43 +293,43 @@ the desired temperature/power grid.
       <tbody>
         <tr>
           <th>101.0</th>
-          <td>241.637272</td>
-          <td>80.337916</td>
-          <td>26.967346</td>
-          <td>13.266754</td>
-          <td>8.742586</td>
+          <td>241.636656</td>
+          <td>80.326332</td>
+          <td>26.967414</td>
+          <td>12.740956</td>
+          <td>8.730099</td>
         </tr>
         <tr>
           <th>108.0</th>
-          <td>246.788414</td>
-          <td>80.905870</td>
-          <td>27.029770</td>
-          <td>12.117045</td>
-          <td>9.554198</td>
+          <td>253.990069</td>
+          <td>80.906091</td>
+          <td>27.029754</td>
+          <td>11.760725</td>
+          <td>9.538588</td>
         </tr>
         <tr>
           <th>117.0</th>
-          <td>236.284541</td>
-          <td>79.852011</td>
-          <td>26.688084</td>
-          <td>11.756270</td>
-          <td>10.169787</td>
+          <td>246.129562</td>
+          <td>79.844324</td>
+          <td>26.622559</td>
+          <td>11.756268</td>
+          <td>9.909033</td>
         </tr>
         <tr>
           <th>129.0</th>
-          <td>243.919971</td>
-          <td>80.580874</td>
-          <td>26.860352</td>
-          <td>12.327939</td>
-          <td>8.546404</td>
+          <td>243.923856</td>
+          <td>80.745320</td>
+          <td>26.860808</td>
+          <td>12.573795</td>
+          <td>8.546415</td>
         </tr>
         <tr>
           <th>143.0</th>
-          <td>248.637587</td>
-          <td>82.197184</td>
-          <td>26.624129</td>
-          <td>11.951576</td>
-          <td>9.116620</td>
+          <td>248.637777</td>
+          <td>82.198278</td>
+          <td>27.060582</td>
+          <td>11.976298</td>
+          <td>9.268566</td>
         </tr>
       </tbody>
     </table>
@@ -336,7 +342,8 @@ Now we can look at the fit parameters from the previous step vs Temperature or P
 
 .. code:: ipython3
 
-    fig1c = scr.plotResSweepParamsVsTemp(resSweeps['RES-1'],
+    fig1c = scr.plotResSweepParamsVsX(resSweeps['RES-1'],
+                                        xvals = 'temperature',
                                         fig_size = 3,
                                         plot_keys = ['f0', 'qi'],
                                         plot_labels = ['$f_0$ (GHz)',
@@ -518,6 +525,15 @@ Running this next cell will take a few minutes.
                                                 'steps':1000,
                                                 'burn':300})
 
+
+.. parsed-literal::
+
+    /Users/fcarter/anaconda/envs/py36/lib/python3.6/site-packages/emcee/ensemble.py:335: RuntimeWarning: invalid value encountered in subtract
+      lnpdiff = (self.dim - 1.) * np.log(zz) + newlnprob - lnprob0
+    /Users/fcarter/anaconda/envs/py36/lib/python3.6/site-packages/emcee/ensemble.py:336: RuntimeWarning: invalid value encountered in greater
+      accept = (lnpdiff > np.log(self._random.rand(len(lnpdiff))))
+
+
 Use ``pygtc`` to plot the parameter covariances
 -----------------------------------------------
 
@@ -676,15 +692,14 @@ not using compatible models for :math:`Q_\mathrm{i}` and :math:`f_0`.
 
 
 .. image:: _static/Example3_FiguresForManuscript_files/Example3_FiguresForManuscript_36_0.png
-   :width: 382px
-   :height: 386px
+   :width: 394px
+   :height: 384px
 
 
 Finally, let's look at the joint fits as surfaces on top of the actual
-data. It's pretty clear that even though the MCMC analysis produced nice
-looking bullseyes, the values they return are not actually a very good
-fit to the data! It's probably time to get a better model than the toy
-included here!
+data. It's no surprise after looking at the corner plot above that the
+values they return are not actually a very good fit to the data! It's
+probably time to get a better model than the toy included here!
 
 .. code:: ipython3
 

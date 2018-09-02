@@ -2,7 +2,7 @@
 Example 2: Analysis of a resonator fabricated at Argonne National Laboratory
 ============================================================================
 
-**By: Faustin Carter, 2016, updated 2017**
+**By: Faustin Carter, 2016, updated 2018**
 
 This notebook imports the data from the Agilent files, creates resonator
 objects from each datafile, packs those objects into a list, runs a
@@ -64,7 +64,7 @@ organizing data taken at the 'same' temperature that has fluctuations.
     resName = 'RES-1'
     
     #We pass the process file and the path to the data, and the built-in routine spits out a list of Resonator objects!
-    resList = scr.makeResList(scr.process_file, dataPath, resName)
+    resList = scr.makeResList(scr.process_file, dataPath, resName, skiprows=1)
     
     #Create index vectors for all temps and pwrs in the experiment
     
@@ -189,9 +189,10 @@ can use to look at this easily.
 
     #Now let's make a plot of some of the parameters!
     
-    figS = scr.plotResSweepParamsVsTemp(resSweep,
+    figS = scr.plotResSweepParamsVsX(resSweep,
                                        plot_keys=['gain0', 'f0', 'qi', 'qc', 'df', 'redchi'],
-                                       num_cols = 3)
+                                       num_cols = 3,
+                                       xvals='temperature')
 
 
 
@@ -203,14 +204,15 @@ can use to look at this easily.
 .. code:: ipython3
 
     #Or maybe you just want to look at how Q varies with power at different temperatures:
-    figS2 = scr.plotResSweepParamsVsPwr(resSweep,
+    figS2 = scr.plotResSweepParamsVsX(resSweep,
                                        plot_keys=['qc', 'qi'],
-                                       fig_size = 5)
+                                       fig_size = 5,
+                                       xvals='power')
 
 
 
 .. image:: _static/Example2_LotsOfData_files/Example2_LotsOfData_13_0.png
-   :width: 899px
+   :width: 898px
    :height: 351px
 
 

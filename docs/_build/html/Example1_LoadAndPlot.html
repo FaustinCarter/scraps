@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Example 1: Load one file into the Resonator class &#8212; scraps 0.2.3 documentation</title>
+    <title>Example 1: Load one file into the Resonator class &#8212; scraps 0.4.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.3',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,7 +43,7 @@
             
   <div class="section" id="example-1-load-one-file-into-the-resonator-class">
 <h1>Example 1: Load one file into the <code class="docutils literal"><span class="pre">Resonator</span></code> class<a class="headerlink" href="#example-1-load-one-file-into-the-resonator-class" title="Permalink to this headline">¶</a></h1>
-<p><strong>By: Faustin Carter, 2016, updated 2017</strong></p>
+<p><strong>By: Faustin Carter, 2016, updated 2018</strong></p>
 <p>This notebook imports the data from one Agilent file, creates a
 <code class="docutils literal"><span class="pre">Resonator</span></code> object, runs a fitting routine, and then plots the data
 and fit curves in a nice way.</p>
@@ -95,7 +95,7 @@ temperature in K that the measurement was taken at.</li>
 <span class="n">dataFile</span> <span class="o">=</span> <span class="s1">&#39;./ExampleData/RES-1_-10_DBM_TEMP_0.113.S2P&#39;</span>
 
 <span class="c1">#Use the process_file routine to read the file and create a dict of resonator data</span>
-<span class="n">fileDataDict</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">(</span><span class="n">dataFile</span><span class="p">)</span>
+<span class="n">fileDataDict</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">process_file</span><span class="p">(</span><span class="n">dataFile</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1">#Look at the contents of the dict:</span>
 <span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">fileDataDict</span><span class="p">)</span>
@@ -157,9 +157,13 @@ the parameters defined in <code class="docutils literal"><span class="pre">cmplx
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Do fit results exist for the second object? &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">hasFit</span><span class="p">)</span>
 
 <span class="c1">#Compare the best guess for the resonant frequency (minimum of the curve) to the actual fit</span>
+<span class="c1">#Because we didn&#39;t specify a label for our fit, the results are stored in the lmfit_result</span>
+<span class="c1">#dict under the &#39;default&#39; key. If we passed the optional label argument to the do_lmfit</span>
+<span class="c1">#method, it would store the results under whatever string is assigned to label.</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Guess = &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">fmin</span><span class="p">,</span> <span class="s1">&#39; Hz&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best fit = &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">lmfit_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39; Hz&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best fit with different qc guess = &#39;</span><span class="p">,</span> <span class="n">resObj1</span><span class="o">.</span><span class="n">lmfit_result</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39; Hz&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best fit = &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">lmfit_result</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;result&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39; Hz&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best fit with different qc guess = &#39;</span><span class="p">,</span>
+      <span class="n">resObj1</span><span class="o">.</span><span class="n">lmfit_result</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;result&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;f0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39; Hz&#39;</span><span class="p">)</span>
 
 <span class="c1">#You can see the fit is not terribly sensitive to the guess for qc.</span>
 </pre></div>
@@ -207,7 +211,7 @@ parameters.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Does an emcee chain exist? &#39;</span><span class="p">,</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">hasChain</span><span class="p">)</span>
 
 <span class="c1">#Look at the first few rows of the output chain:</span>
-<span class="n">chains</span> <span class="o">=</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">emcee_result</span><span class="o">.</span><span class="n">flatchain</span>
+<span class="n">chains</span> <span class="o">=</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">emcee_result</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;result&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatchain</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Head of chains:&#39;</span><span class="p">)</span>
 <span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">chains</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
@@ -225,29 +229,29 @@ parameters.</p>
 Does an emcee chain exist?  True
 
 Head of chains:
-            df            f0            qc             qi     gain0     gain1  0  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
-1  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
-2  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
-3  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
-4  88693.25624  8.174866e+09  48824.594021  284047.107889  0.068197  1.039969
+             df            f0            qc             qi     gain0  0  88694.637513  8.174866e+09  48825.968684  284032.418900  0.068196
+1  88694.633409  8.174866e+09  48825.922210  284032.532886  0.068196
+2  88694.633409  8.174866e+09  48825.922210  284032.532886  0.068196
+3  88693.936736  8.174866e+09  48825.168106  284030.256892  0.068197
+4  88694.084139  8.174866e+09  48825.026661  284031.759541  0.068197
 
-         gain2    pgain0       pgain1
-0  1107.755048  4.317309 -1563.863741
-1  1107.755048  4.317309 -1563.863741
-2  1107.755048  4.317309 -1563.863741
-3  1107.755048  4.317309 -1563.863741
-4  1107.755048  4.317309 -1563.863741
+      gain1        gain2    pgain0       pgain1
+0  1.040011  1107.766240  1.175713 -1563.868140
+1  1.040013  1107.764981  1.175712 -1563.868598
+2  1.040013  1107.764981  1.175712 -1563.868598
+3  1.040044  1107.745343  1.175714 -1563.867138
+4  1.040052  1107.749879  1.175713 -1563.868613
 
 Perecent difference:
-[('df', -0.0005044574162677047),
- ('f0', 5.9165526894802568e-09),
- ('qc', -0.00042210636481046374),
- ('qi', 0.0040312688997595006),
- ('gain0', 6.8081838833118757e-05),
- ('gain1', 0.0034954527806059987),
- ('gain2', -0.010104059690110649),
- ('pgain0', 3.5469655585706252e-06),
- ('pgain1', 9.9454230765084369e-05)]
+[('df', 0.00016457041577626805),
+ ('f0', 4.9636793175466591e-09),
+ ('qc', -7.1412453256857882e-05),
+ ('qi', 0.00066200624835167574),
+ ('gain0', -0.00018165545757985608),
+ ('gain1', -0.0091685488964723463),
+ ('gain2', 0.0047494130464930022),
+ ('pgain0', -8.9449361862636539e-05),
+ ('pgain1', 0.00025065766561930896)]
 </pre>
 </div>
 <div class="section" id="make-a-sweet-giant-triangle-confusogram-of-your-emcee-results">
@@ -259,10 +263,62 @@ Perecent difference:
 </div>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Plot the triangle plot, and overlay the best fit values with dashed black lines (default)</span>
 <span class="c1">#You can see that the least-squares fitter did a very nice job of getting the values right</span>
+
+<span class="c1">#You can also see that there is some strange non-gaussian parameter space that the MCMC</span>
+<span class="c1">#analysis maps out! This is kind of wierd, but not too worrisome. It is probably suggestive</span>
+<span class="c1">#that more care is needed in choosing good options for the MCMC engine.</span>
+
 <span class="n">figGTC</span> <span class="o">=</span> <span class="n">pygtc</span><span class="o">.</span><span class="n">plotGTC</span><span class="p">(</span><span class="n">chains</span><span class="p">,</span> <span class="n">truths</span> <span class="o">=</span> <span class="p">[</span><span class="n">resObj2</span><span class="o">.</span><span class="n">lmfit_vals</span><span class="p">])</span>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_15_0.png"><img alt="_images/Example1_LoadAndPlot_15_0.png" src="_images/Example1_LoadAndPlot_15_0.png" style="width: 549px; height: 535px;" /></a>
+<p>Notice how the 2D histograms for <code class="docutils literal"><span class="pre">gain</span> <span class="pre">1</span></code> and <code class="docutils literal"><span class="pre">gain</span> <span class="pre">2</span></code> look like
+sideways cats eyes? This is probably because the MCMC analsysis hasn’t
+quite converged, or maybe there could be outliers. We can plot the
+actual chains to see for ourselves.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#We will need to directly use matplotlib for this</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1">#First, let&#39;s make a copy of the chains array so we don&#39;t mess up the raw data</span>
+<span class="n">mcmc_result</span> <span class="o">=</span> <span class="n">resObj2</span><span class="o">.</span><span class="n">emcee_result</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;result&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1">#And we can plot the chains to see what is going on</span>
+<span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">resObj2</span><span class="o">.</span><span class="n">emcee_result</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;mle_labels&#39;</span><span class="p">]):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cx</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mcmc_result</span><span class="p">[:,:,</span><span class="n">ix</span><span class="p">]):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_17_0.png"><img alt="_images/Example1_LoadAndPlot_17_0.png" src="_images/Example1_LoadAndPlot_17_0.png" style="width: 389px; height: 263px;" /></a>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_17_1.png"><img alt="_images/Example1_LoadAndPlot_17_1.png" src="_images/Example1_LoadAndPlot_17_1.png" style="width: 370px; height: 263px;" /></a>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_17_2.png"><img alt="_images/Example1_LoadAndPlot_17_2.png" src="_images/Example1_LoadAndPlot_17_2.png" style="width: 364px; height: 263px;" /></a>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_17_3.png"><img alt="_images/Example1_LoadAndPlot_17_3.png" src="_images/Example1_LoadAndPlot_17_3.png" style="width: 396px; height: 263px;" /></a>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_17_4.png"><img alt="_images/Example1_LoadAndPlot_17_4.png" src="_images/Example1_LoadAndPlot_17_4.png" style="width: 412px; height: 263px;" /></a>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_17_5.png"><img alt="_images/Example1_LoadAndPlot_17_5.png" src="_images/Example1_LoadAndPlot_17_5.png" style="width: 386px; height: 263px;" /></a>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_17_6.png"><img alt="_images/Example1_LoadAndPlot_17_6.png" src="_images/Example1_LoadAndPlot_17_6.png" style="width: 383px; height: 263px;" /></a>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_17_7.png"><img alt="_images/Example1_LoadAndPlot_17_7.png" src="_images/Example1_LoadAndPlot_17_7.png" style="width: 412px; height: 263px;" /></a>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_17_8.png"><img alt="_images/Example1_LoadAndPlot_17_8.png" src="_images/Example1_LoadAndPlot_17_8.png" style="width: 388px; height: 263px;" /></a>
+<p>It looks like we need to burn off some samples from the beginning of
+each chain so that we are only operating on data that has converged. We
+can use a built in method to do this. From looking at the chains for
+<code class="docutils literal"><span class="pre">gain</span> <span class="pre">1</span></code> and <code class="docutils literal"><span class="pre">gain</span> <span class="pre">2</span></code> it looks like 400 samples should be about
+right.</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1">#Do the burn</span>
+<span class="n">resObj2</span><span class="o">.</span><span class="n">burn_flatchain</span><span class="p">(</span><span class="mi">400</span><span class="p">)</span>
+
+<span class="c1">#This will add a new flatchain object, which we can use to plot a new corner plot</span>
+<span class="n">pygtc</span><span class="o">.</span><span class="n">plotGTC</span><span class="p">(</span><span class="n">resObj2</span><span class="o">.</span><span class="n">emcee_result</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;flatchain_burn&#39;</span><span class="p">]);</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">fcarter</span><span class="o">/</span><span class="n">anaconda</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">py36</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="o">.</span><span class="mi">6</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">pandas</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">dtypes</span><span class="o">/</span><span class="n">dtypes</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">150</span><span class="p">:</span> <span class="ne">FutureWarning</span><span class="p">:</span> <span class="n">elementwise</span> <span class="n">comparison</span> <span class="n">failed</span><span class="p">;</span> <span class="n">returning</span> <span class="n">scalar</span> <span class="n">instead</span><span class="p">,</span> <span class="n">but</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">future</span> <span class="n">will</span> <span class="n">perform</span> <span class="n">elementwise</span> <span class="n">comparison</span>
+  <span class="k">if</span> <span class="n">string</span> <span class="o">==</span> <span class="s1">&#39;category&#39;</span><span class="p">:</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/Example1_LoadAndPlot_19_1.png"><img alt="_images/Example1_LoadAndPlot_19_1.png" src="_images/Example1_LoadAndPlot_19_1.png" style="width: 549px; height: 535px;" /></a>
+<p>The cat-eye shape is gone now. It looks like there is a little
+bi-modality in the <code class="docutils literal"><span class="pre">df</span></code> and <code class="docutils literal"><span class="pre">f0</span></code> histograms, but exploring that can
+be an exercise for the reader!</p>
 </div>
 </div>
 
