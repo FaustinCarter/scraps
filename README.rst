@@ -14,6 +14,10 @@ and input powers. There are plans to extend scraps to handle varying magnetic fi
 also, as well as noise in addition to S21. If you would like to be a part of that,
 get involved by posting a message here.
 
+Who is using scraps?
+--------------------
+Scraps is in use at Argonne National Laboratory, Caltech, University of Chicago, Oxford and probably many other places! Recently a group at Oxford used scraps to fit MKID resonator data for this publication: `MKID digital readout tuning with deep learning <https://doi.org/10.1016/j.ascom.2018.03.001>`_
+
 License
 -------
 Scraps is licensed under the MIT license, so feel free to copy it, play with it,
