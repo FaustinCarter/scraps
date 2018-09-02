@@ -5,6 +5,7 @@ Version 0.4.0:
   `Resonator.lmfit_result['default']['result']` and `Resonator.emcee_result['default']['result']`. This allows the user to store
   multiple fit results for the same resonator by specifying a label for the fit (as opposed to using the
   `'default'` label).
+* Update dependency on matplotlib to be >= 2.0
 * Fix minus-sign error in cmplxIQ fit function and params guessing (each had one error, was cancelling)
 * Add a burn_flatchain method to each resonator to allow burning off some samples from the mcmc analysis
 * Add a function to ESL_tools to read in binary fits files coming out of ESL
