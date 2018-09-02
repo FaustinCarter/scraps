@@ -472,6 +472,38 @@ class Resonator(object):
         
         self.hasChain = True
 
+    def burn_flatchain(self, num_samples=0, label='default'):
+        r"""Burns off num_samples samples from each of the chains and then reflattens. Recalculates all
+        statistical quantities associated with the emcee run and saves them under the original
+        label, but with the suffix '_burn' appended to the various keys. Does not modify original chain."""
+        
+        flatchain_with_burn = pd.DataFrame()
+        chains = self.emcee_result[label]['result'].chain
+        
+        for ix, chain in enumerate(chains.T):
+            flatchain_with_burn[self.emcee_result[label]['mle_labels'][ix]] = chain[num_samples:].flat
+
+        #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
+        emcee_vals = np.asarray([np.percentile(flatchain_with_burn[key], 50) for key in flatchain_with_burn.keys()])
+        err_plus = np.asarray([np.percentile(flatchain_with_burn[key], 84) for key in flatchain_with_burn.keys()])
+        err_minus = np.asarray([np.percentile(flatchain_with_burn[key], 16) for key in flatchain_with_burn.keys()])
+
+        #Make a list of tuples that are (+err, -err) for each paramter
+        emcee_sigmas = list(zip(err_plus-emcee_vals, emcee_vals-err_minus))
+
+        #Pack these values into the fit storage dict with suffix _burn
+        self.emcee_result[label]['values_burn'] = emcee_vals
+
+        #Make a list of tuples that are (+err, -err) for each paramter
+        self.emcee_result[label]['emcee_sigmas_burn'] = list(zip(err_plus-emcee_vals, emcee_vals-err_minus))
+
+        #TODO: Implement this!
+        #It is also useful to have easy access to the maximum-liklihood estimates
+        #self.emcee_result[label]['mle_vals_burn'] = flatchain_with_burn.iloc[np.argmax(emcee_result.lnprob)]
+
+        #Add the burned flatchain in its own key
+        self.emcee_result[label]['flatchain_burn'] = flatchain_with_burn
+
     def torch_emcee(self, label='default'):
         r"""Set the emcee-related attributes to ``None`` and ``hasChain = False``.
         Parameters
@@ -767,21 +799,4 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
                     if prune:
                         resList.pop(res_ix)
 
-#TODO: Fix this!
-# def burn_flatchain(chains, num_samples=0, label='default'):
-#     r"""Burns off num_samples samples from each of the chains and then flattens. Recalculates all
-#     statistical quantities associated with the emcee"""
 
-#     for ix, chain in enumerate(chains.T):
-#         flatchain_with_burn[self.emcee_result.var_names[ix]] = chain[num_samples:].flat
-
-#     #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
-#     self.emcee_vals = np.asarray([np.percentile(flatchain_with_burn[key], 50) for key in flatchain_with_burn.keys()])
-#     err_plus = np.asarray([np.percentile(flatchain_with_burn[key], 84) for key in flatchain_with_burn.keys()])
-#     err_minus = np.asarray([np.percentile(flatchain_with_burn[key], 16) for key in flatchain_with_burn.keys()])
-
-#     #Make a list of tuples that are (+err, -err) for each paramter
-#     self.emcee_sigmas = list(zip(err_plus-self.emcee_vals, self.emcee_vals-err_minus))
-
-#     #This is also nice to have explicitly for passing to triangle-plotting routines
-#     self.chain = flatchain_with_burn.copy()
