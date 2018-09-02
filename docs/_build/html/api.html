@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>API &#8212; scraps 0.3.1 documentation</title>
+    <title>API &#8212; scraps 0.4.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.3.1',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -311,7 +311,7 @@ called.</li>
 <h4>.do_lmfit()<a class="headerlink" href="#do-lmfit" title="Permalink to this headline">¶</a></h4>
 <dl class="method">
 <dt id="scraps.Resonator.do_lmfit">
-<code class="descclassname">Resonator.</code><code class="descname">do_lmfit</code><span class="sig-paren">(</span><em>fitFn</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.Resonator.do_lmfit" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">Resonator.</code><code class="descname">do_lmfit</code><span class="sig-paren">(</span><em>fitFn</em>, <em>label='default'</em>, <em>fit_type='IQ'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.Resonator.do_lmfit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run lmfit on an existing resonator object and update the results.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -322,6 +322,12 @@ called.</li>
 If residual == True, fitFn must return a 1D list-like object of
 residuals with form [I residual, Q residual] where [A, B] means
 concatenate. Otherwise it must return the model data in the same form.</li>
+<li><strong>label</strong> (<em>string</em>) – A label to use as a key when storing results from the fit to the
+lmfit_results dict.</li>
+<li><strong>fit_type</strong> (<em>string</em>) – Indicates the type of fit to be run. For some types of fits, certain
+quantities will automatically be calculated and added to the resonator
+object. For instance, ‘IQ’ will cause the magnitude, phase, I, and Q
+as well as associated residuals to be calculated.</li>
 <li><strong>kwargs</strong> (<em>optional keywords</em>) – Use this to override any of the lmfit parameter initial guesses or
 toggle whether the paramter varys. Example: <code class="docutils literal"><span class="pre">qi=1e6</span></code> is equivalent
 to calling <code class="docutils literal"><span class="pre">Resonator.params['qi'].value</span> <span class="pre">=</span> <span class="pre">1e6</span></code>. Example:
@@ -339,8 +345,16 @@ Any parameter name can be used in this way.</li>
 <h4>.torch_lmfit()<a class="headerlink" href="#torch-lmfit" title="Permalink to this headline">¶</a></h4>
 <dl class="method">
 <dt id="scraps.Resonator.torch_lmfit">
-<code class="descclassname">Resonator.</code><code class="descname">torch_lmfit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scraps.Resonator.torch_lmfit" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">Resonator.</code><code class="descname">torch_lmfit</code><span class="sig-paren">(</span><em>label='default'</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.Resonator.torch_lmfit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset all the lmfit attributes to <code class="docutils literal"><span class="pre">None</span></code> and set <code class="docutils literal"><span class="pre">hasFit</span> <span class="pre">=</span> <span class="pre">False</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>label</strong> (<em>string</em><em> (</em><em>optional</em><em>)</em>) – Choose which fit to kill off.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -348,7 +362,7 @@ Any parameter name can be used in this way.</li>
 <h4>.do_emcee()<a class="headerlink" href="#do-emcee" title="Permalink to this headline">¶</a></h4>
 <dl class="method">
 <dt id="scraps.Resonator.do_emcee">
-<code class="descclassname">Resonator.</code><code class="descname">do_emcee</code><span class="sig-paren">(</span><em>fitFn</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.Resonator.do_emcee" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">Resonator.</code><code class="descname">do_emcee</code><span class="sig-paren">(</span><em>fitFn</em>, <em>label='default'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.Resonator.do_emcee" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the Monte-Carlo Markov Chain routine to generate samples for
 each parameter given a model.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -360,6 +374,10 @@ each parameter given a model.</p>
 If residual == True, fitFn must return a 1D list-like object of
 residuals with form [I residual, Q residual] where [A, B] means
 concatenate. Otherwise it must return the model data in the same form.</li>
+<li><strong>label</strong> (<em>string</em><em> (</em><em>optional</em><em>)</em>) – A label to assign to the fit results. This will be the dict key they
+are stored under in the emcee_results dict. Also, if label matches a
+label in lmfit_results, then that params object will be used to seed
+the emcee fit.</li>
 <li><strong>kwargs</strong> (<em>optional keyword arguments</em>) – These are passed through to the <code class="docutils literal"><span class="pre">lmfit.Minimizer.emcee</span></code> method.
 See the <code class="docutils literal"><span class="pre">lmfit</span></code> documentation for more information.</li>
 </ul>
@@ -374,8 +392,10 @@ See the <code class="docutils literal"><span class="pre">lmfit</span></code> doc
 <h4>.torch_emcee()<a class="headerlink" href="#torch-emcee" title="Permalink to this headline">¶</a></h4>
 <dl class="method">
 <dt id="scraps.Resonator.torch_emcee">
-<code class="descclassname">Resonator.</code><code class="descname">torch_emcee</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scraps.Resonator.torch_emcee" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the emcee-related attributes to <code class="docutils literal"><span class="pre">None</span></code> and <code class="docutils literal"><span class="pre">hasChain</span> <span class="pre">=</span> <span class="pre">False</span></code>.</p>
+<code class="descclassname">Resonator.</code><code class="descname">torch_emcee</code><span class="sig-paren">(</span><em>label='default'</em><span class="sig-paren">)</span><a class="headerlink" href="#scraps.Resonator.torch_emcee" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the emcee-related attributes to <code class="docutils literal"><span class="pre">None</span></code> and <code class="docutils literal"><span class="pre">hasChain</span> <span class="pre">=</span> <span class="pre">False</span></code>.
+:param label: Which fit to torch
+:type label: string (optional)</p>
 </dd></dl>
 
 </div>
@@ -560,6 +580,7 @@ attribute <code class="docutils literal"><span class="pre">hasFit</span> <span c
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
 <tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>label</strong> (<em>string</em><em> (</em><em>optional</em><em>)</em>) – Selects which set of fit data to build the ResonatorSweep from. Default is ‘default’.</li>
 <li><strong>index</strong> (<em>string{'raw'</em><em>, </em><em>'round'</em><em>, </em><em>'block'}</em><em> (</em><em>optional</em><em>)</em>) – Selects which method to use for indexing.</li>
 <li><strong>roundto</strong> (<em>int</em><em> (</em><em>optional</em><em>)</em>) – Number to round temperature index to in mK. Default is 5.</li>
 </ul>
@@ -1187,16 +1208,23 @@ the data when <code class="docutils literal"><span class="pre">use_filter</span>
 <li><strong>params</strong> (<em>list-like</em>) – A an <code class="docutils literal"><span class="pre">lmfit.Parameters</span></code> object containing (df, f0, qc, qi, gain0, gain1, gain2, pgain0, pgain1, pgain2)</li>
 <li><strong>res</strong> (<em>scraps.Resonator object</em>) – A Resonator object.</li>
 <li><strong>residual</strong> (<em>bool</em>) – Whether to return a residual (True) or to return the model calcuated at the frequencies present in res (False).</li>
-<li><strong>kwargs</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – Currently no keyword arguments are accepted.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>model or (model-data)/eps</strong> – If residual=True is specified, the return is the residuals weighted by the uncertainties. If residual=False, the return is the model
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>freqs</strong> (<em>list-like</em>) – A list of frequency points at which to calculate the model. Only used if <cite>residual=False</cite></li>
+<li><strong>remove_baseline</strong> (<em>bool</em>) – Whether or not to remove the baseline during calculation (i.e. ignore pgain and gain polynomials). Default is False.</li>
+<li><strong>only_baseline</strong> (<em>bool</em>) – Whether or not to calculate and return only the baseline. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>model or (model-data)/eps</strong> – If residual=True is specified, the return is the residuals weighted by the uncertainties. If residual=False, the return is the model
 values calculated at the frequency points. The returned array is in the form
 <code class="docutils literal"><span class="pre">I</span> <span class="pre">+</span> <span class="pre">Q</span></code> or <code class="docutils literal"><span class="pre">residualI</span> <span class="pre">+</span> <span class="pre">residualQ</span></code>.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">numpy.array</span></code></p>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">numpy.array</span></code></p>
 </td>
 </tr>
 </tbody>

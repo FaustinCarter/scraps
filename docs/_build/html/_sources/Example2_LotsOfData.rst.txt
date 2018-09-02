@@ -30,7 +30,7 @@ already familiar with them.
     import numpy as np
 
 Load up the ``scraps`` modules
-==============================
+------------------------------
 
 You'll need to change the path to reflect wherever you stored the code
 
@@ -46,7 +46,7 @@ You'll need to change the path to reflect wherever you stored the code
     import scraps as scr
 
 Make a list of Resonator objects
-================================
+--------------------------------
 
 Lists are a great way to organize things. ``scraps`` includes a tool for
 easily indexing lists of Resonator objects by temperature and power.
@@ -105,7 +105,7 @@ organizing data taken at the 'same' temperature that has fluctuations.
 
 
 Fit I and Q data to a model
-===========================
+---------------------------
 
 This fits I and Q data simultaneously using the built in ``cmplxIQ``
 routine.
@@ -120,7 +120,7 @@ routine.
         res.do_lmfit(scr.cmplxIQ_fit)
 
 Make a pretty plot
-==================
+------------------
 
 Fits aren't worth anything if you don't plot the results!!
 
@@ -146,7 +146,7 @@ Fits aren't worth anything if you don't plot the results!!
 
 
 Use the ``ResonatorSweep`` object to look at fit parameters
-===========================================================
+-----------------------------------------------------------
 
 Usually what we are really interested in is the fit parameters as
 functions of temperature at different powers. There is a nice object we
@@ -189,9 +189,10 @@ can use to look at this easily.
 
     #Now let's make a plot of some of the parameters!
     
-    figS = scr.plotResSweepParamsVsTemp(resSweep,
+    figS = scr.plotResSweepParamsVsX(resSweep,
                                        plot_keys=['gain0', 'f0', 'qi', 'qc', 'df', 'redchi'],
-                                       num_cols = 3)
+                                       num_cols = 3,
+                                       xvals='temperature')
 
 
 
@@ -203,9 +204,10 @@ can use to look at this easily.
 .. code:: ipython3
 
     #Or maybe you just want to look at how Q varies with power at different temperatures:
-    figS2 = scr.plotResSweepParamsVsPwr(resSweep,
+    figS2 = scr.plotResSweepParamsVsX(resSweep,
                                        plot_keys=['qc', 'qi'],
-                                       fig_size = 5)
+                                       fig_size = 5,
+                                       xvals='power')
 
 
 
