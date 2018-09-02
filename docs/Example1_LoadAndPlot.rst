@@ -27,7 +27,7 @@ and updating the code that finds the datafile.
     import numpy as np
 
 Load up the ``scraps`` modules
-==============================
+------------------------------
 
 You'll need to change the path to reflect wherever you stored the code
 
@@ -43,7 +43,7 @@ You'll need to change the path to reflect wherever you stored the code
     import scraps as scr
 
 Load a file and process the data
-================================
+--------------------------------
 
 This unpacks the file data into a dict objects. This block of code is
 the only thing you need to change to make this work with your data.
@@ -85,7 +85,7 @@ The data dict has the following quantities:
 
 
 Make a ``Resonator`` object
-===========================
+---------------------------
 
 You can either create a resonator object directly, or use the
 ``makeResFromData`` helper tool, which takes the data dict you made
@@ -136,9 +136,13 @@ the parameters defined in ``cmplxIQ_params`` that is passed to the
     print('Do fit results exist for the second object? ', resObj2.hasFit)
     
     #Compare the best guess for the resonant frequency (minimum of the curve) to the actual fit
+    #Because we didn't specify a label for our fit, the results are stored in the lmfit_result
+    #dict under the 'default' key. If we passed the optional label argument to the do_lmfit
+    #method, it would store the results under whatever string is assigned to label.
     print('Guess = ', resObj2.fmin, ' Hz')
-    print('Best fit = ', resObj2.lmfit_result.params['f0'].value, ' Hz')
-    print('Best fit with different qc guess = ', resObj1.lmfit_result.params['f0'].value, ' Hz')
+    print('Best fit = ', resObj2.lmfit_result['default']['result'].params['f0'].value, ' Hz')
+    print('Best fit with different qc guess = ',
+          resObj1.lmfit_result['default']['result'].params['f0'].value, ' Hz')
     
     #You can see the fit is not terribly sensitive to the guess for qc.
 
@@ -157,7 +161,7 @@ the parameters defined in ``cmplxIQ_params`` that is passed to the
 
 
 Make a pretty plot
-==================
+------------------
 
 Fits aren't worth anything if you don't plot the results!!
 
@@ -182,7 +186,7 @@ Fits aren't worth anything if you don't plot the results!!
 
 
 Find the maximum liklhood estimate of the fit params using ``emcee``
-====================================================================
+--------------------------------------------------------------------
 
 Let's use the built-in ``emcee`` hooks to compare the results of the
 ``lmfit`` values with the maximum liklihood values for the fit
@@ -200,7 +204,7 @@ parameters.
     print('Does an emcee chain exist? ', resObj2.hasChain)
     
     #Look at the first few rows of the output chain:
-    chains = resObj2.emcee_result.flatchain
+    chains = resObj2.emcee_result['default']['result'].flatchain
     
     print('\nHead of chains:')
     pp.pprint(chains.head())
@@ -220,33 +224,33 @@ parameters.
     
     Head of chains:
                  df            f0            qc             qi     gain0  \
-    0  88693.406843  8.174866e+09  48824.208882  284002.416495  0.068197   
-    1  88693.406843  8.174866e+09  48824.208882  284002.416495  0.068197   
-    2  88693.406843  8.174866e+09  48824.208882  284002.416495  0.068197   
-    3  88693.008781  8.174866e+09  48824.278726  284002.362452  0.068197   
-    4  88692.961646  8.174866e+09  48824.307274  284002.265436  0.068197   
+    0  88694.637513  8.174866e+09  48825.968684  284032.418900  0.068196   
+    1  88694.633409  8.174866e+09  48825.922210  284032.532886  0.068196   
+    2  88694.633409  8.174866e+09  48825.922210  284032.532886  0.068196   
+    3  88693.936736  8.174866e+09  48825.168106  284030.256892  0.068197   
+    4  88694.084139  8.174866e+09  48825.026661  284031.759541  0.068197   
     
           gain1        gain2    pgain0       pgain1  
-    0  1.039819  1107.969128  1.175712 -1563.858100  
-    1  1.039819  1107.969128  1.175712 -1563.858100  
-    2  1.039819  1107.969128  1.175712 -1563.858100  
-    3  1.039815  1107.965833  1.175712 -1563.857059  
-    4  1.039809  1107.965217  1.175712 -1563.857247  
+    0  1.040011  1107.766240  1.175713 -1563.868140  
+    1  1.040013  1107.764981  1.175712 -1563.868598  
+    2  1.040013  1107.764981  1.175712 -1563.868598  
+    3  1.040044  1107.745343  1.175714 -1563.867138  
+    4  1.040052  1107.749879  1.175713 -1563.868613  
     
     Perecent difference:
-    [('df', -2.3923422906790731e-05),
-     ('f0', 1.1886418690784143e-09),
-     ('qc', 0.00068441527131252644),
-     ('qi', -0.0024670336800228566),
-     ('gain0', -7.8184691759815211e-05),
-     ('gain1', 0.019622075027724666),
-     ('gain2', 0.15207381284401014),
-     ('pgain0', 5.6203853824325028e-05),
-     ('pgain1', -0.00031084684826337039)]
+    [('df', 0.00016457041577626805),
+     ('f0', 4.9636793175466591e-09),
+     ('qc', -7.1412453256857882e-05),
+     ('qi', 0.00066200624835167574),
+     ('gain0', -0.00018165545757985608),
+     ('gain1', -0.0091685488964723463),
+     ('gain2', 0.0047494130464930022),
+     ('pgain0', -8.9449361862636539e-05),
+     ('pgain1', 0.00025065766561930896)]
 
 
 Make a sweet giant triangle confusogram of your ``emcee`` results.
-==================================================================
+------------------------------------------------------------------
 
 If you don't have ``pygtc`` installed, open a terminal and type
 ``pip install pygtc``. Go ahead, I'll wait...
@@ -272,4 +276,110 @@ If you don't have ``pygtc`` installed, open a terminal and type
    :width: 549px
    :height: 535px
 
+
+Notice how the 2D histograms for ``gain 1`` and ``gain 2`` look like
+sideways cats eyes? This is probably because the MCMC analsysis hasn't
+quite converged, or maybe there could be outliers. We can plot the
+actual chains to see for ourselves.
+
+.. code:: ipython3
+
+    #We will need to directly use matplotlib for this
+    import matplotlib.pyplot as plt
+    
+    #First, let's make a copy of the chains array so we don't mess up the raw data
+    mcmc_result = resObj2.emcee_result['default']['result'].chain.copy()
+    
+    #And we can plot the chains to see what is going on
+    for ix, key in enumerate(resObj2.emcee_result['default']['mle_labels']):
+        plt.figure()
+        plt.title(key)
+        for cx, chain in enumerate(mcmc_result[:,:,ix]):
+            plt.plot(chain)
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_17_0.png
+   :width: 389px
+   :height: 263px
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_17_1.png
+   :width: 370px
+   :height: 263px
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_17_2.png
+   :width: 364px
+   :height: 263px
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_17_3.png
+   :width: 396px
+   :height: 263px
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_17_4.png
+   :width: 412px
+   :height: 263px
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_17_5.png
+   :width: 386px
+   :height: 263px
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_17_6.png
+   :width: 383px
+   :height: 263px
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_17_7.png
+   :width: 412px
+   :height: 263px
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_17_8.png
+   :width: 388px
+   :height: 263px
+
+
+It looks like we need to burn off some samples from the beginning of
+each chain so that we are only operating on data that has converged. We
+can use a built in method to do this. From looking at the chains for
+``gain 1`` and ``gain 2`` it looks like 400 samples should be about
+right.
+
+.. code:: ipython3
+
+    #Do the burn
+    resObj2.burn_flatchain(400)
+    
+    #This will add a new flatchain object, which we can use to plot a new corner plot
+    pygtc.plotGTC(resObj2.emcee_result['default']['flatchain_burn']);
+
+
+.. parsed-literal::
+
+    /Users/fcarter/anaconda/envs/py36/lib/python3.6/site-packages/pandas/core/dtypes/dtypes.py:150: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+      if string == 'category':
+
+
+
+.. image:: _static/Example1_LoadAndPlot_files/Example1_LoadAndPlot_19_1.png
+   :width: 549px
+   :height: 535px
+
+
+The cat-eye shape is gone now. It looks like there is a little
+bi-modality in the ``df`` and ``f0`` histograms, but exploring that can
+be an exercise for the reader!
 
