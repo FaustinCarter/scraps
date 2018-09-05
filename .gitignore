@@ -3,6 +3,7 @@
 
 # Python build
 *.pyc
+/build
 
 # Temp files
 *~
