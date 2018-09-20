@@ -1,8 +1,10 @@
+import os
 import numpy as np
 import lmfit as lf
 import glob
 import scipy.signal as sps
 import pandas as pd
+import xarray as xr
 
 class Resonator(object):
     r"""Fit an S21 measurement of a hanger (or notch) type resonator.
@@ -41,11 +43,20 @@ class Resonator(object):
         An array of uncertaintly values for each data point in `Q`. Default
         is ``None``.
 
+    xDataset : string or xarray.DataSet (optional)
+        Either a string that is a path to a NETCDF4 file containing an xarray.DataSet
+        or an xarray.DataSet object. Any of the above values, if passed, will
+        overwrite the corresponding attributes in the xarray.DataSet.
+
     The following attributes are automatically calculated and added during
     initialization.
 
     Attributes
     ----------
+    data : xarray.DataSet
+        All of the data is contained here. Most of the below attributes
+        are just references to this for backwards compatibility.
+
     name : string
         The resonator name passed at initialization.
 
@@ -83,6 +94,9 @@ class Resonator(object):
     mag : array-like[nDataPoints]
         The magnitude ``mag = np.abs(S21)`` or, equivalently ``mag =
         np.sqrt(I**2 + Q**2)``.
+
+    logmag : array-like[nDataPoints]
+        The magnitude in units of dB. Calculated as: 20*log10(mag).
 
     hasFit : bool
         Indicates whether or not ``Resonator.do_lmfit`` method has been called.
@@ -156,24 +170,66 @@ class Resonator(object):
 
 
     #Do some initialization
-    def __init__(self, name, temp, pwr, freq, I, Q, sigmaI = None, sigmaQ = None):
+    def __init__(self, name=None, temp=None, pwr=None, freq=None, I=None, Q=None, sigmaI = None, sigmaQ = None, xDataset = None, name_key = 'scraps_name'):
         r"""Initializes a resonator object by calculating magnitude, phase, and
-        a bunch of fit parameters for a hanger (or notch) type S21 measurement.
+        a bunch of fit parameters for a hanger (or notch) type S21 measurement."""
 
-        """
-        self.name = name
-        self.temp = temp
-        self.pwr = pwr
-        self.freq = np.asarray(freq)
-        self.I = np.asarray(I)
-        self.Q = np.asarray(Q)
-        self.sigmaI = np.asarray(sigmaI) if sigmaI is not None else None
-        self.sigmaQ = np.asarray(sigmaQ) if sigmaQ is not None else None
-        self.S21 = I + 1j*Q
-        self.phase = np.arctan2(Q,I) #use arctan2 because it is quadrant-aware
-        self.uphase = np.unwrap(self.phase) #Unwrap the 2pi phase jumps
-        self.mag = np.abs(self.S21) #Units are volts.
-        self.logmag = 20*np.log10(self.mag) #Units are dB (20 because V->Pwr)
+        if xDataset is None:
+            for var in [name, temp, pwr, freq, I, Q]:
+                assert var is not None, "Must pass a value for all parameters if xarray is None."
+
+            #Build up a temporary Pandas DataFrame to convert into an xarray
+            tmp_df = pd.DataFrame()
+            tmp_df['Frequency'] = np.asarray(freq)
+            tmp_df['I'] = np.asarray(I)
+            tmp_df['Q'] = np.asarray(Q)
+            if sigmaI is not None:
+                tmp_df['sigmaI'] = np.asarray(sigmaI)
+            if sigmaQ is not None:
+                tmp_df['sigmaQ'] = np.asarray(sigmaQ)
+            tmp_df.set_index('Frequency')
+            
+            #Convert that into an xarray
+            xa = xr.Dataset.from_dataframe(tmp_df)
+            xa = xa.expand_dims(['Temperature', 'Power'])
+            xa = xa.assign_coords(Temperature = [temp], Power = [pwr])
+            xa.attrs['scraps_name'] = name
+
+            self.data = xa
+        else:
+            if type(xDataset) != xr.core.dataset.Dataset:
+                #Assume xDataset is a string that points to a file
+                assert os.path.isfile(xDataset), "Must either pass an xarray.Dataset or a valid NETCDF4 file path name to xDataset."
+                xa = xr.open_dataset(xDataset, autoclose=True)
+            else:
+                assert type(xDataset) == xr.core.dataset.Dataset, "Must either pass an xarray.Dataset or a valid NETCDF4 file path name to xDataset."
+                xa = xDataset
+            
+            for coord in ['Frequency', 'Power', 'Temperature']:
+                    assert coord in xa.coords, "xarray.Dataset is missing %s coordinate"%coord
+            for data_var in ['I', 'Q']:
+                assert data_var in xa.data_vars, "xarray.Dataset is missing %s data variable"%data_var
+                
+                #Try to be flexible about assigning a name           
+                if name is None:
+                    name = 'resonator'
+                    
+                xa.attrs['scraps_name'] = xa.attrs.get(name_key, name)
+
+                #Allow the coordinates to be overwritten
+                if temp is not None:
+                    xa.coords['Temperature'] = [temp]
+
+                if pwr is not None:
+                    xa.coords['Power'] = [pwr]
+
+            for coord in xa.coords:
+                if coord != 'Frequency':
+                    assert len(xa.coords[coord].data) == 1, "Coordinate data vector longer than 1: %s"%coord
+
+            self.data = xa
+
+
 
         #Find the frequency at magnitude minimum (this can, and should, be
         #overwritten by a custom params function)
@@ -203,21 +259,87 @@ class Resonator(object):
         self.mle_vals = None
         self.mle_labels = None
 
-    def to_disk(self):
-        """To be implemented: dumps resonator to disk as various file types. Default will be netcdf4"""
-        pass
+    @property
+    def name(self):
+        return self.data.attrs['scraps_name']
+
+    @property
+    def temp(self):
+        return self.data.coords['Temperature'].data[0]
+    
+    @property
+    def pwr(self):
+        return self.data.coords['Power'].data[0]
+
+    @property
+    def freq(self):
+        return self.data.coords['Frequency'].data
+
+    @property
+    def I(self):
+        return self.data.data_vars['I'].data.squeeze()
+
+    @property
+    def Q(self):
+        return self.data.data_vars['Q'].data.squeeze()
+
+    @property
+    def sigmaI(self):
+        if 'sigmaI' in self.data.data_vars:
+            return self.data.data_vars['sigmaI'].data.squeeze()
+        else:
+            return None
+    
+    @property
+    def sigmaQ(self):
+        if 'sigmaQ' in self.data.data_vars:
+            return self.data.data_vars['sigmaQ'].data.squeeze()
+        else:
+            return None
+    
+    @property
+    def S21(self):
+        return self.I+1j*self.Q
+    
+    @property
+    def phase(self):
+        return np.arctan2(self.Q, self.I)
+    
+    @property
+    def uphase(self):
+        return np.unwrap(self.phase) #Unwrap the 2pi phase jumps
+        
+    @property
+    def mag(self):
+        return np.abs(self.S21) #Units are volts.
+    
+    @property
+    def logmag(self):
+        return 20*np.log10(self.mag) #Units are dB (20 because V^2->Pwr)
+
+    def to_disk(self, filename, overwrite = False):
+        """Save a resonator object as a NETCDF4 file"""
+        if os.path.isfile(filename):
+            if not overwrite:
+                filebase, extension = os.path.splitext(filename)
+                if extension in ['.nc', '.netcdf4', '.n4']:
+                    filename = '%s_newfile%s'%(filebase, extension)
+                else:
+                    filename = '%s_newfile'%filename
+    
+        self.data.to_netcdf(filename, format='NETCDF4')
 
     def from_disk(self):
         """To be implemented: load resonator object from disk."""
-        pass
+        raise NotImplementedError
 
     def to_json(self):
         """To be implemented: serialize resonator as a JSON string"""
-        pass
+        raise NotImplementedError
 
     def from_json(self):
         """To be implemented: create rsonator from JSON string"""
-        pass
+        raise NotImplementedError
 
     #TODO: Implement the following for handling pickling:
 
