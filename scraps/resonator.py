@@ -187,7 +187,7 @@ class Resonator(object):
                 tmp_df['sigmaI'] = np.asarray(sigmaI)
             if sigmaQ is not None:
                 tmp_df['sigmaQ'] = np.asarray(sigmaQ)
-            tmp_df.set_index('Frequency')
+            tmp_df.set_index('Frequency', inplace=True)
             
             #Convert that into an xarray
             xa = xr.Dataset.from_dataframe(tmp_df)
