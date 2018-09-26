@@ -1,4 +1,5 @@
 import os
+import json
 import numpy as np
 import lmfit as lf
 import glob
@@ -174,6 +175,30 @@ class Resonator(object):
         r"""Initializes a resonator object by calculating magnitude, phase, and
         a bunch of fit parameters for a hanger (or notch) type S21 measurement."""
 
+        #Whether or not params has been initialized
+        self.params = None
+        self.hasParams = False
+
+        #These won't exist until the lmfit method is called
+        self.lmfit_result = None
+
+        #These are scheduled for deprecation. They will eventually live in the lmfit_result dictionary
+        self.hasFit = False
+        self.residualI = None
+        self.residualQ = None
+        self.resultI = None
+        self.resultQ = None
+        self.resultMag = None
+        self.resultPhase = None
+
+        #These won't exist until the emcee method is called
+        self.emcee_result = None
+
+        #These are scheduled for deprecation. They will eventually live in the lmfit_result dictionary
+        self.hasChain = False
+        self.mle_vals = None
+        self.mle_labels = None
+
         if xDataset is None:
             for var in [name, temp, pwr, freq, I, Q]:
                 assert var is not None, "Must pass a value for all parameters if xarray is None."
@@ -201,27 +226,39 @@ class Resonator(object):
                 #Assume xDataset is a string that points to a file
                 assert os.path.isfile(xDataset), "Must either pass an xarray.Dataset or a valid NETCDF4 file path name to xDataset."
                 xa = xr.open_dataset(xDataset, autoclose=True)
+
+                #Check to see if there is any fit information in the file:
+                fit_labels = xa.attrs.pop('scraps_fits_labels', None)
+
+                if fit_labels is not None:
+                    fit_labels = json.loads(fit_labels)
+                    self.lmfit_result = {}
+                    for label in fit_labels:
+                        self.lmfit_result[label] = {}
+                        fit_xa = xr.open_dataset(xDataset, group=label, autoclose=True)
+                        self.lmfit_result[label]['data'] = fit_xa
+                        self.lmfit_result[label]['method'] = fit_xa.attrs['scraps_lmfit_method']
+
             else:
-                assert type(xDataset) == xr.core.dataset.Dataset, "Must either pass an xarray.Dataset or a valid NETCDF4 file path name to xDataset."
                 xa = xDataset
             
             for coord in ['Frequency', 'Power', 'Temperature']:
-                    assert coord in xa.coords, "xarray.Dataset is missing %s coordinate"%coord
+                assert coord in xa.coords, "xarray.Dataset is missing %s coordinate"%coord
             for data_var in ['I', 'Q']:
                 assert data_var in xa.data_vars, "xarray.Dataset is missing %s data variable"%data_var
                 
-                #Try to be flexible about assigning a name           
-                if name is None:
-                    name = 'resonator'
-                    
-                xa.attrs['scraps_name'] = xa.attrs.get(name_key, name)
+            #Try to be flexible about assigning a name           
+            if name is None:
+                name = 'resonator'
+                
+            xa.attrs['scraps_name'] = xa.attrs.get(name_key, name)
 
-                #Allow the coordinates to be overwritten
-                if temp is not None:
-                    xa.coords['Temperature'] = [temp]
+            #Allow the coordinates to be overwritten
+            if temp is not None:
+                xa.coords['Temperature'] = [temp]
 
-                if pwr is not None:
-                    xa.coords['Power'] = [pwr]
+            if pwr is not None:
+                xa.coords['Power'] = [pwr]
 
             for coord in xa.coords:
                 if coord != 'Frequency':
@@ -235,45 +272,21 @@ class Resonator(object):
         #overwritten by a custom params function)
         self.fmin = self.freq[np.argmin(self.mag)]
 
-        #Whether or not params has been initialized
-        self.params = None
-        self.hasParams = False
-
-        #These won't exist until the lmfit method is called
-        self.lmfit_result = None
-
-        #These are scheduled for deprecation. They will eventually live in the lmfit_result dictionary
-        self.hasFit = False
-        self.residualI = None
-        self.residualQ = None
-        self.resultI = None
-        self.resultQ = None
-        self.resultMag = None
-        self.resultPhase = None
-
-        #These won't exist until the emcee method is called
-        self.emcee_result = None
-
-        #These are scheduled for deprecation. They will eventually live in the lmfit_result dictionary
-        self.hasChain = False
-        self.mle_vals = None
-        self.mle_labels = None
-
     @property
     def name(self):
         return self.data.attrs['scraps_name']
 
     @property
     def temp(self):
-        return self.data.coords['Temperature'].data[0]
+        return self.data.coords['Temperature'].data.squeeze()
     
     @property
     def pwr(self):
-        return self.data.coords['Power'].data[0]
+        return self.data.coords['Power'].data.squeeze()
 
     @property
     def freq(self):
-        return self.data.coords['Frequency'].data
+        return self.data.coords['Frequency'].data.squeeze()
 
     @property
     def I(self):
@@ -317,8 +330,8 @@ class Resonator(object):
     def logmag(self):
         return 20*np.log10(self.mag) #Units are dB (20 because V^2->Pwr)
 
-    def to_disk(self, filename, overwrite = False):
-        """Save a resonator object as a NETCDF4 file"""
+    def to_disk(self, filename, overwrite = False, save_fits = True):
+        """Save a resonator object as a NETCDF4 file. Keyword args passed on to xarray.to_netcdf"""
         if os.path.isfile(filename):
             if not overwrite:
                 filebase, extension = os.path.splitext(filename)
@@ -326,12 +339,20 @@ class Resonator(object):
                     filename = '%s_newfile%s'%(filebase, extension)
                 else:
                     filename = '%s_newfile'%filename
-    
-        self.data.to_netcdf(filename, format='NETCDF4')
 
-    def from_disk(self):
-        """To be implemented: load resonator object from disk."""
-        raise NotImplementedError
+        #Add a list of fits that will be saved to make it easy to reload them later
+        if save_fits == True:
+            if len(self.lmfit_result) > 0:
+                self.data.attrs['scraps_fits_labels'] = json.dumps(list(self.lmfit_result.keys()))
+
+        #Save the resonator to disk
+        self.data.to_netcdf(filename, format='NETCDF4')
+        
+        #Save the fits to disk in separate groups
+        if save_fits == True:
+            if len(self.lmfit_result) > 0:
+                for key, val in self.lmfit_result.items():
+                    val['data'].to_netcdf(filename, group=key, mode='a')
 
     def to_json(self):
         """To be implemented: serialize resonator as a JSON string"""
@@ -374,7 +395,7 @@ class Resonator(object):
         self.params = None
         self.hasParams = False
 
-    def do_lmfit(self, fitFn, label='default', fit_type='IQ', **kwargs):
+    def do_lmfit(self, fitFn, label='default', fit_type='IQ', method='leastsq', **kwargs):
         r"""Run lmfit on an existing resonator object and update the results.
 
         Parameters
@@ -394,6 +415,9 @@ class Resonator(object):
             quantities will automatically be calculated and added to the resonator
             object. For instance, 'IQ' will cause the magnitude, phase, I, and Q
             as well as associated residuals to be calculated.
+
+        method: string
+            Any supported lmfit fitting method. Defaults to ``'leastqs'``.
 
         kwargs : optional keywords
             Use this to override any of the lmfit parameter initial guesses or
@@ -432,7 +456,7 @@ class Resonator(object):
         #Create a lmfit minimizer object
         minObj = lf.Minimizer(fitFn, self.params, fcn_args=(self, True))
 
-        lmfit_result = minObj.minimize(method = 'leastsq')
+        lmfit_result = minObj.minimize(method = method)
 
         #Call the lmfit minimizer method and minimize the residual
         if self.lmfit_result is None:
@@ -440,10 +464,39 @@ class Resonator(object):
 
         self.lmfit_result[label] = {}
         self.lmfit_result[label]['fit_type'] = fit_type
+        self.lmfit_result[label]['method'] = method
         self.lmfit_result[label]['result'] = lmfit_result
         self.lmfit_result[label]['values'] = np.asarray([val.value for key, val in lmfit_result.params.items() if val.vary is True])
         self.lmfit_result[label]['labels'] = [key for key, val in lmfit_result.params.items() if val.vary is True]
 
+        
+        #Build up an xarray of the fit, which will get stored in the same n4 file, but under a different group
+        xa = xr.Dataset()
+
+        #Save the lmfit parameters obect as a JSON string in attrs for easy rebuilding
+        xa.attrs['scraps_result_params_JSON'] = lmfit_result.params.dumps()
+
+        #And some other metadata
+        xa.attrs['scraps_lmfit_method'] = method
+        xa.attrs['scraps_fit_type'] = fit_type
+
+        #get the scalar coordinates from the built-in xarray and copy them over
+        scalar_coords = [c for c in self.data.coords if len(self.data.coords[c]) == 1]
+
+        #Copy over the scalar coordinates. This assumes the fit input data is all vector
+        for coord in scalar_coords:
+            xa.coords[coord] = self.data.coords[coord]
+
+        #Grab the fit data from the result params and convert to xarray DataVariables
+        for key, val in lmfit_result.params.valuesdict().items():
+            #dims.keys gives dimension names, dims.values gives dimension lengths
+            #They should all be of length 1
+            xa[key] = (list(xa.dims.keys()), np.reshape(val, list(xa.dims.values())))
+
+        #Save this in the resonator object
+        self.lmfit_result[label]['data'] = xa
+        
+        
         #NOTE: These are likely to be deprecated
         if label == 'default':
             self.lmfit_vals = self.lmfit_result[label]['values']
