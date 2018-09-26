@@ -1144,7 +1144,8 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
     plot_lmfits = kwargs.pop('plot_lmfits', False)
 
     if plot_lmfits:
-        assert all('lmfit_'+key in resSweep.keys() for key in plot_keys), "No fit to plot for "+key+"."
+        for key in plot_keys:
+            assert 'lmfit_'+key in resSweep.keys(), "No fit to plot for "+key+"."
 
     #get list of fits to plot
     plot_fits = kwargs.pop('plot_fits', None)

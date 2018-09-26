@@ -1,3 +1,8 @@
+Version 0.4.1:
+
+* More bug fixes that were introduced with the changes to fit storage in 0.4.0
+* Added kwarg to `process_file` function to allow stripping out JSON metadata stored in first line
+
 Version 0.4.0:
 
 * Change the way fits are stored in the resonator object. *This slightly breaks backwards compatibility.*

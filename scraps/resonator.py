@@ -360,7 +360,14 @@ class Resonator(object):
         ----------
         label : string (optional)
             Choose which fit to kill off.
+
+        Return
+        ------
+        deleted_fit : dict or None
+            Return the fit that was deleted or None
         """
+
+        deleted_fit = None
 
         if self.lmfit_result is not None:
             if label in self.lmfit_result.keys():
@@ -383,6 +390,8 @@ class Resonator(object):
                 if len(self.lmfit_result.keys()) == 0:
                     self.lmfit_result = None
                     self.hasFit = False
+
+        return deleted_fit
 
 
     def do_emcee(self, fitFn, label='default', **kwargs):
@@ -488,9 +497,6 @@ class Resonator(object):
         err_plus = np.asarray([np.percentile(flatchain_with_burn[key], 84) for key in flatchain_with_burn.keys()])
         err_minus = np.asarray([np.percentile(flatchain_with_burn[key], 16) for key in flatchain_with_burn.keys()])
 
-        #Make a list of tuples that are (+err, -err) for each paramter
-        emcee_sigmas = list(zip(err_plus-emcee_vals, emcee_vals-err_minus))
-
         #Pack these values into the fit storage dict with suffix _burn
         self.emcee_result[label]['values_burn'] = emcee_vals
 
@@ -509,7 +515,14 @@ class Resonator(object):
         Parameters
         ----------
         label : string (optional)
-            Which fit to torch"""
+            Which fit to torch
+            
+        Return
+        ------
+        deleted_fit : dict
+            The fit that is deleted is returned, or None."""
+
+        deleted_fit = None
         
         if self.emcee_result is not None:
             if label in self.emcee_result.keys():
@@ -526,6 +539,8 @@ class Resonator(object):
                 if len(self.emcee_result.keys()) == 0:
                     self.hasChain = False
                     self.emcee_result = None
+        
+        return deleted_fit
 
 #This creates a resonator object from a data dictionary. Optionally performs a fit, and
 #adds the fit data back in to the resonator object
@@ -589,7 +604,7 @@ def makeResFromData(dataDict, paramsFn = None, fitFn = None, fitFn_kwargs=None, 
     #Process the fit parameters
     if paramsFn is not None:
         if paramsFn_kwargs is not None:
-            res.load_params(paramsFn, **paramsFun_kwargs)
+            res.load_params(paramsFn, **paramsFn_kwargs)
         else:
             res.load_params(paramsFn)
 

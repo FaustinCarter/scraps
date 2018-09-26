@@ -204,7 +204,6 @@ class ResonatorSweep(dict):
         if (self.smartindex == 'block') and (len(resList) % len(self.pvec) == 0) and (len(resList)>0):
             temptvec = [] #Will add to this as we find good index values
 
-            tindex = 0
             setindices = []
             settemps = []
             for temp in tvec:
@@ -281,7 +280,7 @@ class ResonatorSweep(dict):
                         cx = res.lmfit_result[self.label]['result'].var_names.index(pname)
 
                         #The uncertainty is the sqrt of the autocovariance
-                        if res.lmfit_result[self.label]['result'].covar is not None:
+                        if res.lmfit_result[self.label]['result'].errorbars == True:
                             self[pname+'_sigma'][res.pwr][res.itemp] = np.sqrt(res.lmfit_result[self.label]['result'].covar[cx, cx])
 
                         #Get the maximum liklihood if it exists
@@ -484,7 +483,7 @@ class ResonatorSweep(dict):
         #Basically this runs each fit and passes all the residuals back out
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
             residuals = []
-            for ix, key in enumerate(fit_keys):
+            for ix in range(len(fit_keys)):
                 residuals.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
 
             return np.asarray(residuals).flatten()
@@ -718,7 +717,7 @@ class ResonatorSweep(dict):
         #Basically this runs each fit and passes all the residuals back out
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
             residuals = []
-            for ix, key in enumerate(fit_keys):
+            for ix in range(len(fit_keys)):
                 residuals.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
 
             return np.asarray(residuals).flatten()
@@ -755,7 +754,7 @@ class ResonatorSweep(dict):
             self[new_key] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
             self[new_key].loc[self.tvec[t_filter], self.pvec[p_filter]] = returned_model.T
 
-    def info():
+    def info(self):
         """Print out some information on all the keys that are stored in the object."""
 
         #For now, this just spits out all the keys. Could be more useful.
