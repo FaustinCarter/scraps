@@ -1,3 +1,11 @@
+Version 0.4.2:
+
+* Changed how tick labels are rotated to fix strange rounding errors on tick labels and problems
+  with tick labels not respecting interactive plot resizing.
+* Added a `x_slice` keyword argument to the `plot_tools.plotResListData` function. This adds the
+  ability to only plot a portion of data. Currently does not check whether all resonators in list
+  have the same length data, so be aware of potential for an exception.
+
 Version 0.4.1:
 
 * More bug fixes that were introduced with the changes to fit storage in 0.4.0
