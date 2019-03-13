@@ -225,7 +225,7 @@ class Resonator(object):
             if type(xDataset) != xr.core.dataset.Dataset:
                 #Assume xDataset is a string that points to a file
                 assert os.path.isfile(xDataset), "Must either pass an xarray.Dataset or a valid NETCDF4 file path name to xDataset."
-                xa = xr.open_dataset(xDataset, autoclose=True)
+                xa = xr.open_dataset(xDataset)
 
                 #Check to see if there is any fit information in the file:
                 fit_labels = xa.attrs.pop('scraps_fits_labels', None)
@@ -235,7 +235,7 @@ class Resonator(object):
                     self.lmfit_result = {}
                     for label in fit_labels:
                         self.lmfit_result[label] = {}
-                        fit_xa = xr.open_dataset(xDataset, group=label, autoclose=True)
+                        fit_xa = xr.open_dataset(xDataset, group=label)
                         self.lmfit_result[label]['data'] = fit_xa
                         self.lmfit_result[label]['method'] = fit_xa.attrs['scraps_lmfit_method']
 
@@ -276,37 +276,41 @@ class Resonator(object):
     def name(self):
         return self.data.attrs['scraps_name']
 
+    # For the following properties: Indexing a numpy array with an empty tuple
+    # returns the array if the shape is larger than 1, but returns the item
+    # if the shape of the ndarray is 1.
+
     @property
     def temp(self):
-        return self.data.coords['Temperature'].data.squeeze()
+        return self.data.coords['Temperature'].data.squeeze()[()]
     
     @property
     def pwr(self):
-        return self.data.coords['Power'].data.squeeze()
+        return self.data.coords['Power'].data.squeeze()[()]
 
     @property
     def freq(self):
-        return self.data.coords['Frequency'].data.squeeze()
+        return self.data.coords['Frequency'].data.squeeze()[()]
 
     @property
     def I(self):
-        return self.data.data_vars['I'].data.squeeze()
+        return self.data.data_vars['I'].data.squeeze()[()]
 
     @property
     def Q(self):
-        return self.data.data_vars['Q'].data.squeeze()
+        return self.data.data_vars['Q'].data.squeeze()[()]
 
     @property
     def sigmaI(self):
         if 'sigmaI' in self.data.data_vars:
-            return self.data.data_vars['sigmaI'].data.squeeze()
+            return self.data.data_vars['sigmaI'].data.squeeze()[()]
         else:
             return None
     
     @property
     def sigmaQ(self):
         if 'sigmaQ' in self.data.data_vars:
-            return self.data.data_vars['sigmaQ'].data.squeeze()
+            return self.data.data_vars['sigmaQ'].data.squeeze()[()]
         else:
             return None
     
@@ -480,18 +484,20 @@ class Resonator(object):
         xa.attrs['scraps_lmfit_method'] = method
         xa.attrs['scraps_fit_type'] = fit_type
 
-        #get the scalar coordinates from the built-in xarray and copy them over
-        scalar_coords = [c for c in self.data.coords if len(self.data.coords[c]) == 1]
-
-        #Copy over the scalar coordinates. This assumes the fit input data is all vector
-        for coord in scalar_coords:
+        #Copy over all coordinates.
+        for coord in self.data.coords:
             xa.coords[coord] = self.data.coords[coord]
 
-        #Grab the fit data from the result params and convert to xarray DataVariables
+        #get the scalar coordinates from the built-in xarray and copy them over
+        scalar_dims = [dim for dim, dim_length in self.data.dims.items() if dim_length == 1]
+
+        #Grab the scalar fit data from the result params and convert to xarray DataVariables
         for key, val in lmfit_result.params.valuesdict().items():
             #dims.keys gives dimension names, dims.values gives dimension lengths
             #They should all be of length 1
-            xa[key] = (list(xa.dims.keys()), np.reshape(val, list(xa.dims.values())))
+            xa[key] = (scalar_dims, np.reshape(val, [1]*len(scalar_dims)))
+
+
 
         #Save this in the resonator object
         self.lmfit_result[label]['data'] = xa
@@ -569,6 +575,7 @@ class Resonator(object):
         return deleted_fit
 
 
+    #To be deprecated. Will be callable via: do_lmfit with method='emcee'
     def do_emcee(self, fitFn, label='default', **kwargs):
         r"""Run the Monte-Carlo Markov Chain routine to generate samples for
         each parameter given a model.
