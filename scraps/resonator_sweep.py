@@ -202,33 +202,54 @@ class ResonatorSweep(dict):
 
         #Check to make sure that there aren't any rogue extra points that will mess this up
         if (self.smartindex == 'block') and (len(resList) % len(self.pvec) == 0) and (len(resList)>0):
-            temptvec = [] #Will add to this as we find good index values
+            # Trying out a better way. The old way is commented out below for posterity
 
-            setindices = []
-            settemps = []
-            for temp in tvec:
-                for pwr in self.pvec:
-                    curindex = indexResList(resList, temp, pwr)
-                    if curindex is not None:
-                        setindices.append(curindex)
-                        settemps.append(temp)
+            # Sort resList by power, then temperature
+            resList.sort(key=lambda x : (x.pwr, x.temp))
+            
+            # Get array of just temperatures
+            tempsVec = np.array([res.temp for res in resList])
+            
+            # Get the number of powers
+            numPowers = len(np.unique([res.pwr for res in resList]))
+            
+            # Average the individual temperature arrays together to get the
+            # final index temperature array.
+            indexTemps = tempsVec.reshape((numPowers, -1)).mean(axis=0)
 
-                if len(setindices) % len(self.pvec) == 0:
-                    #For now this switches to mK instead of K because of the
-                    #stupid way python handles float division (small errors)
-                    itemp = np.round(np.mean(np.asarray(settemps))*1000)
-                    temptvec.append(itemp)
+            # For each resonator object, store the index temperature
+            for rix, res in enumerate(resList):
+                res.itemp = indexTemps[rix%len(indexTemps)]
+            
+            self.tvec = indexTemps
+            
+            # temptvec = [] #Will add to this as we find good index values
 
-                    #Set the indexing temperature of the resonator object
-                    for index in setindices:
-                        resList[index].itemp = itemp
+            # setindices = []
+            # settemps = []
+            # for temp in tvec:
+            #     for pwr in self.pvec:
+            #         curindex = indexResList(resList, temp, pwr)
+            #         if curindex is not None:
+            #             setindices.append(curindex)
+            #             settemps.append(temp)
 
-                    setindices = []
-                    settemps = []
+            #     if len(setindices) % len(self.pvec) == 0:
+            #         #For now this switches to mK instead of K because of the
+            #         #stupid way python handles float division (small errors)
+            #         itemp = np.round(np.mean(np.asarray(settemps))*1000)
+            #         temptvec.append(itemp)
 
-            self.tvec = np.asarray(temptvec)
+            #         #Set the indexing temperature of the resonator object
+            #         for index in setindices:
+            #             resList[index].itemp = itemp
 
-            assert all(hasattr(res, 'itemp') for res in resList), "Something went wrong with assigning itemps for block mode. Make sure data is square!"
+            #         setindices = []
+            #         settemps = []
+
+            # self.tvec = np.asarray(temptvec)
+
+            # assert all(hasattr(res, 'itemp') for res in resList), "Something went wrong with assigning itemps for block mode. Make sure data is square!"
 
         elif self.smartindex == 'raw':
             for res in resList:
