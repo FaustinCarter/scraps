@@ -115,6 +115,10 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
         reason for a steep linear offset in the phase is an uncorrected
         electrical delay due to long transmission lines.
 
+    x_slice : slice, optional
+        Pass in a slice object to index the results to only look at a portion of
+        each resonator data. Default is to show all data.
+
     num_cols : int, optional
         The number of columns to include in the grid of subplots. Default is 1.
 
@@ -197,6 +201,9 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     #Enforce bounds
     powers = powers[np.where(np.logical_and(powers < max_pwr, powers > min_pwr))]
     temps = temps[np.where(np.logical_and(temps < max_temp, temps > min_temp))]
+
+    #Get the slice
+    x_slice = kwargs.pop('x_slice', slice(None))
 
     #Should we plot best fits?
     plot_fits = kwargs.pop('plot_fits', [False]*len(plot_types))
@@ -357,72 +364,71 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
                     pix = plot_types.index(key)
                     plot_fit = plot_fits[pix]
                     if key == 'IQ':
-                        ax.plot(res.I, res.Q, color=plt_color, **plot_kwargs)
+                        ax.plot(res.I[x_slice], res.Q[x_slice], color=plt_color, **plot_kwargs)
                         if plot_fit:
-                            ax.plot(res.resultI, res.resultQ, **fit_kwargs)
+                            ax.plot(res.resultI[x_slice], res.resultQ[x_slice], **fit_kwargs)
 
                     if key == 'rIQ':
-                        ax.plot(res.residualI, res.residualQ, color=plt_color, **plot_kwargs)
+                        ax.plot(res.residualI[x_slice], res.residualQ[x_slice], color=plt_color, **plot_kwargs)
 
                     if key == 'LogMag':
-                        ax.plot(scaled_freq, res.logmag+wix*waterfall, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq[x_slice], res.logmag[x_slice]+wix*waterfall, color=plt_color, **plot_kwargs)
                         if plot_fit:
-                            ax.plot(scaled_freq, 20*np.log10(res.resultMag)+wix*waterfall, **fit_kwargs)
+                            ax.plot(scaled_freq[x_slice], 20*np.log10(res.resultMag[x_slice])+wix*waterfall, **fit_kwargs)
                         #Step the waterfall plot
                         wix+=1
 
                     if key == 'LinMag':
-                        ax.plot(scaled_freq, res.mag, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq[x_slice], res.mag[x_slice], color=plt_color, **plot_kwargs)
                         if plot_fit:
-                            ax.plot(scaled_freq, res.resultMag, **fit_kwargs)
+                            ax.plot(scaled_freq[x_slice], res.resultMag[x_slice], **fit_kwargs)
 
                     if key == 'rMag':
-                        ax.plot(scaled_freq, res.resultMag-res.mag, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq[x_slice], res.resultMag[x_slice]-res.mag[x_slice], color=plt_color, **plot_kwargs)
 
                     if key == 'Phase':
                         if detrend_phase:
-                            ax.plot(scaled_freq, sps.detrend(res.phase), color=plt_color, **plot_kwargs)
+                            ax.plot(scaled_freq[x_slice], sps.detrend(res.phase[x_slice]), color=plt_color, **plot_kwargs)
                             if plot_fit:
-                                ax.plot(scaled_freq, sps.detrend(res.resultPhase), **fit_kwargs)
+                                ax.plot(scaled_freq[x_slice], sps.detrend(res.resultPhase[x_slice]), **fit_kwargs)
                         else:
-                            ax.plot(scaled_freq, res.phase, color=plt_color, **plot_kwargs)
+                            ax.plot(scaled_freq[x_slice], res.phase[x_slice], color=plt_color, **plot_kwargs)
                             if plot_fit:
-                                ax.plot(scaled_freq, res.resultPhase, **fit_kwargs)
+                                ax.plot(scaled_freq[x_slice], res.resultPhase[x_slice], **fit_kwargs)
 
                     if key == 'rPhase':
-                        ax.plot(scaled_freq, res.resultPhase-res.phase, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq[x_slice], res.resultPhase[x_slice]-res.phase[x_slice], color=plt_color, **plot_kwargs)
 
                     if key == 'uPhase':
                         if detrend_phase:
-                            ax.plot(scaled_freq, sps.detrend(res.uphase), color=plt_color, **plot_kwargs)
+                            ax.plot(scaled_freq[x_slice], sps.detrend(res.uphase[x_slice]), color=plt_color, **plot_kwargs)
                             if plot_fit:
-                                ax.plot(scaled_freq, sps.detrend(np.unwrap(res.resultPhase)), **fit_kwargs)
+                                ax.plot(scaled_freq[x_slice], sps.detrend(np.unwrap(res.resultPhase[x_slice])), **fit_kwargs)
                         else:
-                            ax.plot(scaled_freq, res.uphase, color=plt_color, **plot_kwargs)
+                            ax.plot(scaled_freq[x_slice], res.uphase[x_slice], color=plt_color, **plot_kwargs)
                             if plot_fit:
-                                ax.plot(scaled_freq, np.unwrap(res.resultPhase), **fit_kwargs)
+                                ax.plot(scaled_freq[x_slice], np.unwrap(res.resultPhase[x_slice]), **fit_kwargs)
 
                     if key == 'ruPhase':
-                        ax.plot(scaled_freq, np.unwrap(res.resultPhase)-res.uphase, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq[x_slice], np.unwrap(res.resultPhase[x_slice])-res.uphase[x_slice], color=plt_color, **plot_kwargs)
 
                     if key == 'I':
-                        ax.plot(scaled_freq, res.I, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq[x_slice], res.I[x_slice], color=plt_color, **plot_kwargs)
                         if plot_fit:
-                            ax.plot(scaled_freq, res.resultI, **fit_kwargs)
+                            ax.plot(scaled_freq[x_slice], res.resultI[x_slice], **fit_kwargs)
 
                     if key == 'rI':
-                        ax.plot(scaled_freq, res.residualI, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq[x_slice], res.residualI[x_slice], color=plt_color, **plot_kwargs)
 
                     if key == 'Q':
-                        ax.plot(scaled_freq, res.Q, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq[x_slice], res.Q[x_slice], color=plt_color, **plot_kwargs)
                         if plot_fit:
-                            ax.plot(scaled_freq, res.resultQ, **fit_kwargs)
+                            ax.plot(scaled_freq[x_slice], res.resultQ[x_slice], **fit_kwargs)
 
                     if key == 'rQ':
-                        ax.plot(scaled_freq, res.residualQ, color=plt_color, **plot_kwargs)
+                        ax.plot(scaled_freq[x_slice], res.residualQ[x_slice], color=plt_color, **plot_kwargs)
 
-                    xticks = ax.get_xticks()
-                    ax.set_xticklabels(xticks,rotation=45)
+                    plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
 
                     if force_square:
                         #Make the plot a square
@@ -811,10 +817,14 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
             axs.set_ylabel(key)
             
         #No idea why this is necessary, but it all falls apart without it
-        axs.set_xlim(np.min(x_data), np.max(x_data))
-        xticks = axs.get_xticks()
-        axs.set_xticks(xticks)
-        axs.set_xticklabels(xticks,rotation=45)
+        # axs.set_xlim(np.min(x_data), np.max(x_data))
+        # xticks = axs.get_xticks()
+        # axs.set_xticks(xticks)
+        # xticklabels = ['%g'%x for x in xticks]
+        # axs.set_xticklabels(xticklabels,rotation=45)
+
+        # Should remove above cruft after testing this fix
+        plt.setp(axs.xaxis.get_majorticklabels(), rotation=45)
 
         if force_square:
             #Make the plot a square
