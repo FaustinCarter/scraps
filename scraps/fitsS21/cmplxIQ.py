@@ -1,7 +1,6 @@
 import warnings
 import numpy as np
 import scipy.signal as sps
-import scipy.special as spc
 import lmfit as lf
 
 # def cmplxIQ_fit(paramsVec, freqs, data=None, eps=None, **kwargs):
@@ -160,6 +159,11 @@ def cmplxIQ_params(res, **kwargs):
         This determines whether the phase baseline is fit by a line or a
         quadratic function. Default is False for fitting only a line.
 
+    phase_guess_left: bool
+        If True, only use the first 5% of the phase to extract the slope. If
+        False, use both ends. This can be useful if the unwrapping is not
+        working correctly. Default is False.
+
     hardware : string {'VNA', 'mixer'}
         This determines whether or not the Ioffset and Qoffset parameters are
         allowed to vary by default.
@@ -203,6 +207,9 @@ def cmplxIQ_params(res, **kwargs):
 
     #Whether to fit a line or a parabola to the phase:
     fit_quadratic_phase = kwargs.pop('fit_quadratic_phase', False)
+
+    #Whether to only use the first bit of the phase for guessing
+    phase_guess_left = kwargs.pop('phase_guess_left', False)
 
     #There shouldn't be any more kwargs left
     if kwargs:
@@ -260,16 +267,26 @@ def cmplxIQ_params(res, **kwargs):
     #This makes sense because you don't want the baseline changing
     #as f0 shifts around with temperature and power
 
-    #Remove any linear variation from the phase (caused by electrical delay)
-    phaseEnds = np.concatenate((resUPhase[0:findex_5pc], resUPhase[-findex_5pc:-1]))
-
     if fit_quadratic_phase:
         phase_poly_order = 2
     else:
         phase_poly_order = 1
 
+    if phase_guess_left:
+        #Fit a line to the first 5% of points
+        #Unwrap usually doesn't fail here
+        phaseBaseCoefs = np.polyfit(ffm(res.freq[0:findex_5pc]), resUPhase[0:findex_5pc], 1)
+
+        #Add a second order term that is zero (because can't fit this without the other side)
+        if fit_quadratic_phase:
+            phaseBaseCoefs = [0]+phaseBaseCoefs
+    else:
+        #Remove any linear variation from the phase (caused by electrical delay)
+        phaseEnds = np.concatenate((resUPhase[0:findex_5pc], resUPhase[-findex_5pc:-1]))
+
     #This fits a second order polynomial
     phaseBaseCoefs = np.polyfit(freqEnds, phaseEnds, phase_poly_order)
+    
     phaseBase = np.poly1d(phaseBaseCoefs)
 
     #Add to resonator object
