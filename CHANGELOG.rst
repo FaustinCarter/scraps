@@ -1,3 +1,7 @@
+Version Next:
+
+* Fixed a bug in the ResonatorSweep smart-indexing logic by completely reworking the algorithm.
+
 Version 0.4.2:
 
 * Changed how tick labels are rotated to fix strange rounding errors on tick labels and problems
