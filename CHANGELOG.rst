@@ -1,3 +1,6 @@
+Version 0.4.4:
+* Version bump. No other changes.
+
 Version 0.4.3:
 
 * Fixed a bug in the ResonatorSweep smart-indexing logic by completely reworking the algorithm.
