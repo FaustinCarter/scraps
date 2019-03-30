@@ -215,7 +215,8 @@ class ResonatorSweep(dict):
             
             # Average the individual temperature arrays together to get the
             # final index temperature array.
-            indexTemps = tempsVec.reshape((numPowers, -1)).mean(axis=0)
+            # Also, iTemps are in mK, so multiply by 1000
+            indexTemps = tempsVec.reshape((numPowers, -1)).mean(axis=0)*1000
 
             # For each resonator object, store the index temperature
             for rix, res in enumerate(resList):
