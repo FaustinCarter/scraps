@@ -1,3 +1,6 @@
+"""Some specific tools to interface with measuremnets made at University of Chicago. This module is
+scheduled for deprecation"""
+
 import numpy as np
 from astropy.io import fits
 

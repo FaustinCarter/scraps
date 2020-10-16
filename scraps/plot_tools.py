@@ -1,3 +1,6 @@
+"""Collection of plotting routins that accept Resonator, List[Resonator], and ResonatorSweep
+objects"""
+
 import warnings
 
 import matplotlib as mpl
