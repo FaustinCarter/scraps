@@ -4,8 +4,8 @@ import lmfit as lf
 import numpy as np
 import pandas as pd
 
-from .process_file import process_file
-from .resonator import indexResList, makeResFromData, makeResList
+from scraps.process_file import process_file
+from scraps.resonator import indexResList, makeResFromData, makeResList
 
 
 # This is a glorified dictionary with a custom initalize method. It takes a list

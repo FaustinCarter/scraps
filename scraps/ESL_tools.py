@@ -1,7 +1,7 @@
 import numpy as np
 from astropy.io import fits
 
-from .resonator import Resonator, makeResFromData
+from scraps.resonator import Resonator, makeResFromData
 
 
 def load_fits(dataFile, resNum=0):
