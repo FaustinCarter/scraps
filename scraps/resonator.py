@@ -169,15 +169,7 @@ class Resonator(object):
         self.Q = np.asarray(Q)
         self.sigmaI = np.asarray(sigmaI) if sigmaI is not None else None
         self.sigmaQ = np.asarray(sigmaQ) if sigmaQ is not None else None
-        self.S21 = I + 1j*Q
-        self.phase = np.arctan2(Q,I) #use arctan2 because it is quadrant-aware
-        self.uphase = np.unwrap(self.phase) #Unwrap the 2pi phase jumps
-        self.mag = np.abs(self.S21) #Units are volts.
-        self.logmag = 20*np.log10(self.mag) #Units are dB (20 because V->Pwr)
 
-        #Find the frequency at magnitude minimum (this can, and should, be
-        #overwritten by a custom params function)
-        self.fmin = self.freq[np.argmin(self.mag)]
 
         #Whether or not params has been initialized
         self.params = None
@@ -202,6 +194,31 @@ class Resonator(object):
         self.hasChain = False
         self.mle_vals = None
         self.mle_labels = None
+
+    @property
+    def S21(self):
+        return self.I+1j*self.Q
+
+    @property
+    def phase(self):
+        return np.arctan2(self.Q, self.I)
+
+    @property
+    def uphase(self):
+        return np.unwrap(self.phase) #Unwrap the 2pi phase jumps
+
+    @property
+    def mag(self):
+        return np.abs(self.S21) #Units are volts.
+
+    @property
+    def logmag(self):
+        return 20*np.log10(self.mag) #Units are dB (20 because V^2->Pwr)
+
+    #Find the frequency at magnitude minimum
+    @property
+    def fmin(self):
+        return self.freq[np.argmin(self.mag)]
 
     def to_disk(self):
         """To be implemented: dumps resonator to disk as various file types. Default will be netcdf4"""
@@ -376,9 +393,9 @@ class Resonator(object):
                 if label == 'default':
                     self.lmfit_vals = None
                     self.lmfit_labels = None
-            
+
                 if (deleted_fit['fit_type'] == 'IQ') and label == 'default':
-                    
+
                     self.residualI = None
                     self.residualQ = None
                     self.resultI = None
@@ -445,7 +462,7 @@ class Resonator(object):
 
         self.emcee_result[label] = {}
         self.emcee_result[label]['result'] = emcee_result
-        
+
         #Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
         emcee_vals = np.asarray([np.percentile(emcee_result.flatchain[key], 50) for key in emcee_result.flatchain.keys()])
         err_plus = np.asarray([np.percentile(emcee_result.flatchain[key], 84) for key in emcee_result.flatchain.keys()])
@@ -478,17 +495,17 @@ class Resonator(object):
 
             #This is also nice to have explicitly for passing to triangle-plotting routines
             self.chain = emcee_result.flatchain.copy()
-        
+
         self.hasChain = True
 
     def burn_flatchain(self, num_samples=0, label='default'):
         r"""Burns off num_samples samples from each of the chains and then reflattens. Recalculates all
         statistical quantities associated with the emcee run and saves them under the original
         label, but with the suffix '_burn' appended to the various keys. Does not modify original chain."""
-        
+
         flatchain_with_burn = pd.DataFrame()
         chains = self.emcee_result[label]['result'].chain
-        
+
         for ix, chain in enumerate(chains.T):
             flatchain_with_burn[self.emcee_result[label]['mle_labels'][ix]] = chain[num_samples:].flat
 
@@ -516,14 +533,14 @@ class Resonator(object):
         ----------
         label : string (optional)
             Which fit to torch
-            
+
         Return
         ------
         deleted_fit : dict
             The fit that is deleted is returned, or None."""
 
         deleted_fit = None
-        
+
         if self.emcee_result is not None:
             if label in self.emcee_result.keys():
                 deleted_fit = self.emcee_result.pop(label)
@@ -539,7 +556,7 @@ class Resonator(object):
                 if len(self.emcee_result.keys()) == 0:
                     self.hasChain = False
                     self.emcee_result = None
-        
+
         return deleted_fit
 
 #This creates a resonator object from a data dictionary. Optionally performs a fit, and
@@ -651,7 +668,7 @@ def makeResList(fileFunc, dataPath, resName, **fileFunc_kwargs):
     for f in fileList:
         fileDataDicts.append(fileFunc(f, **fileFunc_kwargs))
 
-    #Create resonator objects from the data 
+    #Create resonator objects from the data
     #makeResFromData returns a tuple of (res, temp, pwr),
     #but only care about the first one
     resList = [makeResFromData(fileDataDict) for fileDataDict in fileDataDicts]
@@ -813,5 +830,3 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
                         print('T=',t, 'P=',p, 'Res index=',res_ix)
                     if prune:
                         resList.pop(res_ix)
-
-
