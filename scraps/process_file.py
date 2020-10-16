@@ -1,10 +1,13 @@
 import numpy as np
 import pandas as pd
 
-try: import simplejson as json
-except ImportError: import json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
-def process_file(fileName, mask = None, meta_only=False, **loadtxt_kwargs):
+
+def process_file(fileName, mask=None, meta_only=False, **loadtxt_kwargs):
     """Load Keysight PNA file data into dict.
 
     Parameters
@@ -25,7 +28,7 @@ def process_file(fileName, mask = None, meta_only=False, **loadtxt_kwargs):
     meta_only : bool
         Return just the metadata from the filename (True) or all the data (False).
         Default is False.
-    
+
     loadtxt_kwargs : dict (optional)
         This is a pass-through to numpy.loadtxt
 
@@ -41,45 +44,45 @@ def process_file(fileName, mask = None, meta_only=False, **loadtxt_kwargs):
 
     This is also a terribly written function, and you really should write your own!
     """
-    #Find the temperature, power, and name locations from the filename
-    tempLoc = fileName.find('TEMP') + 5
-    pwrLoc = fileName.find('DBM') - 4
-    resNameLoc = fileName.find('RES-')
+    # Find the temperature, power, and name locations from the filename
+    tempLoc = fileName.find("TEMP") + 5
+    pwrLoc = fileName.find("DBM") - 4
+    resNameLoc = fileName.find("RES-")
 
     if mask is None:
         mask = slice(None, None)
     else:
         assert type(mask) == slice, "mask must be of type slice."
 
-    #Read the temp, pwr, and resName from the filename
-    if(fileName[tempLoc + 1] == '.'):
-        temp = np.float(fileName[tempLoc:tempLoc+5])
+    # Read the temp, pwr, and resName from the filename
+    if fileName[tempLoc + 1] == ".":
+        temp = np.float(fileName[tempLoc : tempLoc + 5])
 
-        if fileName[pwrLoc] == '_':
-            pwr = np.float(fileName[pwrLoc+1:pwrLoc+3])
+        if fileName[pwrLoc] == "_":
+            pwr = np.float(fileName[pwrLoc + 1 : pwrLoc + 3])
         else:
-            pwr = np.float(fileName[pwrLoc:pwrLoc+3])
+            pwr = np.float(fileName[pwrLoc : pwrLoc + 3])
 
-        resName = fileName[resNameLoc:resNameLoc+5]
+        resName = fileName[resNameLoc : resNameLoc + 5]
 
-        metaDict = {'name':resName,'temp':temp,'pwr':pwr}
+        metaDict = {"name": resName, "temp": temp, "pwr": pwr}
 
         if meta_only:
             dataDict = {}
         else:
-            #Grab frequency, I, and Q
+            # Grab frequency, I, and Q
             fileData = np.loadtxt(fileName, **loadtxt_kwargs)
-            freqData = fileData[:,0][mask]
-            IData = fileData[:,1][mask]
-            QData = fileData[:,2][mask]
+            freqData = fileData[:, 0][mask]
+            IData = fileData[:, 1][mask]
+            QData = fileData[:, 2][mask]
 
-            dataDict = {'freq':freqData,'I':IData,'Q':QData}
+            dataDict = {"freq": freqData, "I": IData, "Q": QData}
 
         retVal = {}
         retVal.update(metaDict)
         retVal.update(dataDict)
-        
+
         return retVal
     else:
-        
+
         assert False, "Bad file? " + fileName

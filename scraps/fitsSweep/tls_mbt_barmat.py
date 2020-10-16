@@ -1,8 +1,7 @@
-import numpy as np
-from scipy.special import digamma
-import scipy.constants as sc
-
 import barmat
+import numpy as np
+import scipy.constants as sc
+from scipy.special import digamma
 
 
 def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
@@ -55,69 +54,77 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
 
     """
 
-    #TLS params
-    Fd = params['Fd'].value
-    Pc = params['Pc'].value
-    f0 = params['f0'].value
-    q0 = params['q0'].value
+    # TLS params
+    Fd = params["Fd"].value
+    Pc = params["Pc"].value
+    f0 = params["f0"].value
+    q0 = params["q0"].value
 
-    #Barmat params
-    tc = params['tc'].value
-    vf = params['vf'].value
-    london0 = params['london0'].value
-    mfp = params['mfp'].value
-    bcs = params['bcs'].value
+    # Barmat params
+    tc = params["tc"].value
+    vf = params["vf"].value
+    london0 = params["london0"].value
+    mfp = params["mfp"].value
+    bcs = params["bcs"].value
 
-    #Kinetic inductance param
-    alpha = params['alpha'].value
+    # Kinetic inductance param
+    alpha = params["alpha"].value
 
-    units = kwargs.pop('units', 'mK')
-    assert units in ['mK', 'K'], "Units must be 'mK' or 'K'."
+    units = kwargs.pop("units", "mK")
+    assert units in ["mK", "K"], "Units must be 'mK' or 'K'."
 
-    if units == 'mK':
-        temps = temps*0.001
+    if units == "mK":
+        temps = temps * 0.001
 
-    #Pack all these together for convenience
-    zeta = sc.h*f0/(2*sc.k*temps)
+    # Pack all these together for convenience
+    zeta = sc.h * f0 / (2 * sc.k * temps)
 
-    #An optional power calibration in dB
-    #Without this, the parameter Pc is meaningless
-    pwr_cal_dB = kwargs.pop('pwr_cal_dB', 0)
-    ps = powers+pwr_cal_dB
+    # An optional power calibration in dB
+    # Without this, the parameter Pc is meaningless
+    pwr_cal_dB = kwargs.pop("pwr_cal_dB", 0)
+    ps = powers + pwr_cal_dB
 
-    #Working in inverse Q since they add and subtract  nicely
+    # Working in inverse Q since they add and subtract  nicely
 
-    #Calculate the inverse Q from TLS
-    invQtls = Fd*np.tanh(zeta)/np.sqrt(1.0+10**(ps/10.0)/Pc)
+    # Calculate the inverse Q from TLS
+    invQtls = Fd * np.tanh(zeta) / np.sqrt(1.0 + 10 ** (ps / 10.0) / Pc)
 
-    #Calculate the inverse Q from MBD using barmat
-    fr = sc.h*f0/(sc.e*barmat.tools.get_delta0(tc, bcs))
+    # Calculate the inverse Q from MBD using barmat
+    fr = sc.h * f0 / (sc.e * barmat.tools.get_delta0(tc, bcs))
 
-    Z = barmat.get_Zvec(temps[0]/tc, tc, vf, london0, mfp=mfp, bcs=bcs, fr=fr,
-                        axis='temperature', output_depths=False,
-                        boundary='diffuse')
+    Z = barmat.get_Zvec(
+        temps[0] / tc,
+        tc,
+        vf,
+        london0,
+        mfp=mfp,
+        bcs=bcs,
+        fr=fr,
+        axis="temperature",
+        output_depths=False,
+        boundary="diffuse",
+    )
 
-    invQmbd = alpha*(Z.real - Z.real[0])/Z.imag[0]
+    invQmbd = alpha * (Z.real - Z.real[0]) / Z.imag[0]
 
-    invQmbd = np.array([invQmbd]*len(temps))
+    invQmbd = np.array([invQmbd] * len(temps))
 
-    #Get the difference from the total Q and
-    model = 1.0/(invQtls + invQmbd + 1.0/q0)
+    # Get the difference from the total Q and
+    model = 1.0 / (invQtls + invQmbd + 1.0 / q0)
 
-    #Weight the residual if eps is supplied
+    # Weight the residual if eps is supplied
     if data is not None:
         if eps is not None:
-            residual = (model-data)/eps
+            residual = (model - data) / eps
         else:
-            residual = (model-data)
+            residual = model - data
 
         return residual
     else:
         return model
 
 
-
-def f0_tlsAndMBT(params, temps, powers, data = None, eps = None, **kwargs):
+def f0_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     """A model of frequency shift vs temperature and power, weighted by uncertainties.
 
     Parameters
@@ -165,57 +172,65 @@ def f0_tlsAndMBT(params, temps, powers, data = None, eps = None, **kwargs):
     http://github.com/FaustinCarter/barmat.
 
     """
-    #Unpack parameter values from params
+    # Unpack parameter values from params
 
-    #TLS params
-    Fd = params['Fd'].value
-    f0 = params['f0'].value
+    # TLS params
+    Fd = params["Fd"].value
+    f0 = params["f0"].value
 
-    #Barmat params
-    tc = params['tc'].value
-    vf = params['vf'].value
-    london0 = params['london0'].value
-    mfp = params['mfp'].value
-    bcs = params['bcs'].value
+    # Barmat params
+    tc = params["tc"].value
+    vf = params["vf"].value
+    london0 = params["london0"].value
+    mfp = params["mfp"].value
+    bcs = params["bcs"].value
 
-    #Kinetic inductance param
-    alpha = params['alpha'].value
+    # Kinetic inductance param
+    alpha = params["alpha"].value
 
-    #Set temperature units
-    units = kwargs.pop('units', 'mK')
-    assert units in ['mK', 'K'], "Units must be 'mK' or 'K'."
+    # Set temperature units
+    units = kwargs.pop("units", "mK")
+    assert units in ["mK", "K"], "Units must be 'mK' or 'K'."
 
-    if units == 'mK':
-        temps = temps*0.001
+    if units == "mK":
+        temps = temps * 0.001
 
-    #Pack all these together for convenience
-    zeta = sc.h*f0/(2*sc.k*temps)
+    # Pack all these together for convenience
+    zeta = sc.h * f0 / (2 * sc.k * temps)
 
-    #TLS contribution
-    dfTLS = Fd/sc.pi*(np.real(digamma(0.5+zeta/(1j*sc.pi)))-np.log(zeta/sc.pi))
+    # TLS contribution
+    dfTLS = Fd / sc.pi * (np.real(digamma(0.5 + zeta / (1j * sc.pi))) - np.log(zeta / sc.pi))
 
-    #MBD contribution
-    #Calculate the dfMBD from MBD using barmat
-    fr = sc.h*f0/(sc.e*barmat.tools.get_delta0(tc, bcs))
+    # MBD contribution
+    # Calculate the dfMBD from MBD using barmat
+    fr = sc.h * f0 / (sc.e * barmat.tools.get_delta0(tc, bcs))
 
-    Z = barmat.get_Zvec(temps[0]/tc, tc, vf, london0, mfp=mfp, bcs=bcs, fr=fr,
-                        axis='temperature', output_depths=True,
-                        boundary='diffuse')
+    Z = barmat.get_Zvec(
+        temps[0] / tc,
+        tc,
+        vf,
+        london0,
+        mfp=mfp,
+        bcs=bcs,
+        fr=fr,
+        axis="temperature",
+        output_depths=True,
+        boundary="diffuse",
+    )
 
-    dfMBD = -0.5*alpha*(Z.imag - Z.imag[0])/Z.imag[0]
+    dfMBD = -0.5 * alpha * (Z.imag - Z.imag[0]) / Z.imag[0]
 
-    dfMBd = np.array([dfMBD]*len(temps))
+    dfMBd = np.array([dfMBD] * len(temps))
 
-    #Calculate model from parameters
-    model = f0+f0*(dfTLS + dfMBD)
+    # Calculate model from parameters
+    model = f0 + f0 * (dfTLS + dfMBD)
 
-
-    #Weight the residual if eps is supplied
+    # Weight the residual if eps is supplied
     if data is not None:
         if eps is not None:
-            residual = (model-data)/eps
+            residual = (model - data) / eps
         else:
-            residual = (model-data)
+            residual = model - data
 
         return residual
     else:

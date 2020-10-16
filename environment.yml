@@ -1,7 +1,7 @@
-name: py36
+name: py37
 channels:
   - defaults
   - conda-forge
 dependencies:
-  - python>=3.6
+  - python>=3.7
   - ipython>=6.2

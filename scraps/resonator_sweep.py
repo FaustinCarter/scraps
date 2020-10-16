@@ -1,14 +1,17 @@
 from __future__ import division
-import pandas as pd
-import numpy as np
-import lmfit as lf
-from .resonator import makeResFromData, makeResList, indexResList
-from .process_file import process_file
 
-#This is a glorified dictionary with a custom initalize method. It takes a list
-#of resonator objects that have been fit, and then sets up a
-#dict of pandas DataFrame objects, one for each interesting fit parameter
-#This adds no new information, but makes accessing the fit data easier
+import lmfit as lf
+import numpy as np
+import pandas as pd
+
+from .process_file import process_file
+from .resonator import indexResList, makeResFromData, makeResList
+
+
+# This is a glorified dictionary with a custom initalize method. It takes a list
+# of resonator objects that have been fit, and then sets up a
+# dict of pandas DataFrame objects, one for each interesting fit parameter
+# This adds no new information, but makes accessing the fit data easier
 class ResonatorSweep(dict):
     r"""Dictionary object with custom ``__init__`` method.\
 
@@ -122,108 +125,111 @@ class ResonatorSweep(dict):
 
     """
 
-
     def __init__(self, resList, **kwargs):
-        """Formats temp/pwr sweeps into easily parsed pandas DataFrame objects.
-
-        """
-        #Call the base class initialization for an empty dict.
-        #Not sure this is totally necessary, but don't want to break the dict...
+        """Formats temp/pwr sweeps into easily parsed pandas DataFrame objects."""
+        # Call the base class initialization for an empty dict.
+        # Not sure this is totally necessary, but don't want to break the dict...
         dict.__init__(self)
 
-        #Create some objects that will be filled in the future:
-        self.lmfit_results = {} #Holds fit results for individual quantities
+        # Create some objects that will be filled in the future:
+        self.lmfit_results = {}  # Holds fit results for individual quantities
         self.emcee_results = {}
-        self.lmfit_joint_results = {} #Holds fit results for joint quantities
+        self.lmfit_joint_results = {}  # Holds fit results for joint quantities
         self.emcee_joint_results = {}
 
-        #Build a list of keys that will eventually become the dict keys:
+        # Build a list of keys that will eventually become the dict keys:
 
-        #Start with the list of fit parameters, want to save all of them
-        #Can just use the first resonator's list, as they are all the same.
-        #params is NOT an lmfit object.
+        # Start with the list of fit parameters, want to save all of them
+        # Can just use the first resonator's list, as they are all the same.
+        # params is NOT an lmfit object.
         params = list(resList[0].params.keys())
 
-        #Add a few more
-        #TODO: Right now, only fit information from the most recent fit is stored
-        #TODO: Would be good to maybe have keys for each joint fit?
-        params.append('temps') #Actual temperature value of measured resonator
-        params.append('fmin') #Frequency at magnitude minimum
-        params.append('chisq') #Chi-squared value from fit
-        params.append('redchi') #Reduced chi-squared value
-        params.append('feval') #Number of function evaluations to converge on fit
-        params.append('listIndex') #Index in resonator list of resonator
+        # Add a few more
+        # TODO: Right now, only fit information from the most recent fit is stored
+        # TODO: Would be good to maybe have keys for each joint fit?
+        params.append("temps")  # Actual temperature value of measured resonator
+        params.append("fmin")  # Frequency at magnitude minimum
+        params.append("chisq")  # Chi-squared value from fit
+        params.append("redchi")  # Reduced chi-squared value
+        params.append("feval")  # Number of function evaluations to converge on fit
+        params.append("listIndex")  # Index in resonator list of resonator
 
-        #If a model explicitly uses qi and qc, then calculate q0
-        if all(p in params for p in ['qi', 'qc']):
-            params.append('q0') #The total Q = qi*qc/(qi+qc)
+        # If a model explicitly uses qi and qc, then calculate q0
+        if all(p in params for p in ["qi", "qc"]):
+            params.append("q0")  # The total Q = qi*qc/(qi+qc)
 
+        # This flag sets which data to pull from the Resonator objects
+        self.label = kwargs.pop("label", "default")
+        assert all(
+            [(self.label in res.lmfit_result.keys()) for res in resList]
+        ), "label must be present in lmfit_result dict keys for every Resonator in resList."
 
-        #This flag sets which data to pull from the Resonator objects
-        self.label = kwargs.pop('label', 'default')
-        assert all([(self.label in res.lmfit_result.keys()) for res in resList]), "label must be present in lmfit_result dict keys for every Resonator in resList."
+        # This flag sets different indexing methods
+        self.smartindex = kwargs.pop("index", "raw")
+        assert self.smartindex in [
+            "raw",
+            "round",
+            "block",
+        ], "index must be 'raw', 'round', or 'block'."
 
-        #This flag sets different indexing methods
-        self.smartindex = kwargs.pop('index', 'raw')
-        assert self.smartindex in ['raw', 'round', 'block'], "index must be 'raw', 'round', or 'block'."
-
-        #Default the rounding option to 5 mK
-        self.roundto = kwargs.pop('roundto', 5)
+        # Default the rounding option to 5 mK
+        self.roundto = kwargs.pop("roundto", 5)
 
         if kwargs:
             raise ValueError("Unknown keyword: " + kwargs.keys()[0])
 
-
-        #Loop through the resList and make lists of power and index temperature
+        # Loop through the resList and make lists of power and index temperature
         tvals = np.empty(len(resList))
         pvals = np.empty(len(resList))
 
-        if self.smartindex == 'round':
+        if self.smartindex == "round":
             itvals = np.empty(len(resList))
 
         for index, res in enumerate(resList):
             tvals[index] = res.temp
             pvals[index] = res.pwr
 
-            if self.smartindex == 'round':
-                #itemp is stored in mK
-                itmp = np.round(res.temp*1000/self.roundto)*self.roundto
+            if self.smartindex == "round":
+                # itemp is stored in mK
+                itmp = np.round(res.temp * 1000 / self.roundto) * self.roundto
                 itvals[index] = itmp
 
-
-        #Create index vectors containing only the unique values from each list
+        # Create index vectors containing only the unique values from each list
         tvec = np.sort(np.unique(tvals))
         self.pvec = np.sort(np.unique(pvals))
 
-        #Because of uncertainty and fluctuation in temperature measurements,
-        #not every temperature value / power value combination has data.
-        #We want to assign index values in a smart way to get rid of empty combinations
+        # Because of uncertainty and fluctuation in temperature measurements,
+        # not every temperature value / power value combination has data.
+        # We want to assign index values in a smart way to get rid of empty combinations
 
-
-        #Check to make sure that there aren't any rogue extra points that will mess this up
-        if (self.smartindex == 'block') and (len(resList) % len(self.pvec) == 0) and (len(resList)>0):
+        # Check to make sure that there aren't any rogue extra points that will mess this up
+        if (
+            (self.smartindex == "block")
+            and (len(resList) % len(self.pvec) == 0)
+            and (len(resList) > 0)
+        ):
             # Trying out a better way. The old way is commented out below for posterity
 
             # Sort resList by power, then temperature
-            resList.sort(key=lambda x : (x.pwr, x.temp))
-            
+            resList.sort(key=lambda x: (x.pwr, x.temp))
+
             # Get array of just temperatures
             tempsVec = np.array([res.temp for res in resList])
-            
+
             # Get the number of powers
             numPowers = len(np.unique([res.pwr for res in resList]))
-            
+
             # Average the individual temperature arrays together to get the
             # final index temperature array.
             # Also, iTemps are in mK, so multiply by 1000
-            indexTemps = tempsVec.reshape((numPowers, -1)).mean(axis=0)*1000
+            indexTemps = tempsVec.reshape((numPowers, -1)).mean(axis=0) * 1000
 
             # For each resonator object, store the index temperature
             for rix, res in enumerate(resList):
-                res.itemp = indexTemps[rix%len(indexTemps)]
-            
+                res.itemp = indexTemps[rix % len(indexTemps)]
+
             self.tvec = indexTemps
-            
+
             # temptvec = [] #Will add to this as we find good index values
 
             # setindices = []
@@ -252,91 +258,112 @@ class ResonatorSweep(dict):
 
             # assert all(hasattr(res, 'itemp') for res in resList), "Something went wrong with assigning itemps for block mode. Make sure data is square!"
 
-        elif self.smartindex == 'raw':
+        elif self.smartindex == "raw":
             for res in resList:
-                res.itemp = np.round(res.temp*1000)
-            self.tvec = np.round(tvec*1000)
-        elif self.smartindex == 'round':
+                res.itemp = np.round(res.temp * 1000)
+            self.tvec = np.round(tvec * 1000)
+        elif self.smartindex == "round":
             for index, res in enumerate(resList):
                 res.itemp = itvals[index]
             self.tvec = np.sort(np.unique(itvals))
         else:
-            self.tvec = np.round(tvec*1000)
-            self.smartindex = 'raw'
+            self.tvec = np.round(tvec * 1000)
+            self.smartindex = "raw"
             for res in resList:
-                res.itemp = np.round(res.temp*1000)
+                res.itemp = np.round(res.temp * 1000)
 
-        
-        #Loop through the parameters list and create a DataFrame for each one
+        # Loop through the parameters list and create a DataFrame for each one
         for pname in params:
-            #Start out with a 2D dataframe full of NaN of type float
-            #Row and Column indices are temperature and power values
-            self[pname] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
-
+            # Start out with a 2D dataframe full of NaN of type float
+            # Row and Column indices are temperature and power values
+            self[pname] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
 
             if pname in resList[0].params.keys():
-                #Uncertainty on best fit from least-squares
-                self[pname+'_sigma'] = pd.DataFrame(np.nan, index=self.tvec, columns = self.pvec)
+                # Uncertainty on best fit from least-squares
+                self[pname + "_sigma"] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
 
-                #Maximum liklihood value from MCMC
-                self[pname+'_mle'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+                # Maximum liklihood value from MCMC
+                self[pname + "_mle"] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
 
-                #50th percentile value of MCMC chain
-                self[pname+'_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+                # 50th percentile value of MCMC chain
+                self[pname + "_mc"] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
 
-                #84th-50th values from MCMC chain
-                self[pname+'_sigma_plus_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+                # 84th-50th values from MCMC chain
+                self[pname + "_sigma_plus_mc"] = pd.DataFrame(
+                    np.nan, index=self.tvec, columns=self.pvec
+                )
 
-                #50th-16th values from MCMC chain
-                self[pname+'_sigma_minus_mc'] = pd.DataFrame(np.nan, index = self.tvec, columns = self.pvec)
+                # 50th-16th values from MCMC chain
+                self[pname + "_sigma_minus_mc"] = pd.DataFrame(
+                    np.nan, index=self.tvec, columns=self.pvec
+                )
 
-
-            #Fill it with as much data as exists
+            # Fill it with as much data as exists
             for index, res in enumerate(resList):
-                if pname in res.lmfit_result[self.label]['result'].params.keys():
-                    if res.lmfit_result[self.label]['result'].params[pname].vary is True:
-                        #The actual best fit value
-                        self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]['result'].params[pname].value
+                if pname in res.lmfit_result[self.label]["result"].params.keys():
+                    if res.lmfit_result[self.label]["result"].params[pname].vary is True:
+                        # The actual best fit value
+                        self[pname][res.pwr][res.itemp] = (
+                            res.lmfit_result[self.label]["result"].params[pname].value
+                        )
 
-                        #Get the right index to find the uncertainty in the covariance matrix
-                        cx = res.lmfit_result[self.label]['result'].var_names.index(pname)
+                        # Get the right index to find the uncertainty in the covariance matrix
+                        cx = res.lmfit_result[self.label]["result"].var_names.index(pname)
 
-                        #The uncertainty is the sqrt of the autocovariance
-                        if res.lmfit_result[self.label]['result'].errorbars == True:
-                            self[pname+'_sigma'][res.pwr][res.itemp] = np.sqrt(res.lmfit_result[self.label]['result'].covar[cx, cx])
+                        # The uncertainty is the sqrt of the autocovariance
+                        if res.lmfit_result[self.label]["result"].errorbars == True:
+                            self[pname + "_sigma"][res.pwr][res.itemp] = np.sqrt(
+                                res.lmfit_result[self.label]["result"].covar[cx, cx]
+                            )
 
-                        #Get the maximum liklihood if it exists
+                        # Get the maximum liklihood if it exists
                         if res.hasChain is True:
 
-                            #Grab the index of the parameter in question
-                            sx = list(res.emcee_result[self.label]['result'].flatchain.iloc[np.argmax(res.emcee_result[self.label]['result'].lnprob)].keys()).index(pname)
-                            self[pname+'_mle'][res.pwr][res.itemp] = res.emcee_result[self.label]['mle_vals'][pname]
-                            self[pname+'_mc'][res.pwr][res.itemp] = res.emcee_result[self.label]['result'].params[pname].value
+                            # Grab the index of the parameter in question
+                            sx = list(
+                                res.emcee_result[self.label]["result"]
+                                .flatchain.iloc[
+                                    np.argmax(res.emcee_result[self.label]["result"].lnprob)
+                                ]
+                                .keys()
+                            ).index(pname)
+                            self[pname + "_mle"][res.pwr][res.itemp] = res.emcee_result[self.label][
+                                "mle_vals"
+                            ][pname]
+                            self[pname + "_mc"][res.pwr][res.itemp] = (
+                                res.emcee_result[self.label]["result"].params[pname].value
+                            )
 
-                            #Since the plus and minus errorbars can be different,
-                            #have to store them separately
-                            self[pname+'_sigma_plus_mc'][res.pwr][res.itemp] = res.emcee_result[self.label]['emcee_sigmas'][sx][0]
-                            self[pname+'_sigma_minus_mc'][res.pwr][res.itemp] = res.emcee_result[self.label]['emcee_sigmas'][sx][1]
-                elif pname == 'temps':
-                    #Since we bin the temps by itemp for indexing, store the actual temp here
+                            # Since the plus and minus errorbars can be different,
+                            # have to store them separately
+                            self[pname + "_sigma_plus_mc"][res.pwr][res.itemp] = res.emcee_result[
+                                self.label
+                            ]["emcee_sigmas"][sx][0]
+                            self[pname + "_sigma_minus_mc"][res.pwr][res.itemp] = res.emcee_result[
+                                self.label
+                            ]["emcee_sigmas"][sx][1]
+                elif pname == "temps":
+                    # Since we bin the temps by itemp for indexing, store the actual temp here
                     self[pname][res.pwr][res.itemp] = res.temp
-                elif pname == 'fmin':
+                elif pname == "fmin":
                     self[pname][res.pwr][res.itemp] = res.fmin
-                elif pname == 'chisq':
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]['result'].chisqr
-                elif pname == 'redchi':
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]['result'].redchi
-                elif pname == 'feval':
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]['result'].nfev
-                elif pname == 'listIndex':
-                    #This is useful for figuring out where in the resList the data you care about is
+                elif pname == "chisq":
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]["result"].chisqr
+                elif pname == "redchi":
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]["result"].redchi
+                elif pname == "feval":
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]["result"].nfev
+                elif pname == "listIndex":
+                    # This is useful for figuring out where in the resList the data you care about is
                     self[pname][res.pwr][res.itemp] = index
-                elif pname == 'q0':
-                    qi = res.lmfit_result[self.label]['result'].params['qi'].value
-                    qc = res.lmfit_result[self.label]['result'].params['qc'].value
-                    self[pname][res.pwr][res.itemp] = qi*qc/(qi+qc)
+                elif pname == "q0":
+                    qi = res.lmfit_result[self.label]["result"].params["qi"].value
+                    qc = res.lmfit_result[self.label]["result"].params["qc"].value
+                    self[pname][res.pwr][res.itemp] = qi * qc / (qi + qc)
 
-    def do_lmfit(self, fit_keys, models_list, params_list, model_kwargs=None, param_kwargs=None, **kwargs):
+    def do_lmfit(
+        self, fit_keys, models_list, params_list, model_kwargs=None, param_kwargs=None, **kwargs
+    ):
         r"""Run simulatneous fits on the temp/pwr data for several parameters.
         Results are stored in either the ``lmfit_results`` or
         ``lmfit_joint_results`` attribute depending on whether one or multiple
@@ -423,48 +450,47 @@ class ResonatorSweep(dict):
 
         """
 
-
-
-        #Set some limits
-        min_temp = kwargs.pop('min_temp', min(self.tvec))
-        max_temp = kwargs.pop('max_temp', max(self.tvec))
+        # Set some limits
+        min_temp = kwargs.pop("min_temp", min(self.tvec))
+        max_temp = kwargs.pop("max_temp", max(self.tvec))
         t_filter = (self.tvec >= min_temp) * (self.tvec <= max_temp)
 
-        min_pwr = kwargs.pop('min_pwr', min(self.pvec))
-        max_pwr = kwargs.pop('max_pwr', max(self.pvec))
+        min_pwr = kwargs.pop("min_pwr", min(self.pvec))
+        max_pwr = kwargs.pop("max_pwr", max(self.pvec))
         p_filter = (self.pvec >= min_pwr) * (self.pvec <= max_pwr)
 
-        #Process the final kwarg:
-        raw_data = kwargs.pop('raw_data', 'lmfit')
-        assert raw_data in ['lmfit', 'emcee', 'mle'], "raw_data must be 'lmfit' or 'emcee'."
+        # Process the final kwarg:
+        raw_data = kwargs.pop("raw_data", "lmfit")
+        assert raw_data in ["lmfit", "emcee", "mle"], "raw_data must be 'lmfit' or 'emcee'."
 
+        assert (
+            len(fit_keys) == len(models_list) == len(params_list)
+        ), "Make sure argument lists match in number."
 
-
-        assert len(fit_keys) == len(models_list) == len(params_list), "Make sure argument lists match in number."
-
-        #Make some empty dictionaries just in case
+        # Make some empty dictionaries just in case
         if model_kwargs is None:
-            model_kwargs = [{}]*len(fit_keys)
+            model_kwargs = [{}] * len(fit_keys)
 
         if param_kwargs is None:
-            params_kwargs = [{}]*len(fit_keys)
+            params_kwargs = [{}] * len(fit_keys)
 
-
-        #Check to see if this should go in the joint_fits dict, and build a key if needed.
+        # Check to see if this should go in the joint_fits dict, and build a key if needed.
         if len(fit_keys) > 1:
-            joint_key = '+'.join(fit_keys)
+            joint_key = "+".join(fit_keys)
         else:
             joint_key = None
 
-        #Check if params looks like a lmfit.Parameters object.
-        #If not, assume is function and try to set params by calling it
+        # Check if params looks like a lmfit.Parameters object.
+        # If not, assume is function and try to set params by calling it
         for px, p in enumerate(params_list):
-            if not hasattr(p, 'valuesdict'):
-                assert params_kwargs[px] is not None, "If passing functions to params, must specfify params_kwargs."
+            if not hasattr(p, "valuesdict"):
+                assert (
+                    params_kwargs[px] is not None
+                ), "If passing functions to params, must specfify params_kwargs."
                 params_list[px] = p(**param_kwargs[px])
 
-        #Combine the different params objects into one large list
-        #Only the first of any duplicates will be transferred
+        # Combine the different params objects into one large list
+        # Only the first of any duplicates will be transferred
         merged_params = lf.Parameters()
         if len(params_list) > 1:
             for p in params_list:
@@ -474,35 +500,37 @@ class ResonatorSweep(dict):
         else:
             merged_params = params_list[0]
 
-        #Get all the possible temperature/power combos into two grids
+        # Get all the possible temperature/power combos into two grids
         ts, ps = np.meshgrid(self.tvec[t_filter], self.pvec[p_filter])
 
-        #Create grids to hold the fit data and the sigmas
+        # Create grids to hold the fit data and the sigmas
         fit_data_list = []
         fit_sigmas_list = []
 
-        #Get the data that corresponds to each temperature power combo and
-        #flatten it to match the ts/ps combinations
-        #Transposing is important because numpy matrices are transposed from
-        #Pandas DataFrames
+        # Get the data that corresponds to each temperature power combo and
+        # flatten it to match the ts/ps combinations
+        # Transposing is important because numpy matrices are transposed from
+        # Pandas DataFrames
         for key in fit_keys:
 
-            if raw_data == 'emcee':
-                key = key + '_mc'
-            elif raw_data == 'mle':
-                key = key + '_mle'
+            if raw_data == "emcee":
+                key = key + "_mc"
+            elif raw_data == "mle":
+                key = key + "_mle"
 
-            if raw_data in ['emcee', 'mle']:
-                err_bars = (self[key+'_sigma_plus_mc'].loc[t_filter, p_filter].values.T+
-                            self[key+'_sigma_minus_mc'].loc[t_filter, p_filter].values.T)
+            if raw_data in ["emcee", "mle"]:
+                err_bars = (
+                    self[key + "_sigma_plus_mc"].loc[t_filter, p_filter].values.T
+                    + self[key + "_sigma_minus_mc"].loc[t_filter, p_filter].values.T
+                )
             else:
-                err_bars = self[key+'_sigma'].loc[t_filter, p_filter].values.T
+                err_bars = self[key + "_sigma"].loc[t_filter, p_filter].values.T
 
             fit_data_list.append(self[key].loc[t_filter, p_filter].values.T)
             fit_sigmas_list.append(err_bars)
 
-        #Create a new model function that will be passed to the minimizer.
-        #Basically this runs each fit and passes all the residuals back out
+        # Create a new model function that will be passed to the minimizer.
+        # Basically this runs each fit and passes all the residuals back out
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
             residuals = []
             for ix in range(len(fit_keys)):
@@ -510,42 +538,51 @@ class ResonatorSweep(dict):
 
             return np.asarray(residuals).flatten()
 
+        # Create a lmfit minimizer object
+        minObj = lf.Minimizer(
+            model_func,
+            merged_params,
+            fcn_args=(models_list, ts, ps, fit_data_list, fit_sigmas_list, model_kwargs),
+        )
 
-        #Create a lmfit minimizer object
-        minObj = lf.Minimizer(model_func, merged_params, fcn_args=(models_list, ts, ps, fit_data_list, fit_sigmas_list, model_kwargs))
+        # Call the lmfit minimizer method and minimize the residual
+        lmfit_result = minObj.minimize(method="leastsq")
 
-        #Call the lmfit minimizer method and minimize the residual
-        lmfit_result = minObj.minimize(method = 'leastsq')
-
-        #Put the result in the appropriate dictionary
+        # Put the result in the appropriate dictionary
         if joint_key is not None:
             self.lmfit_joint_results[joint_key] = lmfit_result
         else:
             self.lmfit_results[fit_keys[0]] = lmfit_result
 
-        #Calculate the best-fit model from the params returned
-        #And put it into a pandas DF with the appropriate key.
-        #The appropriate key format is: 'lmfit_joint_'+joint_key+'_'+key
-        #or, for a single fit: 'lmfit_'+key
+        # Calculate the best-fit model from the params returned
+        # And put it into a pandas DF with the appropriate key.
+        # The appropriate key format is: 'lmfit_joint_'+joint_key+'_'+key
+        # or, for a single fit: 'lmfit_'+key
         for ix, key in enumerate(fit_keys):
-            #Call the fit model without data to have it return the model
+            # Call the fit model without data to have it return the model
             returned_model = models_list[ix](lmfit_result.params, ts, ps)
 
-            #Build the appropriate key
+            # Build the appropriate key
             if joint_key is not None:
-                new_key = 'lmfit_joint_'+joint_key+'_'+key
+                new_key = "lmfit_joint_" + joint_key + "_" + key
             else:
-                new_key = 'lmfit_'+key
+                new_key = "lmfit_" + key
 
-            #Make a new dict entry to the self dictioary with the right key.
-            #Have to transpose the matrix to turn it back into a DF
+            # Make a new dict entry to the self dictioary with the right key.
+            # Have to transpose the matrix to turn it back into a DF
             self[new_key] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
             self[new_key].loc[self.tvec[t_filter], self.pvec[p_filter]] = returned_model.T
 
-
-
-
-    def do_emcee(self, fit_keys, models_list, params_list=None, model_kwargs=None, param_kwargs=None, emcee_kwargs=None, **kwargs):
+    def do_emcee(
+        self,
+        fit_keys,
+        models_list,
+        params_list=None,
+        model_kwargs=None,
+        param_kwargs=None,
+        emcee_kwargs=None,
+        **kwargs
+    ):
         r"""Run simulatneous MCMC sampling on the temp/pwr data for several
         parameters. Results are stored in either the ``emcee_results`` or
         ``emcee_joint_results`` attribute depending on whether one or multiple
@@ -634,62 +671,60 @@ class ResonatorSweep(dict):
 
         """
 
-        #Figure out which data to fit
-        raw_data = kwargs.pop('raw_data', 'lmfit')
-        assert raw_data in ['lmfit', 'emcee', 'mle'], "raw_data must be 'lmfit' or 'emcee'."
+        # Figure out which data to fit
+        raw_data = kwargs.pop("raw_data", "lmfit")
+        assert raw_data in ["lmfit", "emcee", "mle"], "raw_data must be 'lmfit' or 'emcee'."
 
-
-
-        #Set some limits
-        min_temp = kwargs.pop('min_temp', min(self.tvec))
-        max_temp = kwargs.pop('max_temp', max(self.tvec))
+        # Set some limits
+        min_temp = kwargs.pop("min_temp", min(self.tvec))
+        max_temp = kwargs.pop("max_temp", max(self.tvec))
         t_filter = (self.tvec >= min_temp) * (self.tvec <= max_temp)
 
-        min_pwr = kwargs.pop('min_pwr', min(self.pvec))
-        max_pwr = kwargs.pop('max_pwr', max(self.pvec))
+        min_pwr = kwargs.pop("min_pwr", min(self.pvec))
+        max_pwr = kwargs.pop("max_pwr", max(self.pvec))
         p_filter = (self.pvec >= min_pwr) * (self.pvec <= max_pwr)
 
-
-
         if params_list is not None:
-            assert len(fit_keys) == len(models_list) == len(params_list), "Make sure argument lists match in number."
+            assert (
+                len(fit_keys) == len(models_list) == len(params_list)
+            ), "Make sure argument lists match in number."
         else:
             assert len(fit_keys) == len(models_list), "Make sure argument lists match in number."
 
-        #Make some empty dictionaries just in case so we don't break functions
-        #by passing None as a kwargs
+        # Make some empty dictionaries just in case so we don't break functions
+        # by passing None as a kwargs
         if model_kwargs is None:
-            model_kwargs = [{}]*len(fit_keys)
+            model_kwargs = [{}] * len(fit_keys)
 
         if param_kwargs is None:
-            params_kwargs = [{}]*len(fit_keys)
+            params_kwargs = [{}] * len(fit_keys)
 
         if emcee_kwargs is None:
             emcee_kwargs = {}
 
-
-        #Check to see if this should go in the joint_fits dict, and build a key if needed.
+        # Check to see if this should go in the joint_fits dict, and build a key if needed.
         if len(fit_keys) > 1:
-            joint_key = '+'.join(fit_keys)
+            joint_key = "+".join(fit_keys)
         else:
             joint_key = None
 
-
-        #If possible (and desired) then we should use the existing best fit as a starting point
-        #For the MCMC sampling. If not, build params from whatever is passed in.
-        use_lmfit_params = kwargs.pop('use_lmfit_params', True)
+        # If possible (and desired) then we should use the existing best fit as a starting point
+        # For the MCMC sampling. If not, build params from whatever is passed in.
+        use_lmfit_params = kwargs.pop("use_lmfit_params", True)
 
         if (params_list is not None) and (use_lmfit_params == False):
 
-            #Check if params looks like a lmfit.Parameters object.
-            #If not, assume is function and try to set params by calling it
+            # Check if params looks like a lmfit.Parameters object.
+            # If not, assume is function and try to set params by calling it
             for px, p in enumerate(params_list):
-                if not hasattr(p, 'valuesdict'):
-                    assert params_kwargs[px] is not None, "If passing functions to params, must specfify params_kwargs."
+                if not hasattr(p, "valuesdict"):
+                    assert (
+                        params_kwargs[px] is not None
+                    ), "If passing functions to params, must specfify params_kwargs."
                     params_list[px] = p(**param_kwargs[px])
 
-            #Combine the different params objects into one large list
-            #Only the first of any duplicates will be transferred
+            # Combine the different params objects into one large list
+            # Only the first of any duplicates will be transferred
             merged_params = lf.Parameters()
             if len(params_list) > 1:
                 for p in params_list:
@@ -701,42 +736,47 @@ class ResonatorSweep(dict):
 
         else:
             if joint_key is not None:
-                assert joint_key in self.lmfit_joint_results.keys(), "Can't use lmfit params. They don't exist."
+                assert (
+                    joint_key in self.lmfit_joint_results.keys()
+                ), "Can't use lmfit params. They don't exist."
                 merged_params = self.lmfit_joint_results[joint_key].params
             else:
-                assert fit_keys[0] in self.lmfit_results.keys(), "Can't use lmfit params. They don't exist."
+                assert (
+                    fit_keys[0] in self.lmfit_results.keys()
+                ), "Can't use lmfit params. They don't exist."
                 merged_params = self.lmfit_results[fit_keys[0]].params
 
-
-        #Get all the possible temperature/power combos into two grids
+        # Get all the possible temperature/power combos into two grids
         ts, ps = np.meshgrid(self.tvec[t_filter], self.pvec[p_filter])
 
-        #Create grids to hold the fit data and the sigmas
+        # Create grids to hold the fit data and the sigmas
         fit_data_list = []
         fit_sigmas_list = []
 
-        #Get the data that corresponds to each temperature power combo and
-        #flatten it to match the ts/ps combinations
-        #Transposing is important because numpy matrices are transposed from
-        #Pandas DataFrames
+        # Get the data that corresponds to each temperature power combo and
+        # flatten it to match the ts/ps combinations
+        # Transposing is important because numpy matrices are transposed from
+        # Pandas DataFrames
         for key in fit_keys:
 
-            if raw_data == 'emcee':
-                key = key + '_mc'
-            elif raw_data == 'mle':
-                key = key + '_mle'
+            if raw_data == "emcee":
+                key = key + "_mc"
+            elif raw_data == "mle":
+                key = key + "_mle"
 
-            if raw_data in ['emcee', 'mle']:
-                err_bars = (self[key+'_sigma_plus_mc'].loc[t_filter, p_filter].values.T+
-                            self[key+'_sigma_minus_mc'].loc[t_filter, p_filter].values.T)
+            if raw_data in ["emcee", "mle"]:
+                err_bars = (
+                    self[key + "_sigma_plus_mc"].loc[t_filter, p_filter].values.T
+                    + self[key + "_sigma_minus_mc"].loc[t_filter, p_filter].values.T
+                )
             else:
-                err_bars = self[key+'_sigma'].loc[t_filter, p_filter].values.T
+                err_bars = self[key + "_sigma"].loc[t_filter, p_filter].values.T
 
             fit_data_list.append(self[key].loc[t_filter, p_filter].values.T)
             fit_sigmas_list.append(err_bars)
 
-        #Create a new model function that will be passed to the minimizer.
-        #Basically this runs each fit and passes all the residuals back out
+        # Create a new model function that will be passed to the minimizer.
+        # Basically this runs each fit and passes all the residuals back out
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
             residuals = []
             for ix in range(len(fit_keys)):
@@ -744,40 +784,43 @@ class ResonatorSweep(dict):
 
             return np.asarray(residuals).flatten()
 
+        # Create a lmfit minimizer object
+        minObj = lf.Minimizer(
+            model_func,
+            merged_params,
+            fcn_args=(models_list, ts, ps, fit_data_list, fit_sigmas_list, model_kwargs),
+        )
 
-        #Create a lmfit minimizer object
-        minObj = lf.Minimizer(model_func, merged_params, fcn_args=(models_list, ts, ps, fit_data_list, fit_sigmas_list, model_kwargs))
-
-        #Call the lmfit minimizer method and minimize the residual
+        # Call the lmfit minimizer method and minimize the residual
         emcee_result = minObj.emcee(**emcee_kwargs)
 
-        #Put the result in the appropriate dictionary
+        # Put the result in the appropriate dictionary
         if joint_key is not None:
             self.emcee_joint_results[joint_key] = emcee_result
         else:
             self.emcee_results[fit_keys[0]] = emcee_result
 
-        #Calculate the best-fit model from the params returned
-        #And put it into a pandas DF with the appropriate key.
-        #The appropriate key format is: 'lmfit_joint_'+joint_key+'_'+key
-        #or, for a single fit: 'lmfit_'+key
+        # Calculate the best-fit model from the params returned
+        # And put it into a pandas DF with the appropriate key.
+        # The appropriate key format is: 'lmfit_joint_'+joint_key+'_'+key
+        # or, for a single fit: 'lmfit_'+key
         for ix, key in enumerate(fit_keys):
-            #Call the fit model without data to have it return the model
+            # Call the fit model without data to have it return the model
             returned_model = models_list[ix](emcee_result.params, ts, ps)
 
-            #Build the appropriate key
+            # Build the appropriate key
             if joint_key is not None:
-                new_key = 'emcee_joint_'+joint_key+'_'+key
+                new_key = "emcee_joint_" + joint_key + "_" + key
             else:
-                new_key = 'emcee_'+key
+                new_key = "emcee_" + key
 
-            #Make a new dict entry to the self dictioary with the right key.
-            #Have to transpose the matrix to turn it back into a DF
+            # Make a new dict entry to the self dictioary with the right key.
+            # Have to transpose the matrix to turn it back into a DF
             self[new_key] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
             self[new_key].loc[self.tvec[t_filter], self.pvec[p_filter]] = returned_model.T
 
     def info(self):
         """Print out some information on all the keys that are stored in the object."""
 
-        #For now, this just spits out all the keys. Could be more useful.
+        # For now, this just spits out all the keys. Could be more useful.
         print(sorted(self.keys()))

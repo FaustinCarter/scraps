@@ -1,3 +1,7 @@
+Version 1.0.0:
+* Dropping support for Python < 3.7
+* Refactor Resonator object to use properties for derived quantities
+
 Version 0.4.4:
 * Version bump. No other changes.
 

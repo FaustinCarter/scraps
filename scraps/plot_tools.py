@@ -1,15 +1,18 @@
 import warnings
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gs
+
 import matplotlib as mpl
+import matplotlib.gridspec as gs
+import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d
 import numpy as np
 import scipy.signal as sps
+
 from .resonator import indexResList
 
 Axes3D = mpl_toolkits.mplot3d.Axes3D
 
-def plotResListData(resList, plot_types=['IQ'], **kwargs):
+
+def plotResListData(resList, plot_types=["IQ"], **kwargs):
     r"""Plot resonator data and fits.
 
     Parameters
@@ -160,22 +163,38 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
         A ``matplotlib.pyplot`` figure object.
 
     """
-    #TODO: Add temperature and power masking that makes more sense, like the ability
-    #to set a temperature range, or maybe decimate the temperature data. Also
-    #need to add the ability to waterfall the mag and phase plots.
-    supported_types = ['IQ', 'rIQ', 'LogMag', 'LinMag', 'rMag',
-                        'Phase', 'rPhase', 'uPhase', 'ruPhase',
-                        'I', 'rI', 'Q', 'rQ']
-    assert all(plt_key in supported_types for plt_key in plot_types), "Unsupported plotType requested!"
+    # TODO: Add temperature and power masking that makes more sense, like the ability
+    # to set a temperature range, or maybe decimate the temperature data. Also
+    # need to add the ability to waterfall the mag and phase plots.
+    supported_types = [
+        "IQ",
+        "rIQ",
+        "LogMag",
+        "LinMag",
+        "rMag",
+        "Phase",
+        "rPhase",
+        "uPhase",
+        "ruPhase",
+        "I",
+        "rI",
+        "Q",
+        "rQ",
+    ]
+    assert all(
+        plt_key in supported_types for plt_key in plot_types
+    ), "Unsupported plotType requested!"
 
-    #Get a list of unique temps and powers
+    # Get a list of unique temps and powers
     powers = []
     temps = []
 
-    #Should we use itemps?
-    use_itemps = kwargs.pop('use_itemps', False)
+    # Should we use itemps?
+    use_itemps = kwargs.pop("use_itemps", False)
     if use_itemps:
-        assert all(hasattr(res, 'itemps') for res in resList), "Could not locate itemp for at least one resonator!"
+        assert all(
+            hasattr(res, "itemps") for res in resList
+        ), "Could not locate itemp for at least one resonator!"
 
     for res in resList:
         powers.append(res.pwr)
@@ -187,281 +206,368 @@ def plotResListData(resList, plot_types=['IQ'], **kwargs):
     powers = np.unique(powers)
     temps = np.unique(temps)
 
-    #Optionally override either list
-    powers = np.asarray(kwargs.pop('powers', powers))
-    temps = np.asarray(kwargs.pop('temps', temps))
+    # Optionally override either list
+    powers = np.asarray(kwargs.pop("powers", powers))
+    temps = np.asarray(kwargs.pop("temps", temps))
 
-    #Get min/max pwrs/temps
-    max_pwr = kwargs.pop('max_pwr', np.max(powers)+1)
-    min_pwr = kwargs.pop('min_pwr', np.min(powers)-1)
+    # Get min/max pwrs/temps
+    max_pwr = kwargs.pop("max_pwr", np.max(powers) + 1)
+    min_pwr = kwargs.pop("min_pwr", np.min(powers) - 1)
 
-    max_temp = kwargs.pop('max_temp', np.max(temps)+1)
-    min_temp = kwargs.pop('min_temp', 0.0)
+    max_temp = kwargs.pop("max_temp", np.max(temps) + 1)
+    min_temp = kwargs.pop("min_temp", 0.0)
 
-    #Enforce bounds
+    # Enforce bounds
     powers = powers[np.where(np.logical_and(powers < max_pwr, powers > min_pwr))]
     temps = temps[np.where(np.logical_and(temps < max_temp, temps > min_temp))]
 
-    #Get the slice
-    x_slice = kwargs.pop('x_slice', slice(None))
+    # Get the slice
+    x_slice = kwargs.pop("x_slice", slice(None))
 
-    #Should we plot best fits?
-    plot_fits = kwargs.pop('plot_fits', [False]*len(plot_types))
+    # Should we plot best fits?
+    plot_fits = kwargs.pop("plot_fits", [False] * len(plot_types))
     assert len(plot_fits) == len(plot_types), "Must specify a fit bool for each plot type."
     if any(plot_fits):
         assert all(res.hasFit for res in resList), "At least one resonator has not been fit yet."
 
-    #Set the units for the frequency axes
-    freq_units = kwargs.pop('freq_units', 'GHz')
-    assert freq_units in ['Hz', 'kHz', 'MHz', 'GHz', 'THz'], "Unsupported units request!"
+    # Set the units for the frequency axes
+    freq_units = kwargs.pop("freq_units", "GHz")
+    assert freq_units in ["Hz", "kHz", "MHz", "GHz", "THz"], "Unsupported units request!"
 
-    unitsDict = {'Hz':1,
-                'kHz':1e3,
-                'MHz':1e6,
-                'GHz':1e9,
-                'THz':1e12}
+    unitsDict = {"Hz": 1, "kHz": 1e3, "MHz": 1e6, "GHz": 1e9, "THz": 1e12}
 
-    #A spacing value to apply to magnitude vs. frequency plots.
-    waterfall = kwargs.pop('waterfall', 0)
+    # A spacing value to apply to magnitude vs. frequency plots.
+    waterfall = kwargs.pop("waterfall", 0)
 
-    #Remove linear phase variation? Buggy...
-    detrend_phase = kwargs.pop('detrend_phase', False)
+    # Remove linear phase variation? Buggy...
+    detrend_phase = kwargs.pop("detrend_phase", False)
 
-    #Set some plotting defaults
-    num_cols = kwargs.pop('num_cols', 1)
-    fig_size = kwargs.pop('fig_size', 3)
-    force_square = kwargs.pop('force_square', False)
-    show_colorbar = kwargs.pop('show_colorbar', True)
+    # Set some plotting defaults
+    num_cols = kwargs.pop("num_cols", 1)
+    fig_size = kwargs.pop("fig_size", 3)
+    force_square = kwargs.pop("force_square", False)
+    show_colorbar = kwargs.pop("show_colorbar", True)
 
+    # Should the temperatures or the powers iterate the colors?
+    color_by = kwargs.pop("color_by", "temps")
+    assert color_by in ["temps", "pwrs"], "color_by must be 'temps' or 'pwrs'."
 
-    #Should the temperatures or the powers iterate the colors?
-    color_by = kwargs.pop('color_by', 'temps')
-    assert color_by in ['temps', 'pwrs'], "color_by must be 'temps' or 'pwrs'."
+    # Set the colormap: Default to a nice red/blue thing
+    # TODO: Allow for custom colormaps (like from Seaborn, etc)
 
-    #Set the colormap: Default to a nice red/blue thing
-    #TODO: Allow for custom colormaps (like from Seaborn, etc)
-
-    color_map = kwargs.pop('color_map', 'coolwarm')
+    color_map = kwargs.pop("color_map", "coolwarm")
     assert color_map in plt.colormaps(), "Unknown colormap provided"
     color_gen = plt.get_cmap(color_map)
 
-    #Any extra kwargs for plotting
-    plot_kwargs = kwargs.pop('plot_kwargs', {})
-    fit_kwargs = kwargs.pop('fit_kwargs', {'color' : 'k',
-                                            'linestyle' : '--',
-                                            'linewidth' : 1.5})
+    # Any extra kwargs for plotting
+    plot_kwargs = kwargs.pop("plot_kwargs", {})
+    fit_kwargs = kwargs.pop("fit_kwargs", {"color": "k", "linestyle": "--", "linewidth": 1.5})
 
     if kwargs:
         raise NameError("Unknown keyword argument: " + kwargs.keys()[0])
 
-
-    #Set up the figure
+    # Set up the figure
     figS = plt.figure()
 
-    #Calculate rows for figure size
-    num_rows = int(np.ceil(1.0*len(plot_types)/num_cols))
+    # Calculate rows for figure size
+    num_rows = int(np.ceil(1.0 * len(plot_types) / num_cols))
 
-    #Set figure size, including some extra spacing for the colorbar
-    #0.1 is the extra space for the colorbar.
-    #*1.2 is the extra padding for the axis labels
-    #15:1 is the ratio of axis width for regular axes to colorbar axis
+    # Set figure size, including some extra spacing for the colorbar
+    # 0.1 is the extra space for the colorbar.
+    # *1.2 is the extra padding for the axis labels
+    # 15:1 is the ratio of axis width for regular axes to colorbar axis
     if show_colorbar:
-        figS.set_size_inches(fig_size*(num_cols+0.1)*1.2, fig_size*num_rows)
+        figS.set_size_inches(fig_size * (num_cols + 0.1) * 1.2, fig_size * num_rows)
 
-        #Initialize the grid for plotting
-        plt_grid = gs.GridSpec(num_rows, num_cols+1, width_ratios=[15]*num_cols+[1])
+        # Initialize the grid for plotting
+        plt_grid = gs.GridSpec(num_rows, num_cols + 1, width_ratios=[15] * num_cols + [1])
     else:
-        figS.set_size_inches(fig_size*(num_cols)*1.2, fig_size*num_rows)
+        figS.set_size_inches(fig_size * (num_cols) * 1.2, fig_size * num_rows)
 
-        #Initialize the grid for plotting
+        # Initialize the grid for plotting
         plt_grid = gs.GridSpec(num_rows, num_cols)
 
-    #Initialize a dictionary of axes corresponding to plot types
+    # Initialize a dictionary of axes corresponding to plot types
     axDict = {}
 
-    #Set up axes and make labels
+    # Set up axes and make labels
     for ix, key in enumerate(plot_types):
 
-        iRow = ix//num_cols
-        iCol = ix%num_cols
+        iRow = ix // num_cols
+        iCol = ix % num_cols
 
         ax = figS.add_subplot(plt_grid[iRow, iCol])
 
-        if key == 'IQ':
-            ax.set_xlabel('I (Volts)')
-            ax.set_ylabel('Q (Volts)')
+        if key == "IQ":
+            ax.set_xlabel("I (Volts)")
+            ax.set_ylabel("Q (Volts)")
 
-        if key == 'rIQ':
-            ax.set_xlabel('Residual of I / $\sigma_\mathrm{I}$')
-            ax.set_ylabel('Residual of Q / $\sigma_\mathrm{Q}$')
+        if key == "rIQ":
+            ax.set_xlabel("Residual of I / $\sigma_\mathrm{I}$")
+            ax.set_ylabel("Residual of Q / $\sigma_\mathrm{Q}$")
 
-        if key in ['LogMag', 'LinMag', 'rMag', 'Phase', 'rPhase', 'uPhase',
-                    'ruPhase', 'I', 'Q', 'rQ', 'rI']:
-            ax.set_xlabel('Frequency (' + freq_units + ')')
+        if key in [
+            "LogMag",
+            "LinMag",
+            "rMag",
+            "Phase",
+            "rPhase",
+            "uPhase",
+            "ruPhase",
+            "I",
+            "Q",
+            "rQ",
+            "rI",
+        ]:
+            ax.set_xlabel("Frequency (" + freq_units + ")")
 
-        if key == 'LinMag':
-            ax.set_ylabel('Magnitude (Volts)')
+        if key == "LinMag":
+            ax.set_ylabel("Magnitude (Volts)")
 
-        if key == 'LogMag':
-            ax.set_ylabel('Magnitude (dB)')
+        if key == "LogMag":
+            ax.set_ylabel("Magnitude (dB)")
 
-        if key == 'rMag':
-            ax.set_ylabel('Residual of Magnitude (Volts)')
+        if key == "rMag":
+            ax.set_ylabel("Residual of Magnitude (Volts)")
 
-        if key == 'Phase':
-            ax.set_ylabel('Phase (Radians)')
+        if key == "Phase":
+            ax.set_ylabel("Phase (Radians)")
 
-        if key == 'rPhase':
-            ax.set_ylabel('Residual of Phase (Radians)')
+        if key == "rPhase":
+            ax.set_ylabel("Residual of Phase (Radians)")
 
-        if key == 'uPhase':
-            ax.set_ylabel('Unwrapped Phase (Radians)')
+        if key == "uPhase":
+            ax.set_ylabel("Unwrapped Phase (Radians)")
 
-        if key == 'ruPhase':
-            ax.set_ylabel('Residual of unwrapped Phase (Radians)')
+        if key == "ruPhase":
+            ax.set_ylabel("Residual of unwrapped Phase (Radians)")
 
-        if key == 'I':
-            ax.set_ylabel('I (Volts)')
+        if key == "I":
+            ax.set_ylabel("I (Volts)")
 
-        if key == 'Q':
-            ax.set_ylabel('Q (Volts)')
+        if key == "Q":
+            ax.set_ylabel("Q (Volts)")
 
-        if key == 'rI':
-            ax.set_ylabel('Residual of I / $\sigma_\mathrm{I}$')
+        if key == "rI":
+            ax.set_ylabel("Residual of I / $\sigma_\mathrm{I}$")
 
-        if key == 'rQ':
-            ax.set_ylabel('Residual of Q / $\sigma_\mathrm{Q}$')
+        if key == "rQ":
+            ax.set_ylabel("Residual of Q / $\sigma_\mathrm{Q}$")
 
-        #Stuff the axis into the axis dictionary
+        # Stuff the axis into the axis dictionary
         axDict[key] = ax
 
-    #Plot the data
+    # Plot the data
     for pwr in powers:
-        #The waterfall index should be reset each iteration
+        # The waterfall index should be reset each iteration
         wix = 0
         for temp in temps:
-            #Grab the right resonator from the list
+            # Grab the right resonator from the list
             resIndex = indexResList(resList, temp, pwr, itemp=use_itemps)
 
-            #Color magic!
-            if color_by == 'temps':
+            # Color magic!
+            if color_by == "temps":
                 if len(temps) > 1:
-                    plt_color = color_gen(temp*1.0/max(temps))
+                    plt_color = color_gen(temp * 1.0 / max(temps))
                 else:
                     plt_color = color_gen(0)
-            elif color_by == 'pwrs':
+            elif color_by == "pwrs":
                 if len(powers) > 1:
-                    plt_color = color_gen(1-((max(powers)-pwr)*1.0/(max(powers)-min(powers))))
+                    plt_color = color_gen(
+                        1 - ((max(powers) - pwr) * 1.0 / (max(powers) - min(powers)))
+                    )
                 else:
                     plt_color = color_gen(0)
 
-            #Not every temp/pwr combo corresponds to a resonator. Ignore missing ones.
+            # Not every temp/pwr combo corresponds to a resonator. Ignore missing ones.
             if resIndex is not None:
                 res = resList[resIndex]
-                scaled_freq = res.freq/unitsDict[freq_units]
+                scaled_freq = res.freq / unitsDict[freq_units]
 
                 for key, ax in axDict.items():
                     pix = plot_types.index(key)
                     plot_fit = plot_fits[pix]
-                    if key == 'IQ':
+                    if key == "IQ":
                         ax.plot(res.I[x_slice], res.Q[x_slice], color=plt_color, **plot_kwargs)
                         if plot_fit:
                             ax.plot(res.resultI[x_slice], res.resultQ[x_slice], **fit_kwargs)
 
-                    if key == 'rIQ':
-                        ax.plot(res.residualI[x_slice], res.residualQ[x_slice], color=plt_color, **plot_kwargs)
+                    if key == "rIQ":
+                        ax.plot(
+                            res.residualI[x_slice],
+                            res.residualQ[x_slice],
+                            color=plt_color,
+                            **plot_kwargs
+                        )
 
-                    if key == 'LogMag':
-                        ax.plot(scaled_freq[x_slice], res.logmag[x_slice]+wix*waterfall, color=plt_color, **plot_kwargs)
+                    if key == "LogMag":
+                        ax.plot(
+                            scaled_freq[x_slice],
+                            res.logmag[x_slice] + wix * waterfall,
+                            color=plt_color,
+                            **plot_kwargs
+                        )
                         if plot_fit:
-                            ax.plot(scaled_freq[x_slice], 20*np.log10(res.resultMag[x_slice])+wix*waterfall, **fit_kwargs)
-                        #Step the waterfall plot
-                        wix+=1
+                            ax.plot(
+                                scaled_freq[x_slice],
+                                20 * np.log10(res.resultMag[x_slice]) + wix * waterfall,
+                                **fit_kwargs
+                            )
+                        # Step the waterfall plot
+                        wix += 1
 
-                    if key == 'LinMag':
-                        ax.plot(scaled_freq[x_slice], res.mag[x_slice], color=plt_color, **plot_kwargs)
+                    if key == "LinMag":
+                        ax.plot(
+                            scaled_freq[x_slice], res.mag[x_slice], color=plt_color, **plot_kwargs
+                        )
                         if plot_fit:
                             ax.plot(scaled_freq[x_slice], res.resultMag[x_slice], **fit_kwargs)
 
-                    if key == 'rMag':
-                        ax.plot(scaled_freq[x_slice], res.resultMag[x_slice]-res.mag[x_slice], color=plt_color, **plot_kwargs)
+                    if key == "rMag":
+                        ax.plot(
+                            scaled_freq[x_slice],
+                            res.resultMag[x_slice] - res.mag[x_slice],
+                            color=plt_color,
+                            **plot_kwargs
+                        )
 
-                    if key == 'Phase':
+                    if key == "Phase":
                         if detrend_phase:
-                            ax.plot(scaled_freq[x_slice], sps.detrend(res.phase[x_slice]), color=plt_color, **plot_kwargs)
+                            ax.plot(
+                                scaled_freq[x_slice],
+                                sps.detrend(res.phase[x_slice]),
+                                color=plt_color,
+                                **plot_kwargs
+                            )
                             if plot_fit:
-                                ax.plot(scaled_freq[x_slice], sps.detrend(res.resultPhase[x_slice]), **fit_kwargs)
+                                ax.plot(
+                                    scaled_freq[x_slice],
+                                    sps.detrend(res.resultPhase[x_slice]),
+                                    **fit_kwargs
+                                )
                         else:
-                            ax.plot(scaled_freq[x_slice], res.phase[x_slice], color=plt_color, **plot_kwargs)
+                            ax.plot(
+                                scaled_freq[x_slice],
+                                res.phase[x_slice],
+                                color=plt_color,
+                                **plot_kwargs
+                            )
                             if plot_fit:
-                                ax.plot(scaled_freq[x_slice], res.resultPhase[x_slice], **fit_kwargs)
+                                ax.plot(
+                                    scaled_freq[x_slice], res.resultPhase[x_slice], **fit_kwargs
+                                )
 
-                    if key == 'rPhase':
-                        ax.plot(scaled_freq[x_slice], res.resultPhase[x_slice]-res.phase[x_slice], color=plt_color, **plot_kwargs)
+                    if key == "rPhase":
+                        ax.plot(
+                            scaled_freq[x_slice],
+                            res.resultPhase[x_slice] - res.phase[x_slice],
+                            color=plt_color,
+                            **plot_kwargs
+                        )
 
-                    if key == 'uPhase':
+                    if key == "uPhase":
                         if detrend_phase:
-                            ax.plot(scaled_freq[x_slice], sps.detrend(res.uphase[x_slice]), color=plt_color, **plot_kwargs)
+                            ax.plot(
+                                scaled_freq[x_slice],
+                                sps.detrend(res.uphase[x_slice]),
+                                color=plt_color,
+                                **plot_kwargs
+                            )
                             if plot_fit:
-                                ax.plot(scaled_freq[x_slice], sps.detrend(np.unwrap(res.resultPhase[x_slice])), **fit_kwargs)
+                                ax.plot(
+                                    scaled_freq[x_slice],
+                                    sps.detrend(np.unwrap(res.resultPhase[x_slice])),
+                                    **fit_kwargs
+                                )
                         else:
-                            ax.plot(scaled_freq[x_slice], res.uphase[x_slice], color=plt_color, **plot_kwargs)
+                            ax.plot(
+                                scaled_freq[x_slice],
+                                res.uphase[x_slice],
+                                color=plt_color,
+                                **plot_kwargs
+                            )
                             if plot_fit:
-                                ax.plot(scaled_freq[x_slice], np.unwrap(res.resultPhase[x_slice]), **fit_kwargs)
+                                ax.plot(
+                                    scaled_freq[x_slice],
+                                    np.unwrap(res.resultPhase[x_slice]),
+                                    **fit_kwargs
+                                )
 
-                    if key == 'ruPhase':
-                        ax.plot(scaled_freq[x_slice], np.unwrap(res.resultPhase[x_slice])-res.uphase[x_slice], color=plt_color, **plot_kwargs)
+                    if key == "ruPhase":
+                        ax.plot(
+                            scaled_freq[x_slice],
+                            np.unwrap(res.resultPhase[x_slice]) - res.uphase[x_slice],
+                            color=plt_color,
+                            **plot_kwargs
+                        )
 
-                    if key == 'I':
-                        ax.plot(scaled_freq[x_slice], res.I[x_slice], color=plt_color, **plot_kwargs)
+                    if key == "I":
+                        ax.plot(
+                            scaled_freq[x_slice], res.I[x_slice], color=plt_color, **plot_kwargs
+                        )
                         if plot_fit:
                             ax.plot(scaled_freq[x_slice], res.resultI[x_slice], **fit_kwargs)
 
-                    if key == 'rI':
-                        ax.plot(scaled_freq[x_slice], res.residualI[x_slice], color=plt_color, **plot_kwargs)
+                    if key == "rI":
+                        ax.plot(
+                            scaled_freq[x_slice],
+                            res.residualI[x_slice],
+                            color=plt_color,
+                            **plot_kwargs
+                        )
 
-                    if key == 'Q':
-                        ax.plot(scaled_freq[x_slice], res.Q[x_slice], color=plt_color, **plot_kwargs)
+                    if key == "Q":
+                        ax.plot(
+                            scaled_freq[x_slice], res.Q[x_slice], color=plt_color, **plot_kwargs
+                        )
                         if plot_fit:
                             ax.plot(scaled_freq[x_slice], res.resultQ[x_slice], **fit_kwargs)
 
-                    if key == 'rQ':
-                        ax.plot(scaled_freq[x_slice], res.residualQ[x_slice], color=plt_color, **plot_kwargs)
+                    if key == "rQ":
+                        ax.plot(
+                            scaled_freq[x_slice],
+                            res.residualQ[x_slice],
+                            color=plt_color,
+                            **plot_kwargs
+                        )
 
                     plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
 
                     if force_square:
-                        #Make the plot a square
+                        # Make the plot a square
                         x1, x2 = ax.get_xlim()
                         y1, y2 = ax.get_ylim()
 
-                        #Explicitly passing a float to avoid a warning in matplotlib
-                        #when it gets a numpy.float64
-                        ax.set_aspect(float((x2-x1)/(y2-y1)))
+                        # Explicitly passing a float to avoid a warning in matplotlib
+                        # when it gets a numpy.float64
+                        ax.set_aspect(float((x2 - x1) / (y2 - y1)))
 
-    #Add the colorbar
+    # Add the colorbar
     if show_colorbar:
-        #Set limits for the min and max colors
-        if color_by == 'temps':
-            cbar_norm= mpl.colors.Normalize(vmin=0, vmax=max(temps))
-            cbar_units = 'Kelvin'
-        elif color_by == 'pwrs':
+        # Set limits for the min and max colors
+        if color_by == "temps":
+            cbar_norm = mpl.colors.Normalize(vmin=0, vmax=max(temps))
+            cbar_units = "Kelvin"
+        elif color_by == "pwrs":
             cbar_norm = mpl.colors.Normalize(vmin=min(powers), vmax=max(powers))
-            cbar_units = 'dB'
+            cbar_units = "dB"
 
-        #Make an axis that spans all rows for the colorbar
+        # Make an axis that spans all rows for the colorbar
         cax = figS.add_subplot(plt_grid[:, num_cols])
 
-        #Plot and label the colorbar
+        # Plot and label the colorbar
         cbar_plot = mpl.colorbar.ColorbarBase(cax, cmap=color_gen, norm=cbar_norm)
         cbar_plot.set_label(cbar_units)
 
-    #Clean up the subfigs and make sure nothing overlaps
+    # Clean up the subfigs and make sure nothing overlaps
     figS.tight_layout()
 
     return figS
 
-def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='temperature', **kwargs):
+
+def plotResSweepParamsVsX(
+    resSweep, plot_keys=None, ignore_keys=None, xvals="temperature", **kwargs
+):
     r"""Plot parameter data vs temperature from a ResonatorSweep object.
 
     Parameters
@@ -560,29 +666,29 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
 
     for rS in resSweep:
 
-        #This will really only work for sure if block is sucessful
-        assert rS.smartindex == 'block', "index must be 'block' for plotting to work."
-        #TODO: fix for other smartindex types
+        # This will really only work for sure if block is sucessful
+        assert rS.smartindex == "block", "index must be 'block' for plotting to work."
+        # TODO: fix for other smartindex types
 
-    #set defaults
-    plot_labels = kwargs.pop('plot_labels', None)
+    # set defaults
+    plot_labels = kwargs.pop("plot_labels", None)
 
-    unit_multipliers = kwargs.pop('unit_multipliers', None)
+    unit_multipliers = kwargs.pop("unit_multipliers", None)
 
-    #Which fit data should be plot? lmfit or emcee?
-    fitter = kwargs.pop('fitter', 'lmfit')
+    # Which fit data should be plot? lmfit or emcee?
+    fitter = kwargs.pop("fitter", "lmfit")
 
-    #Number of columns
-    num_cols = int(kwargs.pop('num_cols', 4))
+    # Number of columns
+    num_cols = int(kwargs.pop("num_cols", 4))
 
-    #Powers to plot
-    powers = list(kwargs.pop('powers', []))
+    # Powers to plot
+    powers = list(kwargs.pop("powers", []))
 
-    #Temperatures to plot
-    temps = list(kwargs.pop('temps', []))
+    # Temperatures to plot
+    temps = list(kwargs.pop("temps", []))
 
-    if xvals == 'temperature':
-        #Just use all the powers that exist period!
+    if xvals == "temperature":
+        # Just use all the powers that exist period!
         if len(powers) == 0:
             for rS in resSweep:
                 powers.extend(rS.pvec)
@@ -591,139 +697,148 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
             for rS in resSweep:
                 assert any(p in rS.pvec for p in powers), "No data exists at any requested power."
 
-    if xvals == 'power':
-        #Just use all the temperatures that exist period!
+    if xvals == "power":
+        # Just use all the temperatures that exist period!
         if len(temps) == 0:
             for rS in resSweep:
                 temps.extend(rS.tvec)
             temps = list(set(temps))
         else:
             for rS in resSweep:
-                assert any(t in rS.tvec for t in temps), "No data exists at any requested temperature."
+                assert any(
+                    t in rS.tvec for t in temps
+                ), "No data exists at any requested temperature."
 
-    #Set up the x-axis mask
-    xmax = kwargs.pop('xmax', None)
-    xmin = kwargs.pop('xmin', None)
+    # Set up the x-axis mask
+    xmax = kwargs.pop("xmax", None)
+    xmin = kwargs.pop("xmin", None)
 
     if xmin is None:
-        if xvals == 'temperature':
+        if xvals == "temperature":
             xmin = 0
-        elif xvals == 'power':
+        elif xvals == "power":
             xmin = -np.inf
 
-    #Just use the biggest temperature in any set if max isn't passed
+    # Just use the biggest temperature in any set if max isn't passed
     if xmax is None:
         xmax = np.inf
 
     xMask = []
     for rS in resSweep:
-        if xvals == 'temperature':
+        if xvals == "temperature":
             xvec = rS.tvec
-        elif xvals == 'power':
+        elif xvals == "power":
             xvec = rS.pvec
         xMask.append((xvec >= xmin) * (xvec <= xmax))
 
-    color_by = kwargs.pop('color_by', None)
+    color_by = kwargs.pop("color_by", None)
 
     if color_by is None:
-        if xvals == 'temperature':
-            color_by = 'power'
-        elif xvals == 'power':
-            color_by = 'temperature'
+        if xvals == "temperature":
+            color_by = "power"
+        elif xvals == "power":
+            color_by = "temperature"
 
-    #Very early errobar code. Still in beta.
-    errorbars = kwargs.pop('errorbars', None)
-    assert errorbars in [None, 'lmfit', 'emcee'], "Invalid option for errorbars. Try None, 'lmfit', or 'emcee'."
+    # Very early errobar code. Still in beta.
+    errorbars = kwargs.pop("errorbars", None)
+    assert errorbars in [
+        None,
+        "lmfit",
+        "emcee",
+    ], "Invalid option for errorbars. Try None, 'lmfit', or 'emcee'."
 
-    #Figure out which parameters to plot
+    # Figure out which parameters to plot
     if ignore_keys is None:
-        ignore_keys = ['listIndex',
-                        'temps']
+        ignore_keys = ["listIndex", "temps"]
     else:
         assert plot_keys is None, "Either pass plot_keys or ignore_keys, not both."
         for rS in resSweep:
             assert all(key in rS.keys() for key in ignore_keys), "Unknown key in ignore_keys"
-        ignore_keys.append('listIndex')
-        ignore_keys.append('temps')
+        ignore_keys.append("listIndex")
+        ignore_keys.append("temps")
 
     if plot_keys is None:
         plot_keys = []
 
         for rS in resSweep:
             plot_keys.extend(set(rS.keys()))
-            plot_keys = set(set(plot_keys)-set(ignore_keys))
+            plot_keys = set(set(plot_keys) - set(ignore_keys))
     else:
         for rS in resSweep:
-            assert any(key in rS.keys() for key in plot_keys), "No data corresponding to any plot_key"
+            assert any(
+                key in rS.keys() for key in plot_keys
+            ), "No data corresponding to any plot_key"
 
-    #Some general defaults
-    fig_size = kwargs.pop('fig_size', 3)
+    # Some general defaults
+    fig_size = kwargs.pop("fig_size", 3)
 
-    force_square = kwargs.pop('force_square', False)
+    force_square = kwargs.pop("force_square", False)
 
-    #Set the colormap: Default to viridis
-    color_map = kwargs.pop('color_map', None)
+    # Set the colormap: Default to viridis
+    color_map = kwargs.pop("color_map", None)
     if color_map is None:
-        if color_by == 'index':
-            color_map = 'tab10'
-        elif xvals == 'temperature':
-            color_map = 'viridis'
-        elif xvals == 'power':
-            color_map = 'coolwarm'
+        if color_by == "index":
+            color_map = "tab10"
+        elif xvals == "temperature":
+            color_map = "viridis"
+        elif xvals == "power":
+            color_map = "coolwarm"
 
     assert color_map in plt.colormaps(), "Unknown colormap provided"
     color_gen = plt.get_cmap(color_map)
 
-    #Set whether to show the colorbar
-    show_colorbar = kwargs.pop('show_colorbar', True)
+    # Set whether to show the colorbar
+    show_colorbar = kwargs.pop("show_colorbar", True)
 
-    #Defaults for this are set later
-    plot_kwargs = kwargs.pop('plot_kwargs', [{}]*len(resSweep))
+    # Defaults for this are set later
+    plot_kwargs = kwargs.pop("plot_kwargs", [{}] * len(resSweep))
 
     if type(plot_kwargs) == dict:
-        plot_kwargs = [plot_kwargs]*len(resSweep)
+        plot_kwargs = [plot_kwargs] * len(resSweep)
 
-    assert type(plot_kwargs) == list, "Must pass list of plot_kwargs of same length as list of resSweeps"
+    assert (
+        type(plot_kwargs) == list
+    ), "Must pass list of plot_kwargs of same length as list of resSweeps"
 
-    #Unknown kwargs are discouraged
+    # Unknown kwargs are discouraged
     if kwargs:
         raise NameError("Unknown keyword argument: " + list(kwargs.keys())[0])
 
-    #Set up the figure
+    # Set up the figure
     figS = plt.figure()
 
     num_keys = len(plot_keys)
 
-    #Don't need more columns than plots
+    # Don't need more columns than plots
     if num_keys < num_cols:
         num_cols = num_keys
 
-    #Calculate rows for figure size
-    num_rows = int(np.ceil(num_keys/num_cols))
+    # Calculate rows for figure size
+    num_rows = int(np.ceil(num_keys / num_cols))
 
-    #Calculate rows for figure size
-    num_rows = int(np.ceil(1.0*num_keys/num_cols))
+    # Calculate rows for figure size
+    num_rows = int(np.ceil(1.0 * num_keys / num_cols))
 
-    #Set figure size, including some extra spacing for the colorbar
-    #0.1 is the extra space for the colorbar.
-    #*1.2 is the extra padding for the axis labels
-    #15:1 is the ratio of axis width for regular axes to colorbar axis
+    # Set figure size, including some extra spacing for the colorbar
+    # 0.1 is the extra space for the colorbar.
+    # *1.2 is the extra padding for the axis labels
+    # 15:1 is the ratio of axis width for regular axes to colorbar axis
     if show_colorbar:
-        figS.set_size_inches(fig_size*(num_cols+0.1)*1.2, fig_size*num_rows)
+        figS.set_size_inches(fig_size * (num_cols + 0.1) * 1.2, fig_size * num_rows)
 
-        #Initialize the grid for plotting
-        plt_grid = gs.GridSpec(num_rows, num_cols+1, width_ratios=[15]*num_cols+[1])
+        # Initialize the grid for plotting
+        plt_grid = gs.GridSpec(num_rows, num_cols + 1, width_ratios=[15] * num_cols + [1])
     else:
-        figS.set_size_inches(fig_size*(num_cols)*1.2, fig_size*num_rows)
+        figS.set_size_inches(fig_size * (num_cols) * 1.2, fig_size * num_rows)
 
-        #Initialize the grid for plotting
+        # Initialize the grid for plotting
         plt_grid = gs.GridSpec(num_rows, num_cols)
 
-    #Loop through all the keys in the ResonatorSweep object and plot them
+    # Loop through all the keys in the ResonatorSweep object and plot them
     for ix, key in enumerate(plot_keys):
 
-        iRow = int(ix/num_cols)
-        iCol = ix%num_cols
+        iRow = int(ix / num_cols)
+        iCol = ix % num_cols
 
         axs = figS.add_subplot(plt_grid[iRow, iCol])
 
@@ -732,91 +847,107 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
         else:
             mult = 1
 
-        if xvals == 'power':
+        if xvals == "power":
             iterator = temps
-        elif xvals == 'temperature':
+        elif xvals == "temperature":
             iterator = powers
 
         for itr in iterator:
 
-            if (xvals == 'temperature') and (color_by != 'index'):
+            if (xvals == "temperature") and (color_by != "index"):
                 if len(powers) > 1:
-                    plt_color = color_gen(1-((max(powers)-itr)*1.0/(max(powers)-min(powers))))
+                    plt_color = color_gen(
+                        1 - ((max(powers) - itr) * 1.0 / (max(powers) - min(powers)))
+                    )
                 else:
                     plt_color = color_gen(0)
 
-            elif (xvals == 'power') and (color_by != 'index'):
+            elif (xvals == "power") and (color_by != "index"):
                 if len(temps) > 1:
-                    plt_color = color_gen(1-((max(temps)-itr)*1.0/(max(temps)-min(temps))))
+                    plt_color = color_gen(
+                        1 - ((max(temps) - itr) * 1.0 / (max(temps) - min(temps)))
+                    )
                 else:
                     plt_color = color_gen(0)
 
             for rix, rS in enumerate(resSweep):
 
-                if color_by == 'index':
+                if color_by == "index":
                     plt_color = color_gen(rix)
 
-                if xvals == 'temperature':
+                if xvals == "temperature":
                     if itr in rS.pvec:
                         x_data = rS.tvec[xMask[rix]]
-                        plt_data = mult*rS[key].loc[xMask[rix], itr].values
+                        plt_data = mult * rS[key].loc[xMask[rix], itr].values
                     else:
                         plt_data = None
 
-                elif xvals == 'power':
+                elif xvals == "power":
                     if itr in rS.tvec:
                         x_data = rS.pvec[xMask[rix]]
-                        plt_data = mult*rS[key].loc[itr, xMask[rix]].values
+                        plt_data = mult * rS[key].loc[itr, xMask[rix]].values
                     else:
                         plt_data = None
 
                 if plt_data is not None:
 
-                    if 'label' not in plot_kwargs[rix].keys():
-                        if color_by == 'index':
-                            plot_kwargs[rix]['label'] = 'Index: '+str(rix)
+                    if "label" not in plot_kwargs[rix].keys():
+                        if color_by == "index":
+                            plot_kwargs[rix]["label"] = "Index: " + str(rix)
                         else:
-                            plot_kwargs[rix]['label'] = xvals+ ": "+str(itr)
+                            plot_kwargs[rix]["label"] = xvals + ": " + str(itr)
 
-                    if 'linestyle' not in plot_kwargs[rix].keys():
+                    if "linestyle" not in plot_kwargs[rix].keys():
                         if errorbars is not None:
-                            plot_kwargs[rix]['marker'] = 'o'
+                            plot_kwargs[rix]["marker"] = "o"
                         else:
-                            plot_kwargs[rix]['linestyle'] = '--'
+                            plot_kwargs[rix]["linestyle"] = "--"
 
                     if errorbars is None:
-                        axs.plot(x_data ,plt_data, color=plt_color, **plot_kwargs[rix])
-                    elif errorbars == 'lmfit':
-                        #lmfit uncertainty was stored in the _sigma key, so just grab it back out
-                        if xvals == 'temperature':
-                            plt_err = mult*rS[key + '_sigma'].loc[xMask[rix], itr].values
-                        elif xvals == 'power':
-                            plt_err = mult*rS[key + '_sigma'].loc[itr, xMask[rix]].values
+                        axs.plot(x_data, plt_data, color=plt_color, **plot_kwargs[rix])
+                    elif errorbars == "lmfit":
+                        # lmfit uncertainty was stored in the _sigma key, so just grab it back out
+                        if xvals == "temperature":
+                            plt_err = mult * rS[key + "_sigma"].loc[xMask[rix], itr].values
+                        elif xvals == "power":
+                            plt_err = mult * rS[key + "_sigma"].loc[itr, xMask[rix]].values
 
-                        axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[rix])
-                    elif errorbars == 'emcee':
-                        #emcee uncertainty was placed in the _sigma_plus_mc and _sigma_minus_mc keys
-                        if xvals == 'temperature':
-                            plt_err_plus = mult*rS[key + '_sigma_plus_mc'].loc[xMask[rix], itr].values
-                            plt_err_minus = mult*rS[key + '_sigma_minus_mc'].loc[xMask[rix], itr].values
-                        elif xvals == 'power':
-                            plt_err_plus = mult*rS[key + '_sigma_plus_mc'].loc[itr, xMask[rix]].values
-                            plt_err_minus = mult*rS[key + '_sigma_minus_mc'].loc[itr, xMask[rix]].values
+                        axs.errorbar(
+                            x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[rix]
+                        )
+                    elif errorbars == "emcee":
+                        # emcee uncertainty was placed in the _sigma_plus_mc and _sigma_minus_mc keys
+                        if xvals == "temperature":
+                            plt_err_plus = (
+                                mult * rS[key + "_sigma_plus_mc"].loc[xMask[rix], itr].values
+                            )
+                            plt_err_minus = (
+                                mult * rS[key + "_sigma_minus_mc"].loc[xMask[rix], itr].values
+                            )
+                        elif xvals == "power":
+                            plt_err_plus = (
+                                mult * rS[key + "_sigma_plus_mc"].loc[itr, xMask[rix]].values
+                            )
+                            plt_err_minus = (
+                                mult * rS[key + "_sigma_minus_mc"].loc[itr, xMask[rix]].values
+                            )
 
                         plt_err = [plt_err_plus, plt_err_minus]
-                        axs.errorbar(x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[rix])
+                        axs.errorbar(
+                            x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[rix]
+                        )
 
-        if xvals == 'temperature':
-            axs.set_xlabel('Temperature (mK)')
-        elif xvals == 'power':
-            axs.set_xlabel('Power (dB)')
+        if xvals == "temperature":
+            axs.set_xlabel("Temperature (mK)")
+        elif xvals == "power":
+            axs.set_xlabel("Power (dB)")
 
         if plot_labels is not None:
             axs.set_ylabel(plot_labels[ix])
         else:
             axs.set_ylabel(key)
-            
-        #No idea why this is necessary, but it all falls apart without it
+
+        # No idea why this is necessary, but it all falls apart without it
         # axs.set_xlim(np.min(x_data), np.max(x_data))
         # xticks = axs.get_xticks()
         # axs.set_xticks(xticks)
@@ -827,39 +958,38 @@ def plotResSweepParamsVsX(resSweep, plot_keys=None, ignore_keys=None, xvals='tem
         plt.setp(axs.xaxis.get_majorticklabels(), rotation=45)
 
         if force_square:
-            #Make the plot a square
+            # Make the plot a square
             x1, x2 = axs.get_xlim()
             y1, y2 = axs.get_ylim()
 
-            #Explicitly passing a float to avoid an warning in matplotlib
-            #when it gets a numpy.float64
-            axs.set_aspect(float((x2-x1)/(y2-y1)))
+            # Explicitly passing a float to avoid an warning in matplotlib
+            # when it gets a numpy.float64
+            axs.set_aspect(float((x2 - x1) / (y2 - y1)))
 
-        #Stick some legends where they won't crowd too much
+        # Stick some legends where they won't crowd too much
         # if key == 'f0' or key == 'fmin':
         #     axs.legend(loc='best')
     if show_colorbar:
-        if color_by == 'index':
-            cbar_norm = mpl.colors.BoundaryNorm(range(len(resSweep)+1), len(resSweep))
-            cbar_units = 'index'
+        if color_by == "index":
+            cbar_norm = mpl.colors.BoundaryNorm(range(len(resSweep) + 1), len(resSweep))
+            cbar_units = "index"
         else:
             cbar_norm = mpl.colors.Normalize(vmin=min(iterator), vmax=max(iterator))
 
-            if xvals == 'temperature':
-                cbar_units = 'dB'
-            elif xvals == 'power':
-                cbar_units = 'mK'
+            if xvals == "temperature":
+                cbar_units = "dB"
+            elif xvals == "power":
+                cbar_units = "mK"
 
-        #Make an axis that spans all rows
+        # Make an axis that spans all rows
         cax = figS.add_subplot(plt_grid[:, num_cols])
 
-        #Plot and label
+        # Plot and label
         cbar_plot = mpl.colorbar.ColorbarBase(cax, cmap=color_gen, norm=cbar_norm)
         cbar_plot.set_label(cbar_units)
 
     figS.tight_layout()
     return figS
-
 
 
 def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwargs):
@@ -943,19 +1073,22 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
 
     """
 
-    warnings.warn("This function has been deprecated in favor of plotResSweepParamsVsX", DeprecationWarning)
+    warnings.warn(
+        "This function has been deprecated in favor of plotResSweepParamsVsX", DeprecationWarning
+    )
 
-    xmin = kwargs.pop('min_temp', None)
-    xmax = kwargs.pop('max_temp', None)
+    xmin = kwargs.pop("min_temp", None)
+    xmax = kwargs.pop("max_temp", None)
 
     if xmin is not None:
-        kwargs['xmin'] = xmin
+        kwargs["xmin"] = xmin
 
     if xmax is not None:
-        kwargs['xmax'] = xmax
+        kwargs["xmax"] = xmax
 
-    fig = plotResSweepParamsVsX(resSweep, plot_keys, ignore_keys, xvals='temperature', **kwargs)
+    fig = plotResSweepParamsVsX(resSweep, plot_keys, ignore_keys, xvals="temperature", **kwargs)
     return fig
+
 
 def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs):
     r"""Plot parameter data vs power from a ResonatorSweep object.
@@ -1038,20 +1171,21 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
 
     """
 
-    warnings.warn("This function has been deprecated in favor of plotResSweepParamsVsX", DeprecationWarning)
+    warnings.warn(
+        "This function has been deprecated in favor of plotResSweepParamsVsX", DeprecationWarning
+    )
 
-    xmin = kwargs.pop('min_power', None)
-    xmax = kwargs.pop('max_power', None)
+    xmin = kwargs.pop("min_power", None)
+    xmax = kwargs.pop("max_power", None)
 
     if xmin is not None:
-        kwargs['xmin'] = xmin
+        kwargs["xmin"] = xmin
 
     if xmax is not None:
-        kwargs['xmax'] = xmax
+        kwargs["xmax"] = xmax
 
-    fig = plotResSweepParamsVsX(resSweep, plot_keys, ignore_keys, xvals='power', **kwargs)
+    fig = plotResSweepParamsVsX(resSweep, plot_keys, ignore_keys, xvals="power", **kwargs)
     return fig
-
 
 
 def plotResSweep3D(resSweep, plot_keys, **kwargs):
@@ -1128,111 +1262,111 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
         figX.axes[0].zaxis.labelpad = 13
 
     """
-    #TODO: Fix the labels issues when tick labels are very long.
+    # TODO: Fix the labels issues when tick labels are very long.
 
-    #Some plotting niceties
-    plot_labels = kwargs.pop('plot_labels', None)
+    # Some plotting niceties
+    plot_labels = kwargs.pop("plot_labels", None)
     if plot_labels is not None:
         assert len(plot_labels) == len(plot_keys), "Number of labels must equal number of plots."
 
-    unit_multipliers = kwargs.pop('unit_multipliers', None)
+    unit_multipliers = kwargs.pop("unit_multipliers", None)
     if unit_multipliers is not None:
         assert len(unit_multipliers) == len(plot_keys), "One multiplier per plot required."
 
-    #Set some limits
-    min_temp = kwargs.pop('min_temp', min(resSweep.tvec))
-    max_temp = kwargs.pop('max_temp', max(resSweep.tvec))
+    # Set some limits
+    min_temp = kwargs.pop("min_temp", min(resSweep.tvec))
+    max_temp = kwargs.pop("max_temp", max(resSweep.tvec))
     t_filter = (resSweep.tvec >= min_temp) * (resSweep.tvec <= max_temp)
 
-    min_pwr = kwargs.pop('min_pwr', min(resSweep.pvec))
-    max_pwr = kwargs.pop('max_pwr', max(resSweep.pvec))
+    min_pwr = kwargs.pop("min_pwr", min(resSweep.pvec))
+    max_pwr = kwargs.pop("max_pwr", max(resSweep.pvec))
     p_filter = (resSweep.pvec >= min_pwr) * (resSweep.pvec <= max_pwr)
 
-    #Check for fits
+    # Check for fits
 
-    #plot_lmfits is deprecated and due to be removed
-    plot_lmfits = kwargs.pop('plot_lmfits', False)
+    # plot_lmfits is deprecated and due to be removed
+    plot_lmfits = kwargs.pop("plot_lmfits", False)
 
     if plot_lmfits:
         for key in plot_keys:
-            assert 'lmfit_'+key in resSweep.keys(), "No fit to plot for "+key+"."
+            assert "lmfit_" + key in resSweep.keys(), "No fit to plot for " + key + "."
 
-    #get list of fits to plot
-    plot_fits = kwargs.pop('plot_fits', None)
+    # get list of fits to plot
+    plot_fits = kwargs.pop("plot_fits", None)
 
-    #Check that all the requested plots exist
+    # Check that all the requested plots exist
     if plot_fits is not None:
         requested_fits = []
-        #Hacky way to turn a single string into a list
+        # Hacky way to turn a single string into a list
         if len(np.shape(plot_fits)) == 0:
             plot_fits = [plot_fits]
         for fit in plot_fits:
             for key in plot_keys:
-                requested_fits.append(fit + '_' + key)
+                requested_fits.append(fit + "_" + key)
 
-        assert all(fit in resSweep.keys() for fit in requested_fits), "No fit to plot for "+fit+"."
+        assert all(fit in resSweep.keys() for fit in requested_fits), (
+            "No fit to plot for " + fit + "."
+        )
 
-    #Get all the possible temperature/power combos in two lists
+    # Get all the possible temperature/power combos in two lists
     ts, ps = np.meshgrid(resSweep.tvec[t_filter], resSweep.pvec[p_filter])
 
-    #Set up the figure
+    # Set up the figure
     figS = plt.figure()
 
-    fig_size = kwargs.pop('fig_size', 3)
+    fig_size = kwargs.pop("fig_size", 3)
 
     assert all(key in resSweep.keys() for key in plot_keys), "Unknown key"
 
     num_keys = len(plot_keys)
-    num_cols = kwargs.pop('num_cols', 1)
+    num_cols = kwargs.pop("num_cols", 1)
 
-    #Don't need more columns than plots
+    # Don't need more columns than plots
     if num_keys < num_cols:
         num_cols = num_keys
 
-    #Calculate rows for figure size
-    num_rows = int(np.ceil(1.0*num_keys/num_cols))
+    # Calculate rows for figure size
+    num_rows = int(np.ceil(1.0 * num_keys / num_cols))
 
-    #Set figure size, including some extra spacing for the colorbar
-    figS.set_size_inches(fig_size*(num_cols)*1.5, fig_size*num_rows)
+    # Set figure size, including some extra spacing for the colorbar
+    figS.set_size_inches(fig_size * (num_cols) * 1.5, fig_size * num_rows)
 
-    #Initialize the grid for plotting
+    # Initialize the grid for plotting
     plt_grid = gs.GridSpec(num_rows, num_cols)
 
-    #Grab any kwargs for the plotting functions
-    plot_kwargs = kwargs.pop('plot_kwargs', {})
+    # Grab any kwargs for the plotting functions
+    plot_kwargs = kwargs.pop("plot_kwargs", {})
 
-    #Set some defaults that can be overwritten
-    if 'cstride' not in plot_kwargs.keys():
-        plot_kwargs['cstride'] = 1
+    # Set some defaults that can be overwritten
+    if "cstride" not in plot_kwargs.keys():
+        plot_kwargs["cstride"] = 1
 
-    if 'rstride' not in plot_kwargs.keys():
-        plot_kwargs['rstride'] = 1
+    if "rstride" not in plot_kwargs.keys():
+        plot_kwargs["rstride"] = 1
 
-    if 'cmap' not in plot_kwargs.keys():
-        plot_kwargs['cmap'] = 'viridis'
+    if "cmap" not in plot_kwargs.keys():
+        plot_kwargs["cmap"] = "viridis"
 
-    if 'alpha' not in plot_kwargs.keys():
-        plot_kwargs['alpha'] = 0.2
+    if "alpha" not in plot_kwargs.keys():
+        plot_kwargs["alpha"] = 0.2
 
-    #Grab any kwargs for the fits
-    fit_kwargs = kwargs.pop('fit_kwargs', {})
+    # Grab any kwargs for the fits
+    fit_kwargs = kwargs.pop("fit_kwargs", {})
 
-    #Set some defaults
-    if 'color' not in fit_kwargs.keys():
-        fit_kwargs['color'] = 'k'
+    # Set some defaults
+    if "color" not in fit_kwargs.keys():
+        fit_kwargs["color"] = "k"
 
-    if 'linestyle' not in fit_kwargs.keys():
-        fit_kwargs['linestyle'] ='--'
+    if "linestyle" not in fit_kwargs.keys():
+        fit_kwargs["linestyle"] = "--"
 
-
-
-    #Loop through all the keys in the ResonatorSweep object and plot them
+    # Loop through all the keys in the ResonatorSweep object and plot them
     for ix, key in enumerate(plot_keys):
 
-        iRow = int(ix/num_cols)
-        iCol = ix%num_cols
+        iRow = int(ix / num_cols)
+        iCol = ix % num_cols
 
-        axs = figS.add_subplot(plt_grid[iRow, iCol], projection='3d')
+        axs = figS.add_subplot(plt_grid[iRow, iCol], projection="3d")
 
         axs.ticklabel_format(useOffset=False)
 
@@ -1243,27 +1377,26 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
         else:
             mult = 1
 
-        axs.plot_surface(ts, ps, mult*plt_data, **plot_kwargs)
+        axs.plot_surface(ts, ps, mult * plt_data, **plot_kwargs)
 
         if plot_lmfits:
-            fit_data = resSweep['lmfit_'+key].loc[t_filter, p_filter].values.T
-            axs.plot_wireframe(ts, ps, mult*fit_data, **fit_kwargs)
+            fit_data = resSweep["lmfit_" + key].loc[t_filter, p_filter].values.T
+            axs.plot_wireframe(ts, ps, mult * fit_data, **fit_kwargs)
 
-        #Deprecated. Will be removed in next major version
+        # Deprecated. Will be removed in next major version
         if plot_fits is not None:
             for fit in plot_fits:
-                fit_data = resSweep[fit + '_' + key].loc[t_filter, p_filter].values.T
-                axs.plot_wireframe(ts, ps, mult*fit_data, **fit_kwargs)
+                fit_data = resSweep[fit + "_" + key].loc[t_filter, p_filter].values.T
+                axs.plot_wireframe(ts, ps, mult * fit_data, **fit_kwargs)
 
-        #TODO: Implement plot_fits here.
+        # TODO: Implement plot_fits here.
 
         if plot_labels is not None:
             axs.set_zlabel(plot_labels[ix])
         else:
             axs.set_zlabel(key)
-        axs.set_ylabel('Power (dB)')
-        axs.set_xlabel('Temperature (mK)')
-
+        axs.set_ylabel("Power (dB)")
+        axs.set_xlabel("Temperature (mK)")
 
     figS.tight_layout()
 

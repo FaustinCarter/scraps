@@ -1,49 +1,47 @@
-from .resonator import Resonator, makeResFromData
 import numpy as np
 from astropy.io import fits
 
-def load_fits(dataFile, resNum = 0):
+from .resonator import Resonator, makeResFromData
+
+
+def load_fits(dataFile, resNum=0):
     """Load in a single sweep from one of Pete's .fits files"""
-    
+
     data = fits.open(dataFile, memmap=False)
-    
+
     header = data[1].header
     table = data[1].data
-    
-    num_sweeps = header['VNATONES']
-    attenuation = header['INPUTATT'] + header['ATT_UC'] + header['ATT_C'] + header['ATT_RT']
-    vna_power = header['VNAPOWER']
-    power = vna_power - attenuation
-    
-    temp = header['SAMPLETE']
-    
-    num_pts = header['NAXIS2']//num_sweeps
-    
-    dataDict = {}
-    
-    start_ix = resNum*num_pts
-    end_ix = start_ix + num_pts - 1
-    
-    mask = slice(start_ix, end_ix)
-    
-    dataDict['freq'] = table['Freq'][mask]
-    dataDict['I'] = table['ReS21'][mask]
-    dataDict['Q'] = table['ImS21'][mask]
-    
-    dataDict['temp'] = temp
-    dataDict['pwr'] = power
-    dataDict['name'] = 'RES-' + str(resNum)
-    
-    data.close()
-    
-    return dataDict
-    
-    
-    
-    
-    
 
-def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
+    num_sweeps = header["VNATONES"]
+    attenuation = header["INPUTATT"] + header["ATT_UC"] + header["ATT_C"] + header["ATT_RT"]
+    vna_power = header["VNAPOWER"]
+    power = vna_power - attenuation
+
+    temp = header["SAMPLETE"]
+
+    num_pts = header["NAXIS2"] // num_sweeps
+
+    dataDict = {}
+
+    start_ix = resNum * num_pts
+    end_ix = start_ix + num_pts - 1
+
+    mask = slice(start_ix, end_ix)
+
+    dataDict["freq"] = table["Freq"][mask]
+    dataDict["I"] = table["ReS21"][mask]
+    dataDict["Q"] = table["ImS21"][mask]
+
+    dataDict["temp"] = temp
+    dataDict["pwr"] = power
+    dataDict["name"] = "RES-" + str(resNum)
+
+    data.close()
+
+    return dataDict
+
+
+def load_one_ESL(dataFile, sweepType="rough", resNum=0, **kwargs):
     """Load a single resonator file from ESL into a data dict for later processing.
 
     Return value:
@@ -61,62 +59,59 @@ def load_one_ESL(dataFile, sweepType='rough', resNum = 0, **kwargs):
         'units' -- 'mK' or 'K' depending on how you enter 'temp'
         'name' -- string. Defaults to 'RES-X'
         'legacy' -- bool swaps I and Q values if you have an old file"""
-    #Set some default values
-    unitString = kwargs.pop('units', 'mK')
-    if unitString == 'mK':
+    # Set some default values
+    unitString = kwargs.pop("units", "mK")
+    if unitString == "mK":
         units = 0.001
-    elif unitString == 'K':
+    elif unitString == "K":
         units = 1
     else:
         raise ValueError("Unknown unit type. Acceptable values are 'mK' or 'K'.")
-    temp = kwargs.pop('temp', np.NAN)
-    name = kwargs.pop('name', 'RES-X')
-    legacy = kwargs.pop('legacy', False)
+    temp = kwargs.pop("temp", np.NAN)
+    name = kwargs.pop("name", "RES-X")
+    legacy = kwargs.pop("legacy", False)
 
     if kwargs:
         raise ValueError("Unknown keyword argument passed: " + kwargs.keys()[0])
 
-    #If you change your default sweep types, update this dict here!
-    sweepDict = {'gain':201,
-                'rough':401,
-                'fine':1601}
+    # If you change your default sweep types, update this dict here!
+    sweepDict = {"gain": 201, "rough": 401, "fine": 1601}
 
-    #Open file and read power from header data
+    # Open file and read power from header data
     with open(dataFile) as fp:
         for i, line in enumerate(fp):
             if i == 2:
-                pwr = int(line[line.find(':')+1:line.find('.')])
+                pwr = int(line[line.find(":") + 1 : line.find(".")])
             elif i > 2:
                 break
 
-    #Load in the all I,Q,freq data
-    cdata = np.loadtxt(dataFile, delimiter=',',skiprows=6)
+    # Load in the all I,Q,freq data
+    cdata = np.loadtxt(dataFile, delimiter=",", skiprows=6)
 
-    #Slice out the data from the resonator you want to look at
+    # Slice out the data from the resonator you want to look at
     numPts = sweepDict[sweepType]
-    startData = resNum*numPts
-    endData = (resNum+1)*numPts - 1
+    startData = resNum * numPts
+    endData = (resNum + 1) * numPts - 1
 
-    #Dump everything into the dataDict
+    # Dump everything into the dataDict
     dataDict = {}
-    dataDict['freq'] = cdata[startData:endData,0]
+    dataDict["freq"] = cdata[startData:endData, 0]
 
-    #Load in the IQ data
-    #Old VNA programs reversed I and Q, so call legacy if trying to load those
+    # Load in the IQ data
+    # Old VNA programs reversed I and Q, so call legacy if trying to load those
     if legacy:
-        dataDict['Q'] = cdata[startData:endData,1]
-        dataDict['I'] = cdata[startData:endData,2]
+        dataDict["Q"] = cdata[startData:endData, 1]
+        dataDict["I"] = cdata[startData:endData, 2]
     else:
-        dataDict['I'] = cdata[startData:endData,1]
-        dataDict['Q'] = cdata[startData:endData,2]
+        dataDict["I"] = cdata[startData:endData, 1]
+        dataDict["Q"] = cdata[startData:endData, 2]
     ###
 
-    dataDict['temp'] = temp*units
-    dataDict['pwr'] = pwr
-    dataDict['name'] = name
+    dataDict["temp"] = temp * units
+    dataDict["pwr"] = pwr
+    dataDict["name"] = name
 
-    return dataDict #Suitable for use with pyres.makeResFromData()
-
+    return dataDict  # Suitable for use with pyres.makeResFromData()
 
 
 def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
@@ -140,71 +135,79 @@ def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
     Keyword arguments:
         'units' -- 'mK' or 'K' depending on how you enter 'temp'
         'sweep' -- 'gain', 'rough', or 'fine'. Default is 'rough'."""
-    #Set up some default values
+    # Set up some default values
 
-    unitString = kwargs.pop('units', 'mK')
-    if unitString == 'mK':
+    unitString = kwargs.pop("units", "mK")
+    if unitString == "mK":
         units = 0.001
-    elif unitString == 'K':
+    elif unitString == "K":
         units = 1
     else:
         raise ValueError("Unknown unit type. Acceptable values are 'mK' or 'K'.")
 
+    # Change this if you change the types of sweep that exist in the program
+    sweepDict = {"gain": 201, "rough": 401, "fine": 1601}
 
-    #Change this if you change the types of sweep that exist in the program
-    sweepDict = {'gain':201,
-                'rough':401,
-                'fine':1601}
-
-    sweepType = kwargs.pop('sweep', 'rough')
+    sweepType = kwargs.pop("sweep", "rough")
     assert sweepType in sweepDict.keys(), "Invalid sweep type. Try 'gain', 'rough', or 'fine'."
 
-    #If loading old data, swaps I and Q
-    legacy = kwargs.pop('legacy', False)
+    # If loading old data, swaps I and Q
+    legacy = kwargs.pop("legacy", False)
 
-    #Make sure no unknown keywords arguments
+    # Make sure no unknown keywords arguments
     if kwargs:
         raise ValueError("Unknown keyword argument passed: " + kwargs.keys()[0])
 
-    #Declare some empty containers
+    # Declare some empty containers
     dataDicts = {}
     resLists = {}
     for resName in resNames:
         dataDicts[resName] = []
         resLists[resName] = []
 
-    #Loop through all the directories and pull out the data
+    # Loop through all the directories and pull out the data
     for indexp, pwr in enumerate(pwrs):
         seriesNum = str(indexp).zfill(2)
 
         for indext, tval in enumerate(tvals):
-            folderNum = str(indext+1).zfill(2)
-            cdata = np.loadtxt(dataFolder+'sweep'+folderNum+'/'+sweepType+'VNAPn'+seriesNum+'set000.txt', delimiter=',',skiprows=6)
+            folderNum = str(indext + 1).zfill(2)
+            cdata = np.loadtxt(
+                dataFolder
+                + "sweep"
+                + folderNum
+                + "/"
+                + sweepType
+                + "VNAPn"
+                + seriesNum
+                + "set000.txt",
+                delimiter=",",
+                skiprows=6,
+            )
 
             for indexr, resName in enumerate(resNames):
                 numPts = sweepDict[sweepType]
-                startData = indexr*numPts
-                endData = (indexr+1)*numPts - 1
+                startData = indexr * numPts
+                endData = (indexr + 1) * numPts - 1
 
                 dataDict = {}
-                dataDict['freq'] = cdata[startData:endData,0]
+                dataDict["freq"] = cdata[startData:endData, 0]
 
                 if legacy:
-                    dataDict['Q'] = cdata[startData:endData,1]
-                    dataDict['I'] = cdata[startData:endData,2]
+                    dataDict["Q"] = cdata[startData:endData, 1]
+                    dataDict["I"] = cdata[startData:endData, 2]
                 else:
-                    dataDict['I'] = cdata[startData:endData,1]
-                    dataDict['Q'] = cdata[startData:endData,2]
+                    dataDict["I"] = cdata[startData:endData, 1]
+                    dataDict["Q"] = cdata[startData:endData, 2]
                 ###
 
-                dataDict['temp'] = tval*units
-                dataDict['pwr'] = pwr
-                dataDict['name'] = resName
+                dataDict["temp"] = tval * units
+                dataDict["pwr"] = pwr
+                dataDict["name"] = resName
 
                 dataDicts[resName].append(dataDict)
 
-    #Convert the dataDicts into Resonator objects and return a dict of lists of Resonators
+    # Convert the dataDicts into Resonator objects and return a dict of lists of Resonators
     for resName in resNames:
         resLists[resName] = [makeResFromData(dataDict) for dataDict in dataDicts[resName]]
 
-    return resLists #Suitable for passing to ResonatorSweep
+    return resLists  # Suitable for passing to ResonatorSweep
