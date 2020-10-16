@@ -13,35 +13,7 @@
 # serve to show the default.
 
 import os
-import sys
 
-import mock
-
-MOCK_MODULES = [
-    "numpy",
-    "scipy",
-    "pandas",
-    "matplotlib",
-    "matplotlib.pyplot",
-    "matplotlib.gridspec",
-    "mpl_toolkits",
-    "mpl_toolkits.mplot3d",
-    "mpl_toolkits.mplot3d.Axes3D",
-    "lmfit",
-    "scipy.signal",
-    "scipy.special",
-    "scipy.constants",
-    "scipy.interpolate",
-    "glob",
-]
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath("../"))
 import scraps
 
 # -- Autodoc options ---
