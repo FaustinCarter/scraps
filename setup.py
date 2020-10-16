@@ -20,8 +20,8 @@ setup(
         "numpy",
         "matplotlib>=3",
         "scipy",
-        "lmfit>=0.9.5",
-        "emcee>=2.2.1",
+        "lmfit>=1",
+        "emcee>=3",
         "pandas",
     ],
     classifiers=[

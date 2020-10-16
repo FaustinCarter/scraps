@@ -1,14 +1,13 @@
-name: py37
-channels:
-  - defaults
-  - conda-forge
+name: scraps-py37
+# channels:
+#   - defaults
+#   - conda-forge
 dependencies:
   - numpy
   - matplotlib>=3
-  - mpl_toolkits
   - scipy
-  - lmfit>=0.9.5
-  - emcee>=2.2.1
+  - lmfit>=1
+  - emcee>=3
   - pandas
   - python>=3.7
-  - ipython>=6.2
+  - ipython>=7

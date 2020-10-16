@@ -1,4 +1,5 @@
-from __future__ import division
+"""Class to hold multiple individual resonator measurments. Essentially a dict of Pandas Dataframes
+with some helper methods."""
 
 import lmfit as lf
 import numpy as np

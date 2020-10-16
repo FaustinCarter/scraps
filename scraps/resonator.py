@@ -1,3 +1,4 @@
+"""Resonator class to store complex frequency-based VNA measurements"""
 import glob
 
 import lmfit as lf
