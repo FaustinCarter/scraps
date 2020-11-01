@@ -308,6 +308,39 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
     axDict = {}
 
     # Set up axes and make labels
+    axis_label_mappings = {
+        "IQ": ("I (Volts)", "Q (Volts)"),
+        "rIQ": (
+            "Residual of I / $\sigma_\mathrm{I}$",
+            "Residual of Q / $\sigma_\mathrm{Q}$",
+        ),
+        "LinMag": ("Frequency", "Magnitude (Volts)"),
+        "LogMag": ("Frequency", "Magnitude (dB)"),
+        "rMag": ("Frequency", "Residual of Magnitude (Volts)"),
+        "Phase": ("Frequency", "Phase (Radians)"),
+        "rPhase": ("Frequency", "Residual of Phase (Radians)"),
+        "uPhase": ("Frequency", "Unwrapped Phase (Radians)"),
+        "ruPhase": ("Frequency", "Residual of unwrapped Phase (Radians)"),
+        "I": ("Frequency", "I (Volts)"),
+        "Q": ("Frequency", "Q (Volts)"),
+        "rI": ("Frequency", "Residual of I / $\sigma_\mathrm{I}$"),
+        "rQ": ("Frequency", "Residual of Q / $\sigma_\mathrm{Q}$"),
+    }
+
+    labels_with_xfreq = [
+        "LinMag",
+        "LogMag",
+        "rMag",
+        "Phase",
+        "rPhase",
+        "uPhase",
+        "ruPhase",
+        "I",
+        "Q",
+        "rI",
+        "rQ",
+    ]
+
     for ix, key in enumerate(plot_types):
 
         iRow = ix // num_cols
@@ -315,61 +348,8 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
 
         ax = figS.add_subplot(plt_grid[iRow, iCol])
 
-        if key == "IQ":
-            ax.set_xlabel("I (Volts)")
-            ax.set_ylabel("Q (Volts)")
-
-        if key == "rIQ":
-            ax.set_xlabel("Residual of I / $\sigma_\mathrm{I}$")
-            ax.set_ylabel("Residual of Q / $\sigma_\mathrm{Q}$")
-
-        if key in [
-            "LogMag",
-            "LinMag",
-            "rMag",
-            "Phase",
-            "rPhase",
-            "uPhase",
-            "ruPhase",
-            "I",
-            "Q",
-            "rQ",
-            "rI",
-        ]:
-            ax.set_xlabel("Frequency (" + freq_units + ")")
-
-        if key == "LinMag":
-            ax.set_ylabel("Magnitude (Volts)")
-
-        if key == "LogMag":
-            ax.set_ylabel("Magnitude (dB)")
-
-        if key == "rMag":
-            ax.set_ylabel("Residual of Magnitude (Volts)")
-
-        if key == "Phase":
-            ax.set_ylabel("Phase (Radians)")
-
-        if key == "rPhase":
-            ax.set_ylabel("Residual of Phase (Radians)")
-
-        if key == "uPhase":
-            ax.set_ylabel("Unwrapped Phase (Radians)")
-
-        if key == "ruPhase":
-            ax.set_ylabel("Residual of unwrapped Phase (Radians)")
-
-        if key == "I":
-            ax.set_ylabel("I (Volts)")
-
-        if key == "Q":
-            ax.set_ylabel("Q (Volts)")
-
-        if key == "rI":
-            ax.set_ylabel("Residual of I / $\sigma_\mathrm{I}$")
-
-        if key == "rQ":
-            ax.set_ylabel("Residual of Q / $\sigma_\mathrm{Q}$")
+        ax.set_xlabel(axis_label_mappings[key][0])
+        ax.set_ylabel(axis_label_mappings[key][1])
 
         # Stuff the axis into the axis dictionary
         axDict[key] = ax
@@ -383,18 +363,18 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
             resIndex = indexResList(resList, temp, pwr, itemp=use_itemps)
 
             # Color magic!
+            plt_color = color_gen(0)
             if color_by == "temps":
                 if len(temps) > 1:
                     plt_color = color_gen(temp * 1.0 / max(temps))
-                else:
-                    plt_color = color_gen(0)
+
             elif color_by == "pwrs":
                 if len(powers) > 1:
                     plt_color = color_gen(
                         1 - ((max(powers) - pwr) * 1.0 / (max(powers) - min(powers)))
                     )
-                else:
-                    plt_color = color_gen(0)
+
+            plot_kwargs.update({"color": plt_color})
 
             # Not every temp/pwr combo corresponds to a resonator. Ignore missing ones.
             if resIndex is not None:
@@ -404,175 +384,93 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
                 for key, ax in axDict.items():
                     pix = plot_types.index(key)
                     plot_fit = plot_fits[pix]
+
                     if key == "IQ":
-                        ax.plot(
-                            res.I[x_slice],
-                            res.Q[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
+                        xvals = res.I[x_slice]
+                        yvals = res.Q[x_slice]
                         if plot_fit:
-                            ax.plot(
-                                res.resultI[x_slice], res.resultQ[x_slice], **fit_kwargs
-                            )
+                            fit_xvals = res.resultI[x_slice]
+                            fit_yvals = res.resultQ[x_slice]
+                    elif key == "rIQ":
+                        xvals = res.residualI[x_slice]
+                        yvals = res.residualQ[x_slice]
+                    elif key in labels_with_xfreq:
+                        xvals = scaled_freq[x_slice]
+                        fit_xvals = xvals
 
-                    if key == "rIQ":
-                        ax.plot(
-                            res.residualI[x_slice],
-                            res.residualQ[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
-
-                    if key == "LogMag":
-                        ax.plot(
-                            scaled_freq[x_slice],
-                            res.logmag[x_slice] + wix * waterfall,
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
-                        if plot_fit:
-                            ax.plot(
-                                scaled_freq[x_slice],
-                                20 * np.log10(res.resultMag[x_slice]) + wix * waterfall,
-                                **fit_kwargs,
-                            )
-                        # Step the waterfall plot
-                        wix += 1
-
-                    if key == "LinMag":
-                        ax.plot(
-                            scaled_freq[x_slice],
-                            res.mag[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
-                        if plot_fit:
-                            ax.plot(
-                                scaled_freq[x_slice],
-                                res.resultMag[x_slice],
-                                **fit_kwargs,
-                            )
-
-                    if key == "rMag":
-                        ax.plot(
-                            scaled_freq[x_slice],
-                            res.resultMag[x_slice] - res.mag[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
-
-                    if key == "Phase":
-                        if detrend_phase:
-                            ax.plot(
-                                scaled_freq[x_slice],
-                                sps.detrend(res.phase[x_slice]),
-                                color=plt_color,
-                                **plot_kwargs,
-                            )
+                        if key == "LogMag":
+                            yvals = res.logmag[x_slice] + wix * waterfall
                             if plot_fit:
-                                ax.plot(
-                                    scaled_freq[x_slice],
-                                    sps.detrend(res.resultPhase[x_slice]),
-                                    **fit_kwargs,
-                                )
-                        else:
-                            ax.plot(
-                                scaled_freq[x_slice],
-                                res.phase[x_slice],
-                                color=plt_color,
-                                **plot_kwargs,
-                            )
-                            if plot_fit:
-                                ax.plot(
-                                    scaled_freq[x_slice],
-                                    res.resultPhase[x_slice],
-                                    **fit_kwargs,
+                                fit_yvals = (
+                                    20 * np.log10(res.resultMag[x_slice])
+                                    + wix * waterfall,
                                 )
 
-                    if key == "rPhase":
-                        ax.plot(
-                            scaled_freq[x_slice],
-                            res.resultPhase[x_slice] - res.phase[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
+                            # Step the waterfall plot
+                            wix += 1
 
-                    if key == "uPhase":
-                        if detrend_phase:
-                            ax.plot(
-                                scaled_freq[x_slice],
-                                sps.detrend(res.uphase[x_slice]),
-                                color=plt_color,
-                                **plot_kwargs,
-                            )
+                        elif key == "LinMag":
+                            yvals = res.mag[x_slice]
                             if plot_fit:
-                                ax.plot(
-                                    scaled_freq[x_slice],
-                                    sps.detrend(np.unwrap(res.resultPhase[x_slice])),
-                                    **fit_kwargs,
-                                )
-                        else:
-                            ax.plot(
-                                scaled_freq[x_slice],
-                                res.uphase[x_slice],
-                                color=plt_color,
-                                **plot_kwargs,
+                                fit_yvals = res.resultMag[x_slice]
+
+                        elif key == "rMag":
+                            yvals = res.resultMag[x_slice] - res.mag[x_slice]
+
+                        elif key == "Phase":
+                            if detrend_phase:
+                                yvals = sps.detrend(res.phase[x_slice])
+                                if plot_fit:
+                                    fit_yvals = sps.detrend(res.resultPhase[x_slice])
+                            else:
+                                yvals = res.phase[x_slice]
+                                if plot_fit:
+                                    fit_yvals = res.resultPhase[x_slice]
+
+                        elif key == "rPhase":
+                            yvals = res.resultPhase[x_slice] - res.phase[x_slice]
+
+                        elif key == "uPhase":
+                            if detrend_phase:
+                                yvals = sps.detrend(res.uphase[x_slice])
+                                if plot_fit:
+                                    fit_yvals = sps.detrend(
+                                        np.unwrap(res.resultPhase[x_slice])
+                                    )
+                            else:
+                                yvals = res.uphase[x_slice]
+                                if plot_fit:
+                                    fit_yvals = np.unwrap(res.resultPhase[x_slice])
+
+                        elif key == "ruPhase":
+                            yvals = (
+                                np.unwrap(res.resultPhase[x_slice])
+                                - res.uphase[x_slice]
                             )
+
+                        elif key == "I":
+                            yvals = res.I[x_slice]
                             if plot_fit:
-                                ax.plot(
-                                    scaled_freq[x_slice],
-                                    np.unwrap(res.resultPhase[x_slice]),
-                                    **fit_kwargs,
-                                )
+                                fit_yvals = res.resultI[x_slice]
 
-                    if key == "ruPhase":
-                        ax.plot(
-                            scaled_freq[x_slice],
-                            np.unwrap(res.resultPhase[x_slice]) - res.uphase[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
+                        elif key == "rI":
+                            yvals = res.residualI[x_slice]
 
-                    if key == "I":
-                        ax.plot(
-                            scaled_freq[x_slice],
-                            res.I[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
-                        if plot_fit:
-                            ax.plot(
-                                scaled_freq[x_slice], res.resultI[x_slice], **fit_kwargs
-                            )
+                        elif key == "Q":
+                            yvals = res.Q[x_slice]
+                            if plot_fit:
+                                fit_yvals = res.resultQ[x_slice]
 
-                    if key == "rI":
-                        ax.plot(
-                            scaled_freq[x_slice],
-                            res.residualI[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
+                        elif key == "rQ":
+                            yvals = res.residualQ[x_slice]
 
-                    if key == "Q":
-                        ax.plot(
-                            scaled_freq[x_slice],
-                            res.Q[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
-                        if plot_fit:
-                            ax.plot(
-                                scaled_freq[x_slice], res.resultQ[x_slice], **fit_kwargs
-                            )
+                    else:
+                        assert key in axis_label_mappings.keys(), "Unknown key!"
 
-                    if key == "rQ":
-                        ax.plot(
-                            scaled_freq[x_slice],
-                            res.residualQ[x_slice],
-                            color=plt_color,
-                            **plot_kwargs,
-                        )
+                    ax.plot(xvals, yvals, **plot_kwargs)
+
+                    if plot_fit:
+                        ax.plot(fit_xvals, fit_yvals, **fit_kwargs)
 
                     plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
 
