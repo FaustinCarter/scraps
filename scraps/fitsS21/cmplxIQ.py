@@ -36,7 +36,6 @@ def cmplxIQ_fit(paramsVec, res, residual=True, **kwargs):
         If residual=True is specified, the return is the residuals weighted by the uncertainties. If residual=False, the return is the model
         values calculated at the frequency points. The returned array is in the form
         ``I + Q`` or ``residualI + residualQ``.
-
     """
     # Check if the paramsVec looks like a lmfit params object. If so, unpack to list
     if hasattr(paramsVec, "valuesdict"):
@@ -189,7 +188,6 @@ def cmplxIQ_params(res, **kwargs):
     Returns
     -------
     params : ``lmfit.Parameters`` object
-
     """
 
     # Check if some other type of hardware is supplied

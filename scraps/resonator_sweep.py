@@ -1,5 +1,7 @@
-"""Class to hold multiple individual resonator measurments. Essentially a dict of Pandas Dataframes
-with some helper methods."""
+"""Class to hold multiple individual resonator measurments.
+
+Essentially a dict of Pandas Dataframes with some helper methods.
+"""
 
 import lmfit as lf
 import numpy as np
@@ -127,7 +129,8 @@ class ResonatorSweep(dict):
     """
 
     def __init__(self, resList, **kwargs):
-        """Formats temp/pwr sweeps into easily parsed pandas DataFrame objects."""
+        """Formats temp/pwr sweeps into easily parsed pandas DataFrame
+        objects."""
         # Call the base class initialization for an empty dict.
         # Not sure this is totally necessary, but don't want to break the dict...
         dict.__init__(self)
@@ -880,7 +883,8 @@ class ResonatorSweep(dict):
             ] = returned_model.T
 
     def info(self):
-        """Print out some information on all the keys that are stored in the object."""
+        """Print out some information on all the keys that are stored in the
+        object."""
 
         # For now, this just spits out all the keys. Could be more useful.
         print(sorted(self.keys()))

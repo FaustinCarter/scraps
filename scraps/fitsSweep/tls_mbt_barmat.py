@@ -5,7 +5,8 @@ from scipy.special import digamma
 
 
 def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
-    """A model of internal quality factor vs temperature and power, weighted by uncertainties.
+    """A model of internal quality factor vs temperature and power, weighted by
+    uncertainties.
 
     Parameters
     ----------
@@ -51,7 +52,6 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
 
     R(T)/X(0) is calculated using the barmat python package at:
     http://github.com/FaustinCarter/barmat.
-
     """
 
     # TLS params
@@ -125,7 +125,8 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
 
 
 def f0_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
-    """A model of frequency shift vs temperature and power, weighted by uncertainties.
+    """A model of frequency shift vs temperature and power, weighted by
+    uncertainties.
 
     Parameters
     ----------
@@ -170,7 +171,6 @@ def f0_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
 
     (X(T)-X(0))/X(0) calculated is calculated using the barmat python package at:
     http://github.com/FaustinCarter/barmat.
-
     """
     # Unpack parameter values from params
 

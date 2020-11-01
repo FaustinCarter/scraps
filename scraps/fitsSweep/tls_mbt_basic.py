@@ -5,7 +5,8 @@ from scipy.special import digamma, i0, k0
 
 
 def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
-    """A model of internal quality factor vs temperature and power, weighted by uncertainties.
+    """A model of internal quality factor vs temperature and power, weighted by
+    uncertainties.
 
     Parameters
     ----------
@@ -54,7 +55,6 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
 
     R(T)/X(0) calculated from (2.80), (2.89), and (2.90), using the ``deltaBCS``
     function in this module for returning gap as a function of temperature.
-
     """
 
     Fd = params["Fd"].value
@@ -123,7 +123,8 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
 
 
 def f0_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
-    """A model of frequency shift vs temperature and power, weighted by uncertainties.
+    """A model of frequency shift vs temperature and power, weighted by
+    uncertainties.
 
     Parameters
     ----------
@@ -172,7 +173,6 @@ def f0_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
 
     (X(T)-X(0))/X(0) calculated from (2.80), (2.89), and (2.90), using the ``deltaBCS``
     function in this module for returning gap as a function of temperature.
-
     """
     # Unpack parameter values from params
     Fd = params["Fd"].value

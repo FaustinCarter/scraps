@@ -1,5 +1,8 @@
-"""Some specific tools to interface with measuremnets made at University of Chicago. This module is
-scheduled for deprecation"""
+"""Some specific tools to interface with measuremnets made at University of
+Chicago.
+
+This module is scheduled for deprecation
+"""
 
 import numpy as np
 from astropy.io import fits
@@ -8,7 +11,7 @@ from scraps.resonator import Resonator, makeResFromData
 
 
 def load_fits(dataFile, resNum=0):
-    """Load in a single sweep from one of Pete's .fits files"""
+    """Load in a single sweep from one of Pete's .fits files."""
 
     data = fits.open(dataFile, memmap=False)
 
@@ -47,7 +50,8 @@ def load_fits(dataFile, resNum=0):
 
 
 def load_one_ESL(dataFile, sweepType="rough", resNum=0, **kwargs):
-    """Load a single resonator file from ESL into a data dict for later processing.
+    """Load a single resonator file from ESL into a data dict for later
+    processing.
 
     Return value:
         dataDict -- a dict object with six fields
@@ -63,7 +67,8 @@ def load_one_ESL(dataFile, sweepType="rough", resNum=0, **kwargs):
         'temp' -- float
         'units' -- 'mK' or 'K' depending on how you enter 'temp'
         'name' -- string. Defaults to 'RES-X'
-        'legacy' -- bool swaps I and Q values if you have an old file"""
+        'legacy' -- bool swaps I and Q values if you have an old file
+    """
     # Set some default values
     unitString = kwargs.pop("units", "mK")
     if unitString == "mK":
@@ -120,7 +125,8 @@ def load_one_ESL(dataFile, sweepType="rough", resNum=0, **kwargs):
 
 
 def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
-    """Load a set of ESL resonator data corresponding to a power/temperature sweep.
+    """Load a set of ESL resonator data corresponding to a power/temperature
+    sweep.
 
     Return value:
         resList -- a dict of lists of Resonator objects, indexed by resonator name.
@@ -139,7 +145,8 @@ def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
 
     Keyword arguments:
         'units' -- 'mK' or 'K' depending on how you enter 'temp'
-        'sweep' -- 'gain', 'rough', or 'fine'. Default is 'rough'."""
+        'sweep' -- 'gain', 'rough', or 'fine'. Default is 'rough'.
+    """
     # Set up some default values
 
     unitString = kwargs.pop("units", "mK")

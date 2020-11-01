@@ -1,4 +1,4 @@
-"""Resonator class to store complex frequency-based VNA measurements"""
+"""Resonator class to store complex frequency-based VNA measurements."""
 import glob
 
 import lmfit as lf
@@ -222,7 +222,10 @@ class Resonator(object):
         return self.freq[np.argmin(self.mag)]
 
     def to_disk(self):
-        """To be implemented: dumps resonator to disk as various file types. Default will be netcdf4"""
+        """To be implemented: dumps resonator to disk as various file types.
+
+        Default will be netcdf4
+        """
         pass
 
     def from_disk(self):
@@ -230,11 +233,11 @@ class Resonator(object):
         pass
 
     def to_json(self):
-        """To be implemented: serialize resonator as a JSON string"""
+        """To be implemented: serialize resonator as a JSON string."""
         pass
 
     def from_json(self):
-        """To be implemented: create rsonator from JSON string"""
+        """To be implemented: create rsonator from JSON string."""
         pass
 
     # TODO: Implement the following for handling pickling:
@@ -258,7 +261,6 @@ class Resonator(object):
 
         kwargs : dict
             A dictionary of keyword arguments to pass to paramsFn.
-
         """
         params = paramsFn(self, **kwargs)
         self.params = params
@@ -632,7 +634,6 @@ def makeResFromData(
     -------
     res : ``Resonator`` object or ``None``
         A Resonator object or ``None`` if there is an error loading the data.
-
     """
     if fitFn is not None:
         assert (
@@ -685,7 +686,7 @@ def makeResFromData(
 
 
 def makeResList(fileFunc, dataPath, resName, **fileFunc_kwargs):
-    """Create a list of resonator objects from a directory of dataDict
+    """Create a list of resonator objects from a directory of dataDict.
 
     Parameters
     ----------
@@ -706,7 +707,6 @@ def makeResList(fileFunc, dataPath, resName, **fileFunc_kwargs):
 
     fileFunc_kwargs : dict
         Keyword arguments to pass through to the fileFunc
-
     """
     # Find the files that match the resonator you care about
     fileList = glob.glob(dataPath + resName + "_*")
@@ -751,7 +751,6 @@ def indexResList(resList, temp=None, pwr=None, **kwargs):
     Notes
     -----
     indexResList does not check for duplicates and will return the first match.
-
     """
     itemp = kwargs.pop("itemp", False)
     assert itemp in [True, False], "'itemp' must be boolean."
@@ -788,7 +787,7 @@ def indexResList(resList, temp=None, pwr=None, **kwargs):
 
 
 def print_resList(resList):
-    """Print all the temperatures and powers in a table-like form"""
+    """Print all the temperatures and powers in a table-like form."""
     # Get all possible powers
     pwrs = np.unique([res.pwr for res in resList])
 
@@ -817,7 +816,7 @@ def print_resList(resList):
 
 
 def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
-    """Helper tool for preparing a resList with missing data for resSweep"""
+    """Helper tool for preparing a resList with missing data for resSweep."""
     # Get all possible powers
     pwrs = np.unique([res.pwr for res in resList])
 

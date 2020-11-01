@@ -1,5 +1,5 @@
-"""Collection of plotting routins that accept Resonator, List[Resonator], and ResonatorSweep
-objects"""
+"""Collection of plotting routins that accept Resonator, List[Resonator], and
+ResonatorSweep objects."""
 
 import warnings
 
