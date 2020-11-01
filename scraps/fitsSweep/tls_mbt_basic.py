@@ -97,7 +97,15 @@ def qi_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     invQtls = Fd * np.tanh(zeta) / np.sqrt(1.0 + 10 ** (ps / 10.0) / Pc)
 
     # Calculte the inverse Q from MBD
-    invQmbd = alpha * gamma * 4 * deltaR * np.exp(-deltaT / (sc.k * ts)) * np.sinh(zeta) * k0(zeta)
+    invQmbd = (
+        alpha
+        * gamma
+        * 4
+        * deltaR
+        * np.exp(-deltaT / (sc.k * ts))
+        * np.sinh(zeta)
+        * k0(zeta)
+    )
 
     # Get the difference from the total Q and
     model = 1.0 / (invQtls + invQmbd + 1.0 / q0)
@@ -196,14 +204,21 @@ def f0_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     gamma = kwargs.pop("gamma", 0.5)
 
     # TLS contribution
-    dfTLS = Fd / sc.pi * (np.real(digamma(0.5 + zeta / (1j * sc.pi))) - np.log(zeta / sc.pi))
+    dfTLS = (
+        Fd
+        / sc.pi
+        * (np.real(digamma(0.5 + zeta / (1j * sc.pi))) - np.log(zeta / sc.pi))
+    )
 
     # MBD contribution
     dfMBD = (
         alpha
         * gamma
         * 0.5
-        * (deltaR * (1 - 2 * np.exp(-deltaT / (sc.k * ts)) * np.exp(-zeta) * i0(zeta)) - 1)
+        * (
+            deltaR * (1 - 2 * np.exp(-deltaT / (sc.k * ts)) * np.exp(-zeta) * i0(zeta))
+            - 1
+        )
     )
 
     # Calculate model from parameters

@@ -199,7 +199,11 @@ def f0_tlsAndMBT(params, temps, powers, data=None, eps=None, **kwargs):
     zeta = sc.h * f0 / (2 * sc.k * temps)
 
     # TLS contribution
-    dfTLS = Fd / sc.pi * (np.real(digamma(0.5 + zeta / (1j * sc.pi))) - np.log(zeta / sc.pi))
+    dfTLS = (
+        Fd
+        / sc.pi
+        * (np.real(digamma(0.5 + zeta / (1j * sc.pi))) - np.log(zeta / sc.pi))
+    )
 
     # MBD contribution
     # Calculate the dfMBD from MBD using barmat

@@ -16,7 +16,9 @@ def load_fits(dataFile, resNum=0):
     table = data[1].data
 
     num_sweeps = header["VNATONES"]
-    attenuation = header["INPUTATT"] + header["ATT_UC"] + header["ATT_C"] + header["ATT_RT"]
+    attenuation = (
+        header["INPUTATT"] + header["ATT_UC"] + header["ATT_C"] + header["ATT_RT"]
+    )
     vna_power = header["VNAPOWER"]
     power = vna_power - attenuation
 
@@ -152,7 +154,9 @@ def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
     sweepDict = {"gain": 201, "rough": 401, "fine": 1601}
 
     sweepType = kwargs.pop("sweep", "rough")
-    assert sweepType in sweepDict.keys(), "Invalid sweep type. Try 'gain', 'rough', or 'fine'."
+    assert (
+        sweepType in sweepDict.keys()
+    ), "Invalid sweep type. Try 'gain', 'rough', or 'fine'."
 
     # If loading old data, swaps I and Q
     legacy = kwargs.pop("legacy", False)
@@ -211,6 +215,8 @@ def load_sweep_ESL(dataFolder, resNames, tvals, pwrs, **kwargs):
 
     # Convert the dataDicts into Resonator objects and return a dict of lists of Resonators
     for resName in resNames:
-        resLists[resName] = [makeResFromData(dataDict) for dataDict in dataDicts[resName]]
+        resLists[resName] = [
+            makeResFromData(dataDict) for dataDict in dataDicts[resName]
+        ]
 
     return resLists  # Suitable for passing to ResonatorSweep

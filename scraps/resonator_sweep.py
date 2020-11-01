@@ -281,13 +281,19 @@ class ResonatorSweep(dict):
 
             if pname in resList[0].params.keys():
                 # Uncertainty on best fit from least-squares
-                self[pname + "_sigma"] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
+                self[pname + "_sigma"] = pd.DataFrame(
+                    np.nan, index=self.tvec, columns=self.pvec
+                )
 
                 # Maximum liklihood value from MCMC
-                self[pname + "_mle"] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
+                self[pname + "_mle"] = pd.DataFrame(
+                    np.nan, index=self.tvec, columns=self.pvec
+                )
 
                 # 50th percentile value of MCMC chain
-                self[pname + "_mc"] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
+                self[pname + "_mc"] = pd.DataFrame(
+                    np.nan, index=self.tvec, columns=self.pvec
+                )
 
                 # 84th-50th values from MCMC chain
                 self[pname + "_sigma_plus_mc"] = pd.DataFrame(
@@ -302,14 +308,19 @@ class ResonatorSweep(dict):
             # Fill it with as much data as exists
             for index, res in enumerate(resList):
                 if pname in res.lmfit_result[self.label]["result"].params.keys():
-                    if res.lmfit_result[self.label]["result"].params[pname].vary is True:
+                    if (
+                        res.lmfit_result[self.label]["result"].params[pname].vary
+                        is True
+                    ):
                         # The actual best fit value
                         self[pname][res.pwr][res.itemp] = (
                             res.lmfit_result[self.label]["result"].params[pname].value
                         )
 
                         # Get the right index to find the uncertainty in the covariance matrix
-                        cx = res.lmfit_result[self.label]["result"].var_names.index(pname)
+                        cx = res.lmfit_result[self.label]["result"].var_names.index(
+                            pname
+                        )
 
                         # The uncertainty is the sqrt of the autocovariance
                         if res.lmfit_result[self.label]["result"].errorbars == True:
@@ -324,36 +335,46 @@ class ResonatorSweep(dict):
                             sx = list(
                                 res.emcee_result[self.label]["result"]
                                 .flatchain.iloc[
-                                    np.argmax(res.emcee_result[self.label]["result"].lnprob)
+                                    np.argmax(
+                                        res.emcee_result[self.label]["result"].lnprob
+                                    )
                                 ]
                                 .keys()
                             ).index(pname)
-                            self[pname + "_mle"][res.pwr][res.itemp] = res.emcee_result[self.label][
-                                "mle_vals"
-                            ][pname]
+                            self[pname + "_mle"][res.pwr][res.itemp] = res.emcee_result[
+                                self.label
+                            ]["mle_vals"][pname]
                             self[pname + "_mc"][res.pwr][res.itemp] = (
-                                res.emcee_result[self.label]["result"].params[pname].value
+                                res.emcee_result[self.label]["result"]
+                                .params[pname]
+                                .value
                             )
 
                             # Since the plus and minus errorbars can be different,
                             # have to store them separately
-                            self[pname + "_sigma_plus_mc"][res.pwr][res.itemp] = res.emcee_result[
-                                self.label
-                            ]["emcee_sigmas"][sx][0]
-                            self[pname + "_sigma_minus_mc"][res.pwr][res.itemp] = res.emcee_result[
-                                self.label
-                            ]["emcee_sigmas"][sx][1]
+                            self[pname + "_sigma_plus_mc"][res.pwr][
+                                res.itemp
+                            ] = res.emcee_result[self.label]["emcee_sigmas"][sx][0]
+                            self[pname + "_sigma_minus_mc"][res.pwr][
+                                res.itemp
+                            ] = res.emcee_result[self.label]["emcee_sigmas"][sx][1]
                 elif pname == "temps":
                     # Since we bin the temps by itemp for indexing, store the actual temp here
                     self[pname][res.pwr][res.itemp] = res.temp
                 elif pname == "fmin":
                     self[pname][res.pwr][res.itemp] = res.fmin
                 elif pname == "chisq":
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]["result"].chisqr
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label][
+                        "result"
+                    ].chisqr
                 elif pname == "redchi":
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]["result"].redchi
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label][
+                        "result"
+                    ].redchi
                 elif pname == "feval":
-                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label]["result"].nfev
+                    self[pname][res.pwr][res.itemp] = res.lmfit_result[self.label][
+                        "result"
+                    ].nfev
                 elif pname == "listIndex":
                     # This is useful for figuring out where in the resList the data you care about is
                     self[pname][res.pwr][res.itemp] = index
@@ -363,7 +384,13 @@ class ResonatorSweep(dict):
                     self[pname][res.pwr][res.itemp] = qi * qc / (qi + qc)
 
     def do_lmfit(
-        self, fit_keys, models_list, params_list, model_kwargs=None, param_kwargs=None, **kwargs
+        self,
+        fit_keys,
+        models_list,
+        params_list,
+        model_kwargs=None,
+        param_kwargs=None,
+        **kwargs,
     ):
         r"""Run simulatneous fits on the temp/pwr data for several parameters.
         Results are stored in either the ``lmfit_results`` or
@@ -462,7 +489,11 @@ class ResonatorSweep(dict):
 
         # Process the final kwarg:
         raw_data = kwargs.pop("raw_data", "lmfit")
-        assert raw_data in ["lmfit", "emcee", "mle"], "raw_data must be 'lmfit' or 'emcee'."
+        assert raw_data in [
+            "lmfit",
+            "emcee",
+            "mle",
+        ], "raw_data must be 'lmfit' or 'emcee'."
 
         assert (
             len(fit_keys) == len(models_list) == len(params_list)
@@ -535,7 +566,9 @@ class ResonatorSweep(dict):
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
             residuals = []
             for ix in range(len(fit_keys)):
-                residuals.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
+                residuals.append(
+                    models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix])
+                )
 
             return np.asarray(residuals).flatten()
 
@@ -543,7 +576,14 @@ class ResonatorSweep(dict):
         minObj = lf.Minimizer(
             model_func,
             merged_params,
-            fcn_args=(models_list, ts, ps, fit_data_list, fit_sigmas_list, model_kwargs),
+            fcn_args=(
+                models_list,
+                ts,
+                ps,
+                fit_data_list,
+                fit_sigmas_list,
+                model_kwargs,
+            ),
         )
 
         # Call the lmfit minimizer method and minimize the residual
@@ -572,7 +612,9 @@ class ResonatorSweep(dict):
             # Make a new dict entry to the self dictioary with the right key.
             # Have to transpose the matrix to turn it back into a DF
             self[new_key] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
-            self[new_key].loc[self.tvec[t_filter], self.pvec[p_filter]] = returned_model.T
+            self[new_key].loc[
+                self.tvec[t_filter], self.pvec[p_filter]
+            ] = returned_model.T
 
     def do_emcee(
         self,
@@ -582,7 +624,7 @@ class ResonatorSweep(dict):
         model_kwargs=None,
         param_kwargs=None,
         emcee_kwargs=None,
-        **kwargs
+        **kwargs,
     ):
         r"""Run simulatneous MCMC sampling on the temp/pwr data for several
         parameters. Results are stored in either the ``emcee_results`` or
@@ -674,7 +716,11 @@ class ResonatorSweep(dict):
 
         # Figure out which data to fit
         raw_data = kwargs.pop("raw_data", "lmfit")
-        assert raw_data in ["lmfit", "emcee", "mle"], "raw_data must be 'lmfit' or 'emcee'."
+        assert raw_data in [
+            "lmfit",
+            "emcee",
+            "mle",
+        ], "raw_data must be 'lmfit' or 'emcee'."
 
         # Set some limits
         min_temp = kwargs.pop("min_temp", min(self.tvec))
@@ -690,7 +736,9 @@ class ResonatorSweep(dict):
                 len(fit_keys) == len(models_list) == len(params_list)
             ), "Make sure argument lists match in number."
         else:
-            assert len(fit_keys) == len(models_list), "Make sure argument lists match in number."
+            assert len(fit_keys) == len(
+                models_list
+            ), "Make sure argument lists match in number."
 
         # Make some empty dictionaries just in case so we don't break functions
         # by passing None as a kwargs
@@ -781,7 +829,9 @@ class ResonatorSweep(dict):
         def model_func(params, models, ts, ps, data, sigmas, kwargs):
             residuals = []
             for ix in range(len(fit_keys)):
-                residuals.append(models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix]))
+                residuals.append(
+                    models[ix](params, ts, ps, data[ix], sigmas[ix], **kwargs[ix])
+                )
 
             return np.asarray(residuals).flatten()
 
@@ -789,7 +839,14 @@ class ResonatorSweep(dict):
         minObj = lf.Minimizer(
             model_func,
             merged_params,
-            fcn_args=(models_list, ts, ps, fit_data_list, fit_sigmas_list, model_kwargs),
+            fcn_args=(
+                models_list,
+                ts,
+                ps,
+                fit_data_list,
+                fit_sigmas_list,
+                model_kwargs,
+            ),
         )
 
         # Call the lmfit minimizer method and minimize the residual
@@ -818,7 +875,9 @@ class ResonatorSweep(dict):
             # Make a new dict entry to the self dictioary with the right key.
             # Have to transpose the matrix to turn it back into a DF
             self[new_key] = pd.DataFrame(np.nan, index=self.tvec, columns=self.pvec)
-            self[new_key].loc[self.tvec[t_filter], self.pvec[p_filter]] = returned_model.T
+            self[new_key].loc[
+                self.tvec[t_filter], self.pvec[p_filter]
+            ] = returned_model.T
 
     def info(self):
         """Print out some information on all the keys that are stored in the object."""

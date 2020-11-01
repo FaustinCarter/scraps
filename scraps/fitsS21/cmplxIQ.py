@@ -132,7 +132,9 @@ def cmplxIQ_fit(paramsVec, res, residual=True, **kwargs):
     else:
         # Calculate model from params at each point in freqs
         modelCmplx = (
-            total_gain * (1.0 / qi + 1j * 2.0 * (ff + df / fs)) / (1.0 / q0 + 1j * 2.0 * ff)
+            total_gain
+            * (1.0 / qi + 1j * 2.0 * (ff + df / fs))
+            / (1.0 / q0 + 1j * 2.0 * ff)
             + offset
         )
 
@@ -145,7 +147,9 @@ def cmplxIQ_fit(paramsVec, res, residual=True, **kwargs):
     if cmplxSigma is None and residual == True:
         epsI = np.std(sps.detrend(res.I[0:10]))
         epsQ = np.std(sps.detrend(res.Q[0:10]))
-        cmplxSigma = np.concatenate((np.full_like(res.I, epsI), np.full_like(res.Q, epsQ)))
+        cmplxSigma = np.concatenate(
+            (np.full_like(res.I, epsI), np.full_like(res.Q, epsQ))
+        )
 
     # Return model or residual
     if residual == True:
@@ -190,7 +194,10 @@ def cmplxIQ_params(res, **kwargs):
 
     # Check if some other type of hardware is supplied
     hardware = kwargs.pop("hardware", "VNA")
-    assert hardware in ["VNA", "mixer"], "Unknown hardware type! Choose 'mixer' or 'VNA'."
+    assert hardware in [
+        "VNA",
+        "mixer",
+    ], "Unknown hardware type! Choose 'mixer' or 'VNA'."
 
     # Whether or not to use a smoothing filter on the data before making guesses
     use_filter = kwargs.pop("use_filter", False)

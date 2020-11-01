@@ -229,13 +229,23 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
 
     # Should we plot best fits?
     plot_fits = kwargs.pop("plot_fits", [False] * len(plot_types))
-    assert len(plot_fits) == len(plot_types), "Must specify a fit bool for each plot type."
+    assert len(plot_fits) == len(
+        plot_types
+    ), "Must specify a fit bool for each plot type."
     if any(plot_fits):
-        assert all(res.hasFit for res in resList), "At least one resonator has not been fit yet."
+        assert all(
+            res.hasFit for res in resList
+        ), "At least one resonator has not been fit yet."
 
     # Set the units for the frequency axes
     freq_units = kwargs.pop("freq_units", "GHz")
-    assert freq_units in ["Hz", "kHz", "MHz", "GHz", "THz"], "Unsupported units request!"
+    assert freq_units in [
+        "Hz",
+        "kHz",
+        "MHz",
+        "GHz",
+        "THz",
+    ], "Unsupported units request!"
 
     unitsDict = {"Hz": 1, "kHz": 1e3, "MHz": 1e6, "GHz": 1e9, "THz": 1e12}
 
@@ -264,7 +274,9 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
 
     # Any extra kwargs for plotting
     plot_kwargs = kwargs.pop("plot_kwargs", {})
-    fit_kwargs = kwargs.pop("fit_kwargs", {"color": "k", "linestyle": "--", "linewidth": 1.5})
+    fit_kwargs = kwargs.pop(
+        "fit_kwargs", {"color": "k", "linestyle": "--", "linewidth": 1.5}
+    )
 
     if kwargs:
         raise NameError("Unknown keyword argument: " + kwargs.keys()[0])
@@ -283,7 +295,9 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
         figS.set_size_inches(fig_size * (num_cols + 0.1) * 1.2, fig_size * num_rows)
 
         # Initialize the grid for plotting
-        plt_grid = gs.GridSpec(num_rows, num_cols + 1, width_ratios=[15] * num_cols + [1])
+        plt_grid = gs.GridSpec(
+            num_rows, num_cols + 1, width_ratios=[15] * num_cols + [1]
+        )
     else:
         figS.set_size_inches(fig_size * (num_cols) * 1.2, fig_size * num_rows)
 
@@ -391,16 +405,23 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
                     pix = plot_types.index(key)
                     plot_fit = plot_fits[pix]
                     if key == "IQ":
-                        ax.plot(res.I[x_slice], res.Q[x_slice], color=plt_color, **plot_kwargs)
+                        ax.plot(
+                            res.I[x_slice],
+                            res.Q[x_slice],
+                            color=plt_color,
+                            **plot_kwargs,
+                        )
                         if plot_fit:
-                            ax.plot(res.resultI[x_slice], res.resultQ[x_slice], **fit_kwargs)
+                            ax.plot(
+                                res.resultI[x_slice], res.resultQ[x_slice], **fit_kwargs
+                            )
 
                     if key == "rIQ":
                         ax.plot(
                             res.residualI[x_slice],
                             res.residualQ[x_slice],
                             color=plt_color,
-                            **plot_kwargs
+                            **plot_kwargs,
                         )
 
                     if key == "LogMag":
@@ -408,30 +429,37 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
                             scaled_freq[x_slice],
                             res.logmag[x_slice] + wix * waterfall,
                             color=plt_color,
-                            **plot_kwargs
+                            **plot_kwargs,
                         )
                         if plot_fit:
                             ax.plot(
                                 scaled_freq[x_slice],
                                 20 * np.log10(res.resultMag[x_slice]) + wix * waterfall,
-                                **fit_kwargs
+                                **fit_kwargs,
                             )
                         # Step the waterfall plot
                         wix += 1
 
                     if key == "LinMag":
                         ax.plot(
-                            scaled_freq[x_slice], res.mag[x_slice], color=plt_color, **plot_kwargs
+                            scaled_freq[x_slice],
+                            res.mag[x_slice],
+                            color=plt_color,
+                            **plot_kwargs,
                         )
                         if plot_fit:
-                            ax.plot(scaled_freq[x_slice], res.resultMag[x_slice], **fit_kwargs)
+                            ax.plot(
+                                scaled_freq[x_slice],
+                                res.resultMag[x_slice],
+                                **fit_kwargs,
+                            )
 
                     if key == "rMag":
                         ax.plot(
                             scaled_freq[x_slice],
                             res.resultMag[x_slice] - res.mag[x_slice],
                             color=plt_color,
-                            **plot_kwargs
+                            **plot_kwargs,
                         )
 
                     if key == "Phase":
@@ -440,24 +468,26 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
                                 scaled_freq[x_slice],
                                 sps.detrend(res.phase[x_slice]),
                                 color=plt_color,
-                                **plot_kwargs
+                                **plot_kwargs,
                             )
                             if plot_fit:
                                 ax.plot(
                                     scaled_freq[x_slice],
                                     sps.detrend(res.resultPhase[x_slice]),
-                                    **fit_kwargs
+                                    **fit_kwargs,
                                 )
                         else:
                             ax.plot(
                                 scaled_freq[x_slice],
                                 res.phase[x_slice],
                                 color=plt_color,
-                                **plot_kwargs
+                                **plot_kwargs,
                             )
                             if plot_fit:
                                 ax.plot(
-                                    scaled_freq[x_slice], res.resultPhase[x_slice], **fit_kwargs
+                                    scaled_freq[x_slice],
+                                    res.resultPhase[x_slice],
+                                    **fit_kwargs,
                                 )
 
                     if key == "rPhase":
@@ -465,7 +495,7 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
                             scaled_freq[x_slice],
                             res.resultPhase[x_slice] - res.phase[x_slice],
                             color=plt_color,
-                            **plot_kwargs
+                            **plot_kwargs,
                         )
 
                     if key == "uPhase":
@@ -474,26 +504,26 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
                                 scaled_freq[x_slice],
                                 sps.detrend(res.uphase[x_slice]),
                                 color=plt_color,
-                                **plot_kwargs
+                                **plot_kwargs,
                             )
                             if plot_fit:
                                 ax.plot(
                                     scaled_freq[x_slice],
                                     sps.detrend(np.unwrap(res.resultPhase[x_slice])),
-                                    **fit_kwargs
+                                    **fit_kwargs,
                                 )
                         else:
                             ax.plot(
                                 scaled_freq[x_slice],
                                 res.uphase[x_slice],
                                 color=plt_color,
-                                **plot_kwargs
+                                **plot_kwargs,
                             )
                             if plot_fit:
                                 ax.plot(
                                     scaled_freq[x_slice],
                                     np.unwrap(res.resultPhase[x_slice]),
-                                    **fit_kwargs
+                                    **fit_kwargs,
                                 )
 
                     if key == "ruPhase":
@@ -501,37 +531,47 @@ def plotResListData(resList, plot_types=["IQ"], **kwargs):
                             scaled_freq[x_slice],
                             np.unwrap(res.resultPhase[x_slice]) - res.uphase[x_slice],
                             color=plt_color,
-                            **plot_kwargs
+                            **plot_kwargs,
                         )
 
                     if key == "I":
                         ax.plot(
-                            scaled_freq[x_slice], res.I[x_slice], color=plt_color, **plot_kwargs
+                            scaled_freq[x_slice],
+                            res.I[x_slice],
+                            color=plt_color,
+                            **plot_kwargs,
                         )
                         if plot_fit:
-                            ax.plot(scaled_freq[x_slice], res.resultI[x_slice], **fit_kwargs)
+                            ax.plot(
+                                scaled_freq[x_slice], res.resultI[x_slice], **fit_kwargs
+                            )
 
                     if key == "rI":
                         ax.plot(
                             scaled_freq[x_slice],
                             res.residualI[x_slice],
                             color=plt_color,
-                            **plot_kwargs
+                            **plot_kwargs,
                         )
 
                     if key == "Q":
                         ax.plot(
-                            scaled_freq[x_slice], res.Q[x_slice], color=plt_color, **plot_kwargs
+                            scaled_freq[x_slice],
+                            res.Q[x_slice],
+                            color=plt_color,
+                            **plot_kwargs,
                         )
                         if plot_fit:
-                            ax.plot(scaled_freq[x_slice], res.resultQ[x_slice], **fit_kwargs)
+                            ax.plot(
+                                scaled_freq[x_slice], res.resultQ[x_slice], **fit_kwargs
+                            )
 
                     if key == "rQ":
                         ax.plot(
                             scaled_freq[x_slice],
                             res.residualQ[x_slice],
                             color=plt_color,
-                            **plot_kwargs
+                            **plot_kwargs,
                         )
 
                     plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
@@ -698,7 +738,9 @@ def plotResSweepParamsVsX(
             powers = list(set(powers))
         else:
             for rS in resSweep:
-                assert any(p in rS.pvec for p in powers), "No data exists at any requested power."
+                assert any(
+                    p in rS.pvec for p in powers
+                ), "No data exists at any requested power."
 
     if xvals == "power":
         # Just use all the temperatures that exist period!
@@ -756,7 +798,9 @@ def plotResSweepParamsVsX(
     else:
         assert plot_keys is None, "Either pass plot_keys or ignore_keys, not both."
         for rS in resSweep:
-            assert all(key in rS.keys() for key in ignore_keys), "Unknown key in ignore_keys"
+            assert all(
+                key in rS.keys() for key in ignore_keys
+            ), "Unknown key in ignore_keys"
         ignore_keys.append("listIndex")
         ignore_keys.append("temps")
 
@@ -830,7 +874,9 @@ def plotResSweepParamsVsX(
         figS.set_size_inches(fig_size * (num_cols + 0.1) * 1.2, fig_size * num_rows)
 
         # Initialize the grid for plotting
-        plt_grid = gs.GridSpec(num_rows, num_cols + 1, width_ratios=[15] * num_cols + [1])
+        plt_grid = gs.GridSpec(
+            num_rows, num_cols + 1, width_ratios=[15] * num_cols + [1]
+        )
     else:
         figS.set_size_inches(fig_size * (num_cols) * 1.2, fig_size * num_rows)
 
@@ -911,33 +957,53 @@ def plotResSweepParamsVsX(
                     elif errorbars == "lmfit":
                         # lmfit uncertainty was stored in the _sigma key, so just grab it back out
                         if xvals == "temperature":
-                            plt_err = mult * rS[key + "_sigma"].loc[xMask[rix], itr].values
+                            plt_err = (
+                                mult * rS[key + "_sigma"].loc[xMask[rix], itr].values
+                            )
                         elif xvals == "power":
-                            plt_err = mult * rS[key + "_sigma"].loc[itr, xMask[rix]].values
+                            plt_err = (
+                                mult * rS[key + "_sigma"].loc[itr, xMask[rix]].values
+                            )
 
                         axs.errorbar(
-                            x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[rix]
+                            x_data,
+                            plt_data,
+                            yerr=plt_err,
+                            color=plt_color,
+                            **plot_kwargs[rix],
                         )
                     elif errorbars == "emcee":
                         # emcee uncertainty was placed in the _sigma_plus_mc and _sigma_minus_mc keys
                         if xvals == "temperature":
                             plt_err_plus = (
-                                mult * rS[key + "_sigma_plus_mc"].loc[xMask[rix], itr].values
+                                mult
+                                * rS[key + "_sigma_plus_mc"].loc[xMask[rix], itr].values
                             )
                             plt_err_minus = (
-                                mult * rS[key + "_sigma_minus_mc"].loc[xMask[rix], itr].values
+                                mult
+                                * rS[key + "_sigma_minus_mc"]
+                                .loc[xMask[rix], itr]
+                                .values
                             )
                         elif xvals == "power":
                             plt_err_plus = (
-                                mult * rS[key + "_sigma_plus_mc"].loc[itr, xMask[rix]].values
+                                mult
+                                * rS[key + "_sigma_plus_mc"].loc[itr, xMask[rix]].values
                             )
                             plt_err_minus = (
-                                mult * rS[key + "_sigma_minus_mc"].loc[itr, xMask[rix]].values
+                                mult
+                                * rS[key + "_sigma_minus_mc"]
+                                .loc[itr, xMask[rix]]
+                                .values
                             )
 
                         plt_err = [plt_err_plus, plt_err_minus]
                         axs.errorbar(
-                            x_data, plt_data, yerr=plt_err, color=plt_color, **plot_kwargs[rix]
+                            x_data,
+                            plt_data,
+                            yerr=plt_err,
+                            color=plt_color,
+                            **plot_kwargs[rix],
                         )
 
         if xvals == "temperature":
@@ -1077,7 +1143,8 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     """
 
     warnings.warn(
-        "This function has been deprecated in favor of plotResSweepParamsVsX", DeprecationWarning
+        "This function has been deprecated in favor of plotResSweepParamsVsX",
+        DeprecationWarning,
     )
 
     xmin = kwargs.pop("min_temp", None)
@@ -1089,7 +1156,9 @@ def plotResSweepParamsVsTemp(resSweep, plot_keys=None, ignore_keys=None, **kwarg
     if xmax is not None:
         kwargs["xmax"] = xmax
 
-    fig = plotResSweepParamsVsX(resSweep, plot_keys, ignore_keys, xvals="temperature", **kwargs)
+    fig = plotResSweepParamsVsX(
+        resSweep, plot_keys, ignore_keys, xvals="temperature", **kwargs
+    )
     return fig
 
 
@@ -1175,7 +1244,8 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
     """
 
     warnings.warn(
-        "This function has been deprecated in favor of plotResSweepParamsVsX", DeprecationWarning
+        "This function has been deprecated in favor of plotResSweepParamsVsX",
+        DeprecationWarning,
     )
 
     xmin = kwargs.pop("min_power", None)
@@ -1187,7 +1257,9 @@ def plotResSweepParamsVsPwr(resSweep, plot_keys=None, ignore_keys=None, **kwargs
     if xmax is not None:
         kwargs["xmax"] = xmax
 
-    fig = plotResSweepParamsVsX(resSweep, plot_keys, ignore_keys, xvals="power", **kwargs)
+    fig = plotResSweepParamsVsX(
+        resSweep, plot_keys, ignore_keys, xvals="power", **kwargs
+    )
     return fig
 
 
@@ -1270,11 +1342,15 @@ def plotResSweep3D(resSweep, plot_keys, **kwargs):
     # Some plotting niceties
     plot_labels = kwargs.pop("plot_labels", None)
     if plot_labels is not None:
-        assert len(plot_labels) == len(plot_keys), "Number of labels must equal number of plots."
+        assert len(plot_labels) == len(
+            plot_keys
+        ), "Number of labels must equal number of plots."
 
     unit_multipliers = kwargs.pop("unit_multipliers", None)
     if unit_multipliers is not None:
-        assert len(unit_multipliers) == len(plot_keys), "One multiplier per plot required."
+        assert len(unit_multipliers) == len(
+            plot_keys
+        ), "One multiplier per plot required."
 
     # Set some limits
     min_temp = kwargs.pop("min_temp", min(resSweep.tvec))

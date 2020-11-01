@@ -355,7 +355,9 @@ class Resonator(object):
         if (fit_type == "IQ") and (label == "default"):
             # Add the data back to the final minimized residual to get the final fit
             # Also calculate all relevant curves
-            cmplxResult = fitFn(self.lmfit_result[label]["result"].params, self, residual=False)
+            cmplxResult = fitFn(
+                self.lmfit_result[label]["result"].params, self, residual=False
+            )
             cmplxResidual = self.lmfit_result[label]["result"].residual
 
             # Split the complex data back up into real and imaginary parts
@@ -498,7 +500,9 @@ class Resonator(object):
         ]
 
         # This is useful because only varying parameters have mle vals
-        self.emcee_result[label]["mle_labels"] = self.emcee_result[label]["mle_vals"].keys()
+        self.emcee_result[label]["mle_labels"] = self.emcee_result[label][
+            "mle_vals"
+        ].keys()
 
         if label == "default":
             self.emcee_vals = self.emcee_result[label]["values"]
@@ -532,13 +536,22 @@ class Resonator(object):
 
         # Get the emcee 50th percentile data and uncertainties at 16th and 84th percentiles
         emcee_vals = np.asarray(
-            [np.percentile(flatchain_with_burn[key], 50) for key in flatchain_with_burn.keys()]
+            [
+                np.percentile(flatchain_with_burn[key], 50)
+                for key in flatchain_with_burn.keys()
+            ]
         )
         err_plus = np.asarray(
-            [np.percentile(flatchain_with_burn[key], 84) for key in flatchain_with_burn.keys()]
+            [
+                np.percentile(flatchain_with_burn[key], 84)
+                for key in flatchain_with_burn.keys()
+            ]
         )
         err_minus = np.asarray(
-            [np.percentile(flatchain_with_burn[key], 16) for key in flatchain_with_burn.keys()]
+            [
+                np.percentile(flatchain_with_burn[key], 16)
+                for key in flatchain_with_burn.keys()
+            ]
         )
 
         # Pack these values into the fit storage dict with suffix _burn
@@ -590,7 +603,9 @@ class Resonator(object):
 
 # This creates a resonator object from a data dictionary. Optionally performs a fit, and
 # adds the fit data back in to the resonator object
-def makeResFromData(dataDict, paramsFn=None, fitFn=None, fitFn_kwargs=None, paramsFn_kwargs=None):
+def makeResFromData(
+    dataDict, paramsFn=None, fitFn=None, fitFn_kwargs=None, paramsFn_kwargs=None
+):
     """Create a Resonator object from a data dictionary.
 
     Parameters
@@ -620,7 +635,9 @@ def makeResFromData(dataDict, paramsFn=None, fitFn=None, fitFn_kwargs=None, para
 
     """
     if fitFn is not None:
-        assert paramsFn is not None, "Cannot pass a fitFn without also passing a paramsFn"
+        assert (
+            paramsFn is not None
+        ), "Cannot pass a fitFn without also passing a paramsFn"
 
     # Check dataDict for validity
     expectedKeys = ["name", "temp", "pwr", "freq", "I", "Q"]
@@ -739,7 +756,9 @@ def indexResList(resList, temp=None, pwr=None, **kwargs):
     itemp = kwargs.pop("itemp", False)
     assert itemp in [True, False], "'itemp' must be boolean."
 
-    assert (pwr is not None) or (temp is not None), "Must specify at least either a temp or a pwr."
+    assert (pwr is not None) or (
+        temp is not None
+    ), "Must specify at least either a temp or a pwr."
 
     if (pwr is not None) and (temp is not None):
         for index, res in enumerate(resList):
@@ -844,7 +863,9 @@ def block_check_resList(resList, sdev=0.005, prune=False, verbose=True):
                     print(repr(block[bad_ix + i]).replace(",", ",\t"))
                     block_ixs = []
                     for block_ix, block_temp in enumerate(block[bad_ix + i]):
-                        block_ixs.append(indexResList(resList, block_temp, pwrs[block_ix]))
+                        block_ixs.append(
+                            indexResList(resList, block_temp, pwrs[block_ix])
+                        )
                     print(repr(block_ixs).replace(",", ",\t"))
 
             # The longer list is where the extra file is most likely
