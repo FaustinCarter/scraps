@@ -2,8 +2,8 @@ from __future__ import division
 import pandas as pd
 import numpy as np
 import lmfit as lf
-from .resonator import makeResFromData, makeResList, indexResList
-from .process_file import process_file
+from scraps.resonator import makeResFromData, makeResList, indexResList
+from scraps.process_file import process_file
 
 #This is a glorified dictionary with a custom initalize method. It takes a list
 #of resonator objects that have been fit, and then sets up a
