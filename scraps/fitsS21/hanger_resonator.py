@@ -258,7 +258,7 @@ def hanger_params(res, **kwargs):
 
     # Store the frequency at the magnitude minimum for future use.
     # Pull out the baseline variation first
-    findex_min = np.argmin(resMag - magBase(ffm(res.freq)))
+    findex_min = np.argmin(resMag / magBase(ffm(res.freq)))
 
     f_at_mag_min = res.freq[findex_min]
 
