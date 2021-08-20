@@ -3,11 +3,11 @@ import numpy as np
 from scraps.fitsS21 import utils
 
 
-def offset(freqs, re, im):
+def offset(freqs, re0, im0):
     """Complex offset re + j*im.
 
     Freqs vector is ignored, but required for lmfit Model."""
-    return re + 1j * im
+    return re0 + 1j * im0
 
 
 def mag(freqs, g0, g1, g2):

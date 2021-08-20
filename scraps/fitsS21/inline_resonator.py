@@ -185,8 +185,8 @@ def inline_resonator_full_guess(self, data, freqs, mask=0.05, **kwargs):
         offset_params = self.right.guess(data, freqs, offset_mask, **kwargs)
     else:
         offset_params = self.right.make_params(re=0, im=0)
-        offset_params[f"{self.prefix}re"].set(vary=False)
-        offset_params[f"{self.prefix}im"].set(vary=False)
+        offset_params[f"{self.prefix}re0"].set(vary=False)
+        offset_params[f"{self.prefix}im0"].set(vary=False)
 
     # Calculate the baselines
     mag_baseline_guess = self.left.right.left.eval(gain_params, freqs=freqs)
