@@ -1,3 +1,7 @@
+Version 0.5.1:
+* Patch bug introduced in 0.5.0 during refactor of baseline offset params
+* Patch bug in inline_ground_terminated_resonator_s11 guessing where a list was compared against a numpy array
+
 Version 0.5.0:
 * Deprecated cmplxIQ module in favor of hanger_resonator module. The functions are the same, only the names have changed. The cmplxIQ module will be removed in a future version.
 * Added a new inline_resonator module to fitsS21. This module has fit functions for an inline, or transmission resonator.
