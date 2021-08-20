@@ -83,10 +83,12 @@ class ModelInlineGroundedResonatorS11(lmfit.model.Model):
 
         # The magnitude is symmetric under exchange of qi and qc
         # Can use the phase to lift the degeneracy
-        qi_qc_ratios = [
-            np.tan(uphase_s11[np.where(freqs == fwhm_right)])[0],
-            -np.tan(uphase_s11[np.where(freqs == fwhm_left)])[0],
-        ]
+        qi_qc_ratios = np.array(
+            [
+                np.tan(uphase_s11[np.where(freqs == fwhm_right)])[0],
+                -np.tan(uphase_s11[np.where(freqs == fwhm_left)])[0],
+            ]
+        )
 
         if all(qi_qc_ratios >= 1):
             qc = 2 * q0 / (1 + min_s11)
@@ -167,7 +169,7 @@ def inline_resonator_ground_terminated_full_guess(self, data, freqs, mask=0.05, 
     if fit_offset:
         offset_params = self.right.guess(data, freqs, offset_mask, **kwargs)
     else:
-        offset_params = self.right.make_params(re=0, im=0)
+        offset_params = self.right.make_params(re0=0, im0=0)
         offset_params[f"{self.prefix}re0"].set(vary=False)
         offset_params[f"{self.prefix}im0"].set(vary=False)
 
