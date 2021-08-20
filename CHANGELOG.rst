@@ -1,6 +1,7 @@
 Version 0.5.0:
 * Deprecated cmplxIQ module in favor of hanger_resonator module. The functions are the same, only the names have changed. The cmplxIQ module will be removed in a future version.
 * Added a new inline_resonator module to fitsS21. This module has fit functions for an inline, or transmission resonator.
+* Added a new inline_ground_terminated_resonator_S11 module to fitsS21. This module has fit functions for the type of resonator described in  Samuel J. Whiteley's dissertation (U. Chicago, 2019) equation 3.41.
 * Fix a small math error in the hanger_resonator guessing module. Was accidentally subtracting the baseline instead of dividing by the baseline before finding the peak location. In most cases, with well-behaved baselines, this would not have introduced any errors.
 
 Version 0.4.4:
