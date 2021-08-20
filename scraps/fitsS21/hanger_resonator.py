@@ -11,6 +11,18 @@ import scipy.signal as sps
 import scipy.special as spc
 
 
+def cmplx_hanger(freqs, f0, df, qc, q0):
+    """Assymetric function that fits a hanger or notch type inverted Lorentzian."""
+    ft = f0 + df
+    x = (freqs - ft) / ft
+    dx = df / ft
+
+    qi = q0 * qc / (qc - q0)
+
+    s21 = (1.0 / qi + 1j * 2.0 * (x + dx)) / (1.0 / q0 + 1j * 2.0 * x)
+    return s21
+
+
 def hanger_fit(paramsVec, res, residual=True, **kwargs):
     """Return complex S21 of hanger resonator model or, if data is specified, a residual.
 
@@ -96,11 +108,7 @@ def hanger_fit(paramsVec, res, residual=True, **kwargs):
     else:
         cmplxSigma = None
 
-    # Make everything referenced to the shifted, unitless, reduced frequency
-    fs = f0 + df
-    ff = (freqs - fs) / fs
-
-    # Except for the gain, which should reference the file midpoint
+    # Gain should reference the file midpoint
     # This is important because the baseline coefs shouldn't drift
     # around with changes in f0 due to power or temperature
 
@@ -135,10 +143,7 @@ def hanger_fit(paramsVec, res, residual=True, **kwargs):
         modelCmplx = total_gain
     else:
         # Calculate model from params at each point in freqs
-        modelCmplx = (
-            total_gain * (1.0 / qi + 1j * 2.0 * (ff + df / fs)) / (1.0 / q0 + 1j * 2.0 * ff)
-            + offset
-        )
+        modelCmplx = total_gain * cmplx_hanger(freqs, f0, df, qc, q0) + offset
 
     # Package complex data in 1D vector form
     modelI = np.real(modelCmplx)
