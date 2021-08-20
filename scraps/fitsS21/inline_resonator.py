@@ -67,15 +67,13 @@ class ModelInlineResonator(lmfit.model.Model):
         fwhm_mask = mag_s21 > fwhm
         bandwidth = freqs[fwhm_mask].max() - freqs[fwhm_mask].min()
 
-        q0 = ft / bandwidth
-
         # A reasonable minimum bound for Q0 is center frequency divided by
         # the bandwidth of the full dataset
         q0_min = f0 / (freqs.max() - freqs.min())
 
         # A reasonable maximum bound is the center frequency divided by
         # the minimum frequency spacing of the dataset
-        q0_max = f0 / np.abs(np.diff(freqs)).min()
+        q0_max = f0 / np.abs(np.ma.masked_equal(np.diff(freqs), 0)).min()
 
         if not q0_max > q0 > q0_min:
             q0 = np.sqrt(q0_min * q0_max)
