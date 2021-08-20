@@ -75,6 +75,8 @@ class ModelInlineResonator(lmfit.model.Model):
         # the minimum frequency spacing of the dataset
         q0_max = f0 / np.abs(np.ma.masked_equal(np.diff(freqs), 0)).min()
 
+        q0 = f0_new / bandwidth
+
         if not q0_max > q0 > q0_min:
             q0 = np.sqrt(q0_min * q0_max)
             warnings.warn(
