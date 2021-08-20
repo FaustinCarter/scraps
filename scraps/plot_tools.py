@@ -5,7 +5,7 @@ import matplotlib as mpl
 import mpl_toolkits.mplot3d
 import numpy as np
 import scipy.signal as sps
-from .resonator import indexResList
+from scraps.resonator import indexResList
 
 Axes3D = mpl_toolkits.mplot3d.Axes3D
 

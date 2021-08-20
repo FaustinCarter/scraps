@@ -137,17 +137,19 @@ and one that takes parameters and data and returns a residual.
 
 I and Q vs frequency
 ^^^^^^^^^^^^^^^^^^^^
-The built-in fit model is called complx_IQ.py and is located in the fitsS21 folder.
+The built-in fit model is called hanger_resonator.py and is located in the fitsS21 folder.
 It has two functions, one that calculates best guess values for each of the ten fit
 parameters, and one that applies those guesses to the data and calculates the residual.
 
-cmplxIQ_params()
-----------------
-.. autofunction :: scraps.cmplxIQ_params
+*Note:* This module used to be called cmplxIQ.py. The hanger functions are the same, just renamed.
 
-cmplxIQ_fit()
+hanger_params()
+----------------
+.. autofunction :: scraps.hanger_params
+
+hanger_fit()
 -------------
-.. autofunction :: scraps.cmplxIQ_fit
+.. autofunction :: scraps.hanger_fit
 
 Two-level system (TLS) and Mattis-Bardeen effect (BMD)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
