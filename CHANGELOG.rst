@@ -1,3 +1,6 @@
+Version 0.5.2:
+* Replace all references to `lmfit.models.COMMON_DOC` with `lmfit.models.COMMON_INIT_DOC`
+
 Version 0.5.1:
 * Patch bug introduced in 0.5.0 during refactor of baseline offset params
 * Patch bug in inline_ground_terminated_resonator_s11 guessing where a list was compared against a numpy array

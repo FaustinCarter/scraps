@@ -32,7 +32,7 @@ def phase(freqs, p0, p1, p2):
 class ModelMagBaseline(lmfit.Model):
     __doc__ = (
         "lmfit model that fits a 2nd order polynomial as a function of reduced frequency."
-        + lmfit.models.COMMON_DOC
+        + lmfit.models.COMMON_INIT_DOC
     )
 
     def __init__(self, *args, **kwargs):
@@ -61,7 +61,7 @@ class ModelMagBaseline(lmfit.Model):
 class ModelPhaseBaseline(lmfit.Model):
     __doc__ = (
         "lmfit model that fits a 2nd order polynomial to phase angle as a function of reduced frequency."
-        + lmfit.models.COMMON_DOC
+        + lmfit.models.COMMON_INIT_DOC
     )
 
     def __init__(self, *args, **kwargs):
@@ -115,7 +115,7 @@ class ModelPhaseBaseline(lmfit.Model):
 
 
 class ModelComplexOffset(lmfit.Model):
-    __doc__ = "lmfit model that fits a complex offset." + lmfit.models.COMMON_DOC
+    __doc__ = "lmfit model that fits a complex offset." + lmfit.models.COMMON_INIT_DOC
 
     def __init__(self, *args, **kwargs):
         super().__init__(offset, *args, **kwargs)
