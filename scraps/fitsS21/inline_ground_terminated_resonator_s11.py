@@ -28,7 +28,7 @@ def cmplx_grounded_inline_s11(freqs, f0, df, qc, q0):
 class ModelInlineGroundedResonatorS11(lmfit.model.Model):
     __doc__ = (
         "lmfit model that fits the complex transmission (S_21) of an inline/transmission style resonator."
-        + lmfit.models.COMMON_DOC
+        + lmfit.models.COMMON_INIT_DOC
     )
 
     def __init__(self, *args, **kwargs):
