@@ -135,11 +135,18 @@ Fit models
 Each fit model consists of two functions. One that returns a :class:`lmfit.Parameters` object,
 and one that takes parameters and data and returns a residual.
 
-I and Q vs frequency
-^^^^^^^^^^^^^^^^^^^^
-The built-in fit model is called hanger_resonator.py and is located in the fitsS21 folder.
-It has two functions, one that calculates best guess values for each of the ten fit
-parameters, and one that applies those guesses to the data and calculates the residual.
+I and Q vs frequency: S21 "hanger"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This built-in fit model is called hanger_resonator.py and is located in the
+fitsS21 folder.
+
+This model is for a "hanger" style resonator measured in transmission. The
+resonator acts like a notch filter and results in an inverted-Lorentzian
+line-shape.
+
+It has two functions, one that calculates best guess values for each of the ten
+fit parameters, and one that applies those guesses to the data and calculates
+the residual.
 
 *Note:* This module used to be called cmplxIQ.py. The hanger functions are the same, just renamed.
 
@@ -150,6 +157,46 @@ hanger_params()
 hanger_fit()
 -------------
 .. autofunction :: scraps.hanger_fit
+
+I and Q vs frequency: S21 "inline"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This built-in fit model is called inline_resonator.py and is located in the
+fitsS21 folder.
+
+This model is for an inline resonator that is measured in transmission. The
+line-shape is the very traditional Lorentzian shape.
+
+It has two functions, one that calculates best guess values for each of the ten
+fit parameters, and one that applies those guesses to the data and calculates
+the residual.
+
+inline_params()
+----------------
+.. autofunction :: scraps.inline_params
+
+inline_fit()
+-------------
+.. autofunction :: scraps.inline_fit
+
+I and Q vs frequency: S11 "inline ground-terminated"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This built-in fit model is called inline_ground_terminated_resonator.py and is
+located in the fitsS21 folder.
+
+This model is for an inline resonator that is ground-terminated and measured in
+reflection. The line-shape is similar in appearance to the transmission
+measurement of a hanger resonator, but there are some important mathematical
+differences in the model. It has two functions, one that calculates best guess
+values for each of the ten fit parameters, and one that applies those guesses to
+the data and calculates the residual.
+
+inline_ground_terminated_params()
+----------------
+.. autofunction :: scraps.inline_ground_terminated_params
+
+inline_ground_terminated_fit()
+-------------
+.. autofunction :: scraps.inline_ground_terminated_fit
 
 Two-level system (TLS) and Mattis-Bardeen effect (BMD)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
