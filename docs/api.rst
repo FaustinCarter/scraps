@@ -151,11 +151,11 @@ the residual.
 *Note:* This module used to be called cmplxIQ.py. The hanger functions are the same, just renamed.
 
 hanger_params()
-----------------
+---------------
 .. autofunction :: scraps.hanger_params
 
 hanger_fit()
--------------
+------------
 .. autofunction :: scraps.hanger_fit
 
 I and Q vs frequency: S21 "inline"
@@ -171,16 +171,16 @@ fit parameters, and one that applies those guesses to the data and calculates
 the residual.
 
 inline_params()
-----------------
+---------------
 .. autofunction :: scraps.inline_params
 
 inline_fit()
--------------
+------------
 .. autofunction :: scraps.inline_fit
 
 I and Q vs frequency: S11 "inline ground-terminated"
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This built-in fit model is called inline_ground_terminated_resonator.py and is
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This built-in fit model is called inline_ground_terminated_resonator_s11.py and is
 located in the fitsS21 folder.
 
 This model is for an inline resonator that is ground-terminated and measured in
@@ -191,11 +191,11 @@ values for each of the ten fit parameters, and one that applies those guesses to
 the data and calculates the residual.
 
 inline_ground_terminated_params()
-----------------
+---------------------------------
 .. autofunction :: scraps.inline_ground_terminated_params
 
 inline_ground_terminated_fit()
--------------
+------------------------------
 .. autofunction :: scraps.inline_ground_terminated_fit
 
 Two-level system (TLS) and Mattis-Bardeen effect (BMD)
