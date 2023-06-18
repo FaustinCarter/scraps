@@ -60,12 +60,12 @@ class ResonatorSweep(dict):
     lmfit_joint_results : dict
         If multiple data sets are fit simultaneously via
         ``ResonatorSweep.do_lmfit``, the results will appear in this attribute
-        by key, where ``key = 'key1+key2' == 'key2+key1'.
+        by key, where ``key = 'key1+key2' == 'key2+key1'``.
 
     emcee_joint_results : dict
         If multiple data sets are fit simultaneously via
         ``ResonatorSweep.do_emcee``, the results will appear in this attribute
-        by key, where ``key = 'key1+key2'.
+        by key, where ``key = 'key1+key2'``.
 
     Note
     ----

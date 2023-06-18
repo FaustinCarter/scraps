@@ -15,23 +15,18 @@
 import sys
 import os
 
-import mock
+from unittest import mock
 
-MOCK_MODULES = ['numpy',
-                'scipy',
-                'pandas',
-                'matplotlib',
-                'matplotlib.pyplot',
-                'matplotlib.gridspec',
-                'mpl_toolkits',
-                'mpl_toolkits.mplot3d',
-                'mpl_toolkits.mplot3d.Axes3D',
-                'lmfit',
-                'scipy.signal',
-                'scipy.special',
-                'scipy.constants',
-                'scipy.interpolate',
-                'glob']
+MOCK_MODULES = [
+    'pandas',
+    'matplotlib',
+    'matplotlib.pyplot',
+    'matplotlib.gridspec',
+    'mpl_toolkits',
+    'mpl_toolkits.mplot3d',
+    'mpl_toolkits.mplot3d.Axes3D',
+]
+
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 
@@ -97,7 +92,7 @@ release = version_number
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:

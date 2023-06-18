@@ -258,7 +258,7 @@ class Resonator(object):
         Parameters
         ----------
         fitFn : function
-            fitFn must have the signature fitFn(params, res, residual, **kwargs).
+            fitFn must have the signature ``fitFn(params, res, residual, **kwargs)``.
             If residual == True, fitFn must return a 1D list-like object of
             residuals with form [I residual, Q residual] where [A, B] means
             concatenate. Otherwise it must return the model data in the same form.
@@ -401,7 +401,7 @@ class Resonator(object):
         Parameters
         ----------
         fitFn : function
-            fitFn must have the signature fitFn(params, res, residual, **kwargs).
+            fitFn must have the signature ``fitFn(params, res, residual, **kwargs)``.
             If residual == True, fitFn must return a 1D list-like object of
             residuals with form [I residual, Q residual] where [A, B] means
             concatenate. Otherwise it must return the model data in the same form.

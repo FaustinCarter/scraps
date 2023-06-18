@@ -1,0 +1,7 @@
+name: docsenv
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - lmfit # pulls in numpy and scipy; everything else gets mocked
+  - ipython # provides lexer needed for converted notebooks

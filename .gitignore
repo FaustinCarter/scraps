@@ -9,6 +9,10 @@
 *.pyc
 /build
 
+# Sphinx docs
+docs/_build
+docs/_static
+
 # Temp files
 *~
 .ipynb_checkpoints
