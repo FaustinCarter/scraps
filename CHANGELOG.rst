@@ -1,3 +1,7 @@
+Version 0.5.3:
+
+* Switch from use of numpy type aliases to built in types for casting in process_file.py
+
 Version 0.5.2:
 
 * Replace all references to `lmfit.models.COMMON_DOC` with `lmfit.models.COMMON_INIT_DOC`
