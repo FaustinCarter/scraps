@@ -53,12 +53,12 @@ def process_file(fileName, mask = None, meta_only=False, **loadtxt_kwargs):
 
     #Read the temp, pwr, and resName from the filename
     if(fileName[tempLoc + 1] == '.'):
-        temp = np.float(fileName[tempLoc:tempLoc+5])
+        temp = float(fileName[tempLoc:tempLoc+5])
 
         if fileName[pwrLoc] == '_':
-            pwr = np.float(fileName[pwrLoc+1:pwrLoc+3])
+            pwr = float(fileName[pwrLoc+1:pwrLoc+3])
         else:
-            pwr = np.float(fileName[pwrLoc:pwrLoc+3])
+            pwr = float(fileName[pwrLoc:pwrLoc+3])
 
         resName = fileName[resNameLoc:resNameLoc+5]
 
