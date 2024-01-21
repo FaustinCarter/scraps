@@ -9,6 +9,8 @@
 *.pyc
 /build
 
+docs/_build
+
 # Temp files
 *~
 .ipynb_checkpoints
